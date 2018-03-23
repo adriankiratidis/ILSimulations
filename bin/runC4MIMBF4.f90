@@ -10,10 +10,10 @@ program run_C4MIM_BF4
   
   print *, "Reading and initialising model parameters"
   print *, "This includes discretisation params and simulation params"
-  call InitialiseModelParameters(file_stub)
-  !print *, hello
+  call InitialiseModelParameters(trim(file_stub))
 
-  print *, pi
+  
+  
 
 end program run_C4MIM_BF4
 

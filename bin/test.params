@@ -1,0 +1,8 @@
+0.71		#chi_parameter
+2.3		#Epsilon_r
+0.003125	#surface charge density
+2.4		#hs_diameter
+20		#plate separation
+0.04475		#bulk density
+1.2		#string length
+20		#number of discretised points

@@ -16,7 +16,6 @@ module parameters
   ! over range of hs_diameter. (i.e. between x and x + hs_diameter)
   public :: n_discretised_points_z
 
-  public :: epsilon0
   public :: epsilonr
   public :: surface_charge_density
   public :: hs_diameter
@@ -27,7 +26,6 @@ module parameters
   real(dp) :: chi_parameter
   integer :: n_discretised_points_z
   
-  real(dp) :: epsilon0
   real(dp) :: epsilonr
   real(dp) :: surface_charge_density
   real(dp) :: hs_diameter
@@ -44,9 +42,8 @@ contains
     integer :: file_unit
     file_unit = 171
 
-    open(file_unit, file=file_stub//".params", action='read')
+    open(file_unit, file=trim(file_stub)//".params", action='read')
     read(file_unit, *) chi_parameter
-    read(file_unit, *) epsilon0
     read(file_unit, *) epsilonr
     read(file_unit, *) surface_charge_density
     read(file_unit, *) hs_diameter
@@ -55,6 +52,16 @@ contains
     read(file_unit, *) string_length
     read(file_unit, *) n_discretised_points_z
     close(file_unit)
+
+    print *, "Succesfully set the following values"
+    print *,  "chi_parameter = ", chi_parameter
+    print *,  "epsilonr = ", epsilonr
+    print *,  "surface_charge_density = ", surface_charge_density
+    print *,  "hs_diameter = ", hs_diameter
+    print *,  "plate_separation = ", plate_separation
+    print *,  "bulk_density = ", bulk_density
+    print *,  "string_length = ", string_length
+    print *,  "n_discretised_points_z = ", n_discretised_points_z
 
   end subroutine InitialiseModelParameters
 
