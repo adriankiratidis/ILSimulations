@@ -6,7 +6,9 @@ COMDIR = .
 OBJS =   \
 	kinds.o \
 	universalconstants.o \
-	parameters.o 
+	parameters.o \
+	integratephispherical.o \
+	iteration.o
 
 all:
 	make ILsimulationssrclib.o

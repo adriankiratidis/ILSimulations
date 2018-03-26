@@ -22,7 +22,9 @@ module parameters
   public :: plate_separation
   public :: bulk_density
   public :: string_length
-
+  public :: iterative_tolerance
+  public :: max_iteration_limit
+  
   real(dp) :: chi_parameter
   integer :: n_discretised_points_z
   
@@ -32,7 +34,8 @@ module parameters
   integer  :: plate_separation !In multiples of hs_diameter
   real(dp) :: bulk_density
   real(dp) :: string_length
-  integer  :: MAX_ITERATION_LIMIT
+  real(dp) :: iterative_tolerance
+  integer  :: max_iteration_limit
   
 contains
 
@@ -52,10 +55,11 @@ contains
     read(file_unit, *) bulk_density
     read(file_unit, *) string_length
     read(file_unit, *) n_discretised_points_z
-    read(file_unit, *) MAX_ITERATION_LIMIT
+    read(file_unit, *) max_iteration_limit
+    read(file_unit, *) iterative_tolerance
     close(file_unit)
 
-    print *, "Succesfully set the following values"
+    print *,  "Succesfully set the following values"
     print *,  "chi_parameter = ", chi_parameter
     print *,  "epsilonr = ", epsilonr
     print *,  "surface_charge_density = ", surface_charge_density
@@ -64,7 +68,8 @@ contains
     print *,  "bulk_density = ", bulk_density
     print *,  "string_length = ", string_length
     print *,  "n_discretised_points_z = ", n_discretised_points_z
-    print *, "MAX_ITERATION_LIMIT = ", MAX_ITERATION_LIMIT
+    print *,  "max_iteration_limit = ", max_iteration_limit
+    print *,  "iterative tolerance = ", iterative_tolerance
 
   end subroutine InitialiseModelParameters
 

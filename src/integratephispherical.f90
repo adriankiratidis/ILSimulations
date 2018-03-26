@@ -7,16 +7,15 @@ module integratephispherical
   private
 
   public :: integrate_phi_spherical
-  
-  type 
-     real(dp) :: multiplicative_factor
-     
-  end type 
 
 contains
 
-  function integrate_phi_spherical
-
+  function integrate_phi_spherical(z_dep_integrand) result(res)
+    real(dp), dimension(:), intent(in) :: z_dep_integrand
+    real(dp), dimension(size(z_dep_integrand)) :: res
+    
+    res = 0
+    
   end function integrate_phi_spherical
 
   function Jacobian(r, theta)
@@ -28,15 +27,13 @@ contains
     
   end function Jacobian
 
-  function trapezoidal_rule()
+  ! function trapezoidal_rule()
 
-  end function trapezoidal_rule
+  ! end function trapezoidal_rule
 
-  subroutine get_integral_limits(z)
+  ! subroutine get_integral_limits(z)
     
-  end subroutine get_integral_limits
-
-  subroutine get_
+  ! end subroutine get_integral_limits
   
 end module integratephispherical
   
