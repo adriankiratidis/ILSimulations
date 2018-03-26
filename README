@@ -1,1 +1,9 @@
 THIS IS A README FILE DETAILING THE INTSTRUCTIONS ON HOW TO RUN THIS SOFTWARE PACKAGE.
+
+TO COMPILE: Run the command 'make' in the root directory.  This will run the makefiles
+that are present in the src directory (containing the source files) and the bin
+directory (containing the executable files).
+
+TO RUN: Run the command ./<executable name>.x from the bin directory.
+e.g. ./runC4MIMBF4.x
+TODO: Add a shell script directory to construct the input file and run the executable.
