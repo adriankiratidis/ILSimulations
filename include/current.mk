@@ -4,8 +4,8 @@
 #OPTS = -O2 -ip -xAVX -assume byterecl -convert big_endian #-traceback -check all
 #F90FLAGS = -cpp  $(OPTS)
 
-F90C = gfortran
-OPTS = 
+F90C = gcc
+OPTS = -fbacktrace -Wall -pedantic-errors
 F90FLAGS = -cpp  $(OPTS)
 LINK = -L../lib/ -lsrc
 INCLUDE =

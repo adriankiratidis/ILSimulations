@@ -4,7 +4,7 @@ program run_C4MIM_BF4
   implicit none
 
   character(len=256) :: file_stub
-  integer            :: iteration
+  integer            :: iteration, id
 
   real(dp), dimension(:), allocatable :: n_plus, n_minus, n_neutral! bead densities
   real(dp), dimension(:), allocatable :: n_plus_updated, n_minus_updated, n_neutral_updated ! bead densities
@@ -54,106 +54,147 @@ program run_C4MIM_BF4
   print *, "This includes discretisation params and simulation params"
   call InitialiseModelParameters(trim(file_stub))
 
-  print *, "Initialising Discretistion"
-  call InitialiseDiscretisation(n_plus, n_minus, n_neutral, n_plus_updated, n_minus_updated, n_neutral_updated, &
-       lambda_plus, lambda_minus, lambda_neutral, c8c1, c9c10, c7, c6, c5, c4, c2, c3p, c3pp, c3ppp, c2p, c4p, c5p, &
-       c6p, c7p, a1a2a3a4, a5p)
+  do id = 1, size(plate_separations)
 
-  print *, "Initialising Integration Ansatz"
-  call InitialiseIntegrationAnsatz(n_plus, n_neutral, n_minus)
+     print *, "Initialising/ReInitialising Discretistion and setting integration ansatz."
+     print *, "Doing this for the densities"
+     call InitialiseDensityDiscretisationAndSetIntegrationAnsatz(id, n_plus, n_minus, n_neutral)
 
-  iteration = 0
-  do while (iteration < MAX_ITERATION_LIMIT)
-     iteration = iteration + 1
+     print *, "Initialise/ReInitialise Discretisation for all the temperary variables we need."
+     call InitialiseVariableDiscretisation(id, n_plus_updated, n_minus_updated, n_neutral_updated, &
+          lambda_plus, lambda_minus, lambda_neutral, c8c1, c9c10, c7, c6, c5, c4, c2, c3p, &
+          c3pp, c3ppp, c2p, c4p, c5p, c6p, c7p, a1a2a3a4, a5p)
+     
+     iteration = 0
+     do while (iteration < MAX_ITERATION_LIMIT)
+        iteration = iteration + 1
 
-     !Calculate the lambdas from the densities.
-     call CalculateLambdas(lambda_plus, lambda_neutral, lambda_minus, n_plus, n_neutral, n_minus)
+        !Calculate the lambdas from the densities.
+        call CalculateLambdas(lambda_plus, lambda_neutral, lambda_minus, n_plus, n_neutral, n_minus)
 
-     ! First we calculate the contributions from the required sites.
+        ! First we calculate the contributions from the required sites.
 
-     ! Start with the calculation required for the positive bead site.
-     c9c10 = integrate_phi_spherical(lambda_plus)
+        ! Start with the calculation required for the positive bead site.
+        c9c10 = integrate_phi_spherical(lambda_plus)
 
-     c8c1 = integrate_phi_spherical(lambda_neutral)
+        c8c1 = integrate_phi_spherical(lambda_neutral)
 
-     c7 = integrate_phi_spherical(lambda_neutral * c8c1)
+        c7 = integrate_phi_spherical(lambda_neutral * c8c1)
 
-     c6 = integrate_phi_spherical(lambda_neutral * c7)
+        c6 = integrate_phi_spherical(lambda_neutral * c7)
 
-     c5 = integrate_phi_spherical(lambda_neutral * c6)
+        c5 = integrate_phi_spherical(lambda_neutral * c6)
 
-     c4 = integrate_phi_spherical(lambda_plus * c5)
+        c4 = integrate_phi_spherical(lambda_plus * c5)
 
-     c3p = integrate_phi_spherical(lambda_plus * c4 * c9c10 * c9c10)
+        c3p = integrate_phi_spherical(lambda_plus * c4 * c9c10 * c9c10)
 
-     c2 = integrate_phi_spherical(lambda_plus * c8c1)
+        c2 = integrate_phi_spherical(lambda_plus * c8c1)
 
-     c3pp = integrate_phi_spherical(lambda_plus * c4 * c2 * c9c10)
+        c3pp = integrate_phi_spherical(lambda_plus * c4 * c2 * c9c10)
 
-     c3ppp = integrate_phi_spherical(lambda_plus * c2 * c9c10 * c9c10)
+        c3ppp = integrate_phi_spherical(lambda_plus * c2 * c9c10 * c9c10)
 
-     !Calculate the resulting positive bead densities.
-     !n_plus_updated = nc2 + nc3 + nc4 + nc9 + nc10 =  nc2 + nc3 + nc4 + 2*nc9
-     n_plus_updated = bulk_density * ( (lambda_plus * c8c1 * c3p) + (lambda_plus * c2 * c9c10 * c9c10 * c4) + &
-          (lambda_plus * c3ppp * c5) + (2 * (lambda_plus * c3pp)) ) 
+        !Calculate the resulting positive bead densities.
+        !n_plus_updated = nc2 + nc3 + nc4 + nc9 + nc10 =  nc2 + nc3 + nc4 + 2*nc9
+        n_plus_updated = bulk_density * ( (lambda_plus * c8c1 * c3p) + (lambda_plus * c2 * c9c10 * c9c10 * c4) + &
+             (lambda_plus * c3ppp * c5) + (2 * (lambda_plus * c3pp)) ) 
 
-     !Now we calculate the neutral beads
-     c2p = integrate_phi_spherical(lambda_plus * c3p)
+        !Now we calculate the neutral beads
+        c2p = integrate_phi_spherical(lambda_plus * c3p)
 
-     c4p = integrate_phi_spherical(lambda_plus * c3ppp)
+        c4p = integrate_phi_spherical(lambda_plus * c3ppp)
 
-     c5p = integrate_phi_spherical(lambda_neutral * c4p)
+        c5p = integrate_phi_spherical(lambda_neutral * c4p)
 
-     c6p = integrate_phi_spherical(lambda_neutral * c5p)
+        c6p = integrate_phi_spherical(lambda_neutral * c5p)
 
-     c7p = integrate_phi_spherical(lambda_neutral * c6p)
+        c7p = integrate_phi_spherical(lambda_neutral * c6p)
 
-     !Calculate the resulting neutral bead densities.
-     !n_zero_updated = nc1 + nc5 + nc6 + nc7 + nc8
-     n_neutral_updated = bulk_density * ( (lambda_neutral * c2p) + (lambda_neutral * c4p * c6) + (lambda_neutral * c5p * c7) &
-          + (lambda_neutral * c6p * c8c1) + (lambda_neutral * c7p) )
+        !Calculate the resulting neutral bead densities.
+        !n_zero_updated = nc1 + nc5 + nc6 + nc7 + nc8
+        n_neutral_updated = bulk_density * ( (lambda_neutral * c2p) + (lambda_neutral * c4p * c6) + (lambda_neutral * c5p * c7) &
+             + (lambda_neutral * c6p * c8c1) + (lambda_neutral * c7p) )
 
-     !Calculate the required contributions for the anion
-     a1a2a3a4 = integrate_phi_spherical(lambda_minus)
+        !Calculate the required contributions for the anion
+        a1a2a3a4 = integrate_phi_spherical(lambda_minus)
 
-     a5p = integrate_phi_spherical(lambda_minus * (a1a2a3a4 ** 3.0_dp))
+        a5p = integrate_phi_spherical(lambda_minus * (a1a2a3a4 ** 3.0_dp))
 
-     !Calculate the resulting negative bead densities.
-     !n_minus_updated = na1 + na2 + na3 + na4 + na5 = 4*na1 + na5
-     n_minus_updated = bulk_density * ( 4.0_dp*(lambda_minus * a5p) + (lambda_minus * (a1a2a3a4**4.0_dp)) )
+        !Calculate the resulting negative bead densities.
+        !n_minus_updated = na1 + na2 + na3 + na4 + na5 = 4*na1 + na5
+        n_minus_updated = bulk_density * ( 4.0_dp*(lambda_minus * a5p) + (lambda_minus * (a1a2a3a4**4.0_dp)) )
 
-     ! Now test convergence
-     if(converged(n_plus_updated, n_neutral_updated, n_minus_updated, n_plus, n_neutral, n_minus)) then
+        ! Now test convergence
+        if(converged(n_plus_updated, n_neutral_updated, n_minus_updated, n_plus, n_neutral, n_minus)) then
 
-        print *, "runC4MIMBF4.x: Density calculations successfully converged."
-        print *, "writing out density values to file"
-        call WriteDensityOutputFormatted(n_plus_updated, trim(file_stub), "n_plus")
-        call WriteDensityOutputFormatted(n_neutral_updated, trim(file_stub), "n_neutral")
-        call WriteDensityOutputFormatted(n_minus_updated, trim(file_stub), "n_minus")
-        exit
+           print *, "runC4MIMBF4.x: Density calculations successfully converged."
+           print *, "writing out density values to file"
+           call WriteDensityOutputFormatted(n_plus_updated, trim(file_stub), "n_plus")
+           call WriteDensityOutputFormatted(n_neutral_updated, trim(file_stub), "n_neutral")
+           call WriteDensityOutputFormatted(n_minus_updated, trim(file_stub), "n_minus")
+           exit
 
-     else if(iteration == MAX_ITERATION_LIMIT) then
+        else if(iteration == MAX_ITERATION_LIMIT) then
 
-        print *, "runC4MIMBf4.x: iteration == MAX_ITERATION_LIMIT"
-        print *, "Hit the iteration limit without converging"
-        print *, "Increase the iteration limit"
-        call abort
+           print *, "runC4MIMBf4.x: iteration == MAX_ITERATION_LIMIT"
+           print *, "Hit the iteration limit without converging"
+           print *, "Increase the iteration limit"
+           call abort
 
-     else if(iteration > MAX_ITERATION_LIMIT) then
+        else if(iteration > MAX_ITERATION_LIMIT) then
 
-        print *, "runC4MIMBf4.x: iteration > MAX_ITERATION_LIMIT"
-        print *, "This should never happen"
-        print *, "Coding error...aborting..."
-        call abort
+           print *, "runC4MIMBf4.x: iteration > MAX_ITERATION_LIMIT"
+           print *, "This should never happen"
+           print *, "Coding error...aborting..."
+           call abort
 
-     else !Update and proceed to the next iteration
+        else !Update and proceed to the next iteration
 
-        n_plus = n_plus_updated
-        n_neutral = n_neutral_updated
-        n_minus = n_minus_updated
+           n_plus = n_plus_updated
+           n_neutral = n_neutral_updated
+           n_minus = n_minus_updated
 
-     end if
+        end if
 
-  end do
+     end do !end iteration loop
 
+  end do !end loop over plate separation
+
+  call DeAllocateModelParams()
+  call DeAllocateLocalVariables()
+
+contains
+
+  subroutine DeAllocateLocalVariables()
+    
+    if(allocated(n_plus)) deallocate(n_plus)
+    if(allocated(n_minus)) deallocate(n_minus)
+    if(allocated(n_neutral)) deallocate(n_neutral)
+    if(allocated(n_plus_updated)) deallocate(n_plus_updated)
+    if(allocated(n_minus_updated)) deallocate(n_minus_updated)
+    if(allocated(n_neutral_updated)) deallocate(n_neutral_updated)
+    if(allocated(lambda_plus)) deallocate(lambda_plus)
+    if(allocated(lambda_minus)) deallocate(lambda_minus)
+    if(allocated(lambda_neutral)) deallocate(lambda_neutral)
+    if(allocated(c8c1)) deallocate(c8c1)
+    if(allocated(c9c10)) deallocate(c9c10)
+    if(allocated(c7)) deallocate(c7)
+    if(allocated(c6)) deallocate(c6)
+    if(allocated(c5)) deallocate(c5)
+    if(allocated(c4)) deallocate(c4)
+    if(allocated(c2)) deallocate(c2)
+    if(allocated(c3p)) deallocate(c3p)
+    if(allocated(c3pp)) deallocate(c3pp)
+    if(allocated(c3ppp)) deallocate(c3ppp)
+    if(allocated(c2p)) deallocate(c2p)
+    if(allocated(c4p)) deallocate(c4p)
+    if(allocated(c5p)) deallocate(c5p)
+    if(allocated(c6p)) deallocate(c6p)
+    if(allocated(c7p)) deallocate(c7p)
+    if(allocated(a1a2a3a4)) deallocate(a1a2a3a4)
+    if(allocated(a5p)) deallocate(a5p)
+    
+  end subroutine DeAllocateLocalVariables
+  
 end program run_C4MIM_BF4
