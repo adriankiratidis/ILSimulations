@@ -64,7 +64,7 @@ program run_C4MIM_BF4
      call InitialiseVariableDiscretisation(id, n_plus_updated, n_minus_updated, n_neutral_updated, &
           lambda_plus, lambda_minus, lambda_neutral, c8c1, c9c10, c7, c6, c5, c4, c2, c3p, &
           c3pp, c3ppp, c2p, c4p, c5p, c6p, c7p, a1a2a3a4, a5p)
-     
+
      iteration = 0
      do while (iteration < MAX_ITERATION_LIMIT)
         iteration = iteration + 1
@@ -128,11 +128,15 @@ program run_C4MIM_BF4
         ! Now test convergence
         if(converged(n_plus_updated, n_neutral_updated, n_minus_updated, n_plus, n_neutral, n_minus)) then
 
+           print *, ""
+           print *, "************************************************************"
            print *, "runC4MIMBF4.x: Density calculations successfully converged."
            print *, "writing out density values to file"
-           call WriteDensityOutputFormatted(n_plus_updated, trim(file_stub), "n_plus")
-           call WriteDensityOutputFormatted(n_neutral_updated, trim(file_stub), "n_neutral")
-           call WriteDensityOutputFormatted(n_minus_updated, trim(file_stub), "n_minus")
+           print *, "************************************************************"
+           print *, ""
+           !call WriteDensityOutputFormatted(n_plus_updated, trim(file_stub), "n_plus")
+           !call WriteDensityOutputFormatted(n_neutral_updated, trim(file_stub), "n_neutral")
+           !call WriteDensityOutputFormatted(n_minus_updated, trim(file_stub), "n_minus")
            exit
 
         else if(iteration == MAX_ITERATION_LIMIT) then
@@ -167,7 +171,7 @@ program run_C4MIM_BF4
 contains
 
   subroutine DeAllocateLocalVariables()
-    
+
     if(allocated(n_plus)) deallocate(n_plus)
     if(allocated(n_minus)) deallocate(n_minus)
     if(allocated(n_neutral)) deallocate(n_neutral)
@@ -194,7 +198,7 @@ contains
     if(allocated(c7p)) deallocate(c7p)
     if(allocated(a1a2a3a4)) deallocate(a1a2a3a4)
     if(allocated(a5p)) deallocate(a5p)
-    
+
   end subroutine DeAllocateLocalVariables
-  
+
 end program run_C4MIM_BF4
