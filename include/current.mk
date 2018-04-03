@@ -5,7 +5,7 @@
 #F90FLAGS = -cpp  $(OPTS)
 
 F90C = gfortran
-OPTS = 
+OPTS = -ffixed-line-length-none
 F90FLAGS = -cpp  $(OPTS)
 LINK = -L../lib/ -lsrc
 INCLUDE =

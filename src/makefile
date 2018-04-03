@@ -8,7 +8,8 @@ OBJS =   \
 	universalconstants.o \
 	parameters.o \
 	integratephispherical.o \
-	iteration.o
+	iteration.o \
+	lambdas.o
 
 all:
 	make ILsimulationssrclib.o

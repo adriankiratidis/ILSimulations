@@ -17,6 +17,7 @@ module parameters
   public :: n_discretised_points_z
 
   public :: epsilonr
+  public :: epsilon_LJ
   public :: surface_charge_density
   public :: hs_diameter
   public :: plate_separations
@@ -29,6 +30,7 @@ module parameters
   integer :: n_discretised_points_z
 
   real(dp) :: epsilonr
+  real(dp) :: epsilon_LJ
   real(dp) :: surface_charge_density
   real(dp) :: hs_diameter
 
