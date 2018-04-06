@@ -5,6 +5,8 @@ module ILsimulationssrclib
   use universalconstants
   use parameters
   use integratephispherical
+  use integratezcylindrical
   use iteration
+  use lambdas
   implicit none
 end module ILsimulationssrclib

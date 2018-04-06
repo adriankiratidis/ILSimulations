@@ -26,9 +26,9 @@ contains
   !the jacobian of an associated angle from the difference between z_{i} and the value of z being
   !summed over.
   !
-  function integrate_phi_spherical(z_dep_integrand) result(reslt)
-    real(dp), dimension(:), intent(in) :: z_dep_integrand
-    real(dp), dimension(size(z_dep_integrand)) :: reslt
+  function integrate_phi_spherical(integrand_array) result(reslt)
+    real(dp), dimension(:), intent(in) :: integrand_array
+    real(dp), dimension(size(integrand_array)) :: reslt
 
     integer :: lower_z_limit
     integer :: upper_z_limit
@@ -39,42 +39,41 @@ contains
     do ires = 1, size(reslt)
        
        call get_integrand_array_section_limits(ires, size(reslt), lower_z_limit, upper_z_limit, relative_z_index)
-       reslt(ires) = apply_trapezoidal_rule(z_dep_integrand(lower_z_limit:upper_z_limit), relative_z_index)
+       reslt(ires) = apply_trapezoidal_rule(integrand_array(lower_z_limit:upper_z_limit), relative_z_index)
        
     end do
 
   end function integrate_phi_spherical
 
-  !Returns the Jacobian in spherical coordinates.
-  function Jacobian(r, theta)
-    real(dp), intent(in) :: r
+  !Returns the Jacobian's phi dependence in spherical coordinates.
+  pure function Jacobian_phi_dependence(theta)
     real(dp), intent(in) :: theta
-    real(dp) :: Jacobian
+    real(dp) :: Jacobian_phi_dependence
 
-    Jacobian = (r**2) * sin(theta)
+    Jacobian_phi_dependence = sin(theta)
 
-  end function Jacobian
+  end function Jacobian_phi_dependence
 
-  !Given an array section 'z_dep_integrand' corresponding to the array section
+  !Given an array section 'integrand_array' corresponding to the array section
   !we wish to integrate over and a 'z_index' corresponding to the fixed index that the
   !integral corresponds to, apply the trapezoidal rule.
-  function apply_trapezoidal_rule(z_dep_integrand, z_index) result(reslt)
-    real(dp), dimension(:), intent(in) :: z_dep_integrand
+  function apply_trapezoidal_rule(integrand_array, z_index) result(reslt)
+    real(dp), dimension(:), intent(in) :: integrand_array
     integer, intent(in)                :: z_index
     real(dp)                           :: reslt
 
     real(dp) :: theta_i
     real(dp) :: theta_ip1
-    integer :: i
+    integer  :: i
     reslt = 0.0_dp
 
-    do i = 1, size(z_dep_integrand) - 1
+    do i = 1, size(integrand_array) - 1
 
        theta_i =  get_angle_from_z_separation(i, z_index)
        theta_ip1 = get_angle_from_z_separation(i+1, z_index)
 
-       reslt = reslt + ( (z_dep_integrand(i)*Jacobian(hs_diameter, theta_i) + &
-            z_dep_integrand(i+1)*Jacobian(hs_diameter, theta_ip1) ) * abs(theta_i - theta_ip1)) &
+       reslt = reslt + ( (integrand_array(i)*Jacobian_phi_dependence(theta_i) + &
+            integrand_array(i+1)*Jacobian_phi_dependence(theta_ip1) ) * abs(theta_i - theta_ip1)) &
             /2.0_dp
     end do
 

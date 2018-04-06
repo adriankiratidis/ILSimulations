@@ -13,15 +13,16 @@ module parameters
   public :: chi_parameter
 
   ! Number of discretised points in the z direction
-  ! over range of hs_diameter. (i.e. between x and x + hs_diameter)
+  ! over range of hs_diameter. (i.e. >= x and < x + hs_diameter)
   public :: n_discretised_points_z
 
   public :: epsilonr
   public :: epsilon_LJ
   public :: surface_charge_density
   public :: hs_diameter
-  public :: plate_separations
+  public :: plate_separations ! in multiples of hs_diameter
   public :: bulk_density
+  public :: bead_charge
   public :: string_length
   public :: iterative_tolerance
   public :: max_iteration_limit
@@ -38,6 +39,7 @@ module parameters
   integer, dimension(:), allocatable  :: plate_separations
   
   real(dp) :: bulk_density
+  real(dp) :: bead_charge
   real(dp) :: string_length
   real(dp) :: iterative_tolerance
   integer  :: max_iteration_limit
@@ -61,6 +63,7 @@ contains
     read(file_unit, *) surface_charge_density
     read(file_unit, *) hs_diameter
     read(file_unit, *) bulk_density
+    read(file_unit, *) bead_charge
     read(file_unit, *) string_length
     read(file_unit, *) n_discretised_points_z
     read(file_unit, *) max_iteration_limit
@@ -80,6 +83,7 @@ contains
     print *,  "surface_charge_density = ", surface_charge_density
     print *,  "hs_diameter = ", hs_diameter
     print *,  "bulk_density = ", bulk_density
+    print *,  "bead_charge = ", bead_charge
     print *,  "string_length = ", string_length
     print *,  "n_discretised_points_z = ", n_discretised_points_z
     print *,  "max_iteration_limit = ", max_iteration_limit

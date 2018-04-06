@@ -8,6 +8,7 @@ OBJS =   \
 	universalconstants.o \
 	parameters.o \
 	integratephispherical.o \
+	integratezcylindrical.o \
 	iteration.o \
 	lambdas.o
 

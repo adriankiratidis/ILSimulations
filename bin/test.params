@@ -1,12 +1,13 @@
 0.71		#chi_parameter
 2.3		#Epsilon_r
-0.003125	#surface charge density
+0.003125	#surface_charge_density
 2.4		#hs_diameter
-0.04475		#bulk density
-1.2		#string length
+0.04475		#bulk_density
+0.2		#bead_charge
+1.2		#string_length
 20		#number of discretised points
 1000		#max_iteration_limit
-0.01		#iterative_tolerance
+1		#iterative_tolerance
 2		#n_plate_separations
 20		#plate_separation(1)
 40		#plate_separation(2)
