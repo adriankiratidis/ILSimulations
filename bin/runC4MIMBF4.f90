@@ -46,7 +46,7 @@ program run_C4MIM_BF4
   !***************BEGIN EXECUTION*****************
   !***********************************************
   !***********************************************
-
+  
   print *, "Please Enter the data file prefix"
   read(*,*) file_stub
 
@@ -71,6 +71,14 @@ program run_C4MIM_BF4
 
         !Calculate the lambdas from the densities.
         call CalculateLambdas(lambda_plus, lambda_neutral, lambda_minus, n_plus, n_neutral, n_minus, id)
+
+        ! print *, "lambda_plus = ", lambda_plus(1:10)
+        ! print *, "lambda_neutral = ", lambda_neutral(1:10)
+        ! print *, "lambda_minus = ", lambda_minus(1:10)
+        ! print *, "n_plus(1) = ", n_plus(1)
+        ! print *, "n_neutral(1) = ", n_neutral(1)
+        ! print *, "n_minus(1) = ", n_minus(1)
+        ! call abort()
 
         ! First we calculate the contributions from the required sites.
 
@@ -125,9 +133,13 @@ program run_C4MIM_BF4
         !n_minus_updated = na1 + na2 + na3 + na4 + na5 = 4*na1 + na5
         n_minus_updated = bulk_density * ( 4.0_dp*(lambda_minus * a5p) + (lambda_minus * (a1a2a3a4**4.0_dp)) )
 
-        print *, "n_plus(1) = ", n_plus(1)
-        print *, "n_neutral(1) = ", n_neutral(1)
-        print *, "n_minus(1) = ", n_minus(1)
+        print *, "n_plus(1) = ", n_plus(1:10)
+        print *, "n_neutral(1) = ", n_neutral(1:10)
+        print *, "n_minus(1) = ", n_minus(1:10)
+        print *, "n_plus_updated(1) = ", n_plus_updated(1:10)
+        print *, "n_netural_updated(1) = ", n_neutral_updated(1:10)
+        print *, "n_minus_updated(1) = ", n_minus_updated(1:10)
+        !call abort()
         
         ! Now test convergence
         if(converged(n_plus_updated, n_neutral_updated, n_minus_updated, n_plus, n_neutral, n_minus)) then

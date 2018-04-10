@@ -338,7 +338,7 @@ contains
   subroutine InitialiseIntegrationAnsatzToConstant(array)
     real(dp), dimension(:) :: array
 
-    array(:) = 0.5_dp
+    array(:) = 0.024_dp
 
   end subroutine InitialiseIntegrationAnsatzToConstant
 

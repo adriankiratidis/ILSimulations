@@ -8,5 +8,6 @@ module ILsimulationssrclib
   use integratezcylindrical
   use iteration
   use lambdas
+  use helpers
   implicit none
 end module ILsimulationssrclib

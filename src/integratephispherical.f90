@@ -5,6 +5,7 @@ module integratephispherical
   use kinds
   use universalconstants
   use parameters
+  use helpers
   implicit none
   private
 
@@ -35,12 +36,18 @@ contains
 
     integer :: relative_z_index
     integer :: ires
+
+    integer :: start_z_index
+    integer :: end_z_index
+
+    !Ensure that we only integrate from hs_diameter/2 up to h - hs_diameter/2
+    call get_allowed_z_values(start_z_index, end_z_index, size(reslt))
     
-    do ires = 1, size(reslt)
-       
+    do ires = start_z_index, end_z_index
+
        call get_integrand_array_section_limits(ires, size(reslt), lower_z_limit, upper_z_limit, relative_z_index)
        reslt(ires) = apply_trapezoidal_rule(integrand_array(lower_z_limit:upper_z_limit), relative_z_index)
-       
+
     end do
 
   end function integrate_phi_spherical

@@ -1,6 +1,7 @@
 !Module storing routines that read and initialise all required parameters.
 module parameters
   use kinds
+  use universalconstants
   implicit none
   public
 
@@ -22,28 +23,30 @@ module parameters
   public :: hs_diameter
   public :: plate_separations ! in multiples of hs_diameter
   public :: bulk_density
+  public :: temperature
   public :: bead_charge
   public :: string_length
   public :: iterative_tolerance
   public :: max_iteration_limit
+  public :: beta
 
   real(dp) :: chi_parameter
-  integer :: n_discretised_points_z
-
+  integer  :: n_discretised_points_z
   real(dp) :: epsilonr
   real(dp) :: epsilon_LJ
   real(dp) :: surface_charge_density
   real(dp) :: hs_diameter
-
+  
   !array of plater separations in multiples of hs_diameter
   integer, dimension(:), allocatable  :: plate_separations
-  
+
   real(dp) :: bulk_density
+  real(dp) :: temperature
   real(dp) :: bead_charge
   real(dp) :: string_length
   real(dp) :: iterative_tolerance
   integer  :: max_iteration_limit
-
+  real(dp) :: beta
 
 contains
 
@@ -60,9 +63,11 @@ contains
 
     read(file_unit, *) chi_parameter
     read(file_unit, *) epsilonr
+    read(file_unit, *) epsilon_LJ !
     read(file_unit, *) surface_charge_density
     read(file_unit, *) hs_diameter
-    read(file_unit, *) bulk_density
+    read(file_unit, *) bulk_density !
+    read(file_unit, *) temperature
     read(file_unit, *) bead_charge
     read(file_unit, *) string_length
     read(file_unit, *) n_discretised_points_z
@@ -77,12 +82,21 @@ contains
 
     close(file_unit)
 
+    ! Set derived parameters
+    beta = 1.0_dp / (k_B * temperature)
+    
+    ! Apply unit transformations
+    epsilon_LJ = epsilon_LJ * k_B
+    bulk_density = bulk_density / (hs_diameter**3.0_dp)
+    
     print *,  "Succesfully set the following values"
     print *,  "chi_parameter = ", chi_parameter
     print *,  "epsilonr = ", epsilonr
+    print *,  "epsilon_LJ = ", epsilon_LJ
     print *,  "surface_charge_density = ", surface_charge_density
     print *,  "hs_diameter = ", hs_diameter
     print *,  "bulk_density = ", bulk_density
+    print *,  "temperature = ", temperature
     print *,  "bead_charge = ", bead_charge
     print *,  "string_length = ", string_length
     print *,  "n_discretised_points_z = ", n_discretised_points_z
@@ -90,6 +104,7 @@ contains
     print *,  "iterative tolerance = ", iterative_tolerance
     print *,  "n_plate_separations = ", n_plate_separations
     print *,  "plate separations are: ", plate_separations
+    print *,  "thermodynamic beta = ", beta
 
   end subroutine InitialiseModelParameters
 

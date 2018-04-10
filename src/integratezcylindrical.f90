@@ -7,6 +7,7 @@ module integratezcylindrical
   use kinds
   use parameters
   use universalconstants
+  use helpers
   implicit none
   private
 
@@ -20,7 +21,7 @@ contains
     real(dp), dimension(:), intent(in) :: integrand_array
     real(dp), external                 :: integrand_function
     character(len=*)                   :: integration_range
-    
+
     real(dp), dimension(size(integrand_array)) :: reslt
 
     integer :: ires
@@ -28,15 +29,30 @@ contains
     integer :: upper_z_limit
     integer :: relative_z_index
 
-    do ires = 1, size(reslt)
+    integer :: start_z_index
+    integer :: end_z_index
+
+    !Ensure that we only integrate from hs_diameter/2 up to h - hs_diameter/2
+    call get_allowed_z_values(start_z_index, end_z_index, size(reslt))
+
+    do ires = start_z_index, end_z_index
 
        call get_integrand_array_section_limits(trim(integration_range), ires, size(reslt), &
             lower_z_limit, upper_z_limit, relative_z_index)
-       
+
+       !print *,"helloooooooooooooooo = ", ires, lower_z_limit, upper_z_limit, relative_z_index
+
        reslt(ires) = apply_trapezoidal_rule(integrand_array(lower_z_limit:upper_z_limit), &
             integrand_function, relative_z_index)
 
+       !print *, reslt(ires)
+
     end do
+
+    reslt(1:start_z_index-1) = 0.0_dp
+    reslt(end_z_index+1:size(reslt)) = 0.0_dp
+    return
+    !print *, "reslt = ", reslt
 
   end function integrate_z_cylindrical
 
@@ -54,11 +70,12 @@ contains
     reslt = 0.0_dp
 
     do ixi = 1, size(integrand_array) - 1
-       reslt = ( (integrand_array(ixi)*integrand_function(z_index, ixi) +  &
+       reslt = reslt + ( (integrand_array(ixi)*integrand_function(z_index, ixi) +  &
             integrand_array(ixi + 1)*integrand_function(z_index, ixi + 1)) &
-            * (hs_diameter/n_discretised_points_z))/2.0_dp
+            * (hs_diameter/real(n_discretised_points_z,dp)))/2.0_dp
     end do
 
+    return
   end function apply_trapezoidal_rule
 
 

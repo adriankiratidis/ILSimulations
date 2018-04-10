@@ -10,7 +10,8 @@ OBJS =   \
 	integratephispherical.o \
 	integratezcylindrical.o \
 	iteration.o \
-	lambdas.o
+	lambdas.o \
+	helpers.o
 
 all:
 	make ILsimulationssrclib.o
