@@ -9,7 +9,7 @@
 1.2		#string_length
 10		#number of discretised points
 4		#max_iteration_limit
-1		#iterative_tolerance
+0.00001		#iterative_tolerance
 1		#n_plate_separations
 10		#plate_separation(1)
 

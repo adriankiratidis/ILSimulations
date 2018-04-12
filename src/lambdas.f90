@@ -102,6 +102,8 @@ contains
     call get_allowed_z_values(start_z_index, end_z_index, size(surface_fluid_dispersion_term))
 
     surface_fluid_dispersion_term = 0.0_dp
+    hs_term = 0.0_dp
+    van_der_waals_term = 0.0_dp
     !Note that we exclude the points that are calculate on the wall (at r_{z} = 0 or r_{z} = h)
     !as this leads to a singularity.
     do iz = start_z_index, end_z_index
@@ -110,17 +112,17 @@ contains
        hs_d_divide_h_minus_z = (1.0_dp/(real(plate_separations(ith_plate_separation),dp) - &
             ( real((iz - 1),dp) / real((n_discretised_points_z),dp) )))
 
-       surface_fluid_dispersion_term(iz) = 2.0_dp * pi * epsilon_LJ * (&
-            ( (2.0_dp/45.0_dp)* (hs_d_divide_z**9.0_dp) ) - &
-            ( (1.0_dp/3.0_dp) * (hs_d_divide_z**3.0_dp) ) + &
-            ( (2.0_dp/45.0_dp)* (hs_d_divide_h_minus_z**9.0_dp) ) - &
-            ( (1.0_dp/3.0_dp) * (hs_d_divide_h_minus_z**3.0_dp) ))
+       ! surface_fluid_dispersion_term(iz) = 2.0_dp * pi * epsilon_LJ * (&
+       !      ( (2.0_dp/45.0_dp)* (hs_d_divide_z**9.0_dp) ) - &
+       !      ( (1.0_dp/3.0_dp) * (hs_d_divide_z**3.0_dp) ) + &
+       !      ( (2.0_dp/45.0_dp)* (hs_d_divide_h_minus_z**9.0_dp) ) - &
+       !      ( (1.0_dp/3.0_dp) * (hs_d_divide_h_minus_z**3.0_dp) ))
     end do
 
     n_s = n_plus + n_neutral + n_minus
 
     van_der_waals_term = -4.0_dp * epsilon_LJ * (hs_diameter**6.0_dp) * &
-         integrate_z_cylindrical(n_s, van_der_waals_density_indept_integrand, "all_z")
+         2.0_dp * pi * integrate_z_cylindrical(n_s, van_der_waals_density_indept_integrand, "all_z")
 
     !print *, "n_s = ", n_s
     
@@ -130,10 +132,10 @@ contains
     !print *, "n_sbar = ", n_sbar
     !call abort
     
-    hs_term(start_z_index:end_z_index) = (-1.0_dp / beta) * &
-         (3.0_dp * (log( (1.0_dp - (hs_diameter**3)*n_sbar(start_z_index:end_z_index))/(n_sbar(start_z_index:end_z_index)) ) - &
-         (1.0_dp)/(1.0_dp - (hs_diameter**3.0_dp) * n_sbar(start_z_index:end_z_index))) ) / &
-         (4.0_dp * pi * (hs_diameter**3.0_dp))
+    ! hs_term(start_z_index:end_z_index) = (-1.0_dp / beta) * &
+    !      (3.0_dp * (log( (1.0_dp - (hs_diameter**3)*n_sbar(start_z_index:end_z_index))/(n_sbar(start_z_index:end_z_index)) ) - &
+    !      (1.0_dp)/(1.0_dp - (hs_diameter**3.0_dp) * n_sbar(start_z_index:end_z_index))) ) / &
+    !      (4.0_dp * pi * (hs_diameter**3.0_dp))
 
     print *, "hs_term= ",hs_term
     print *, "van_der_waals_term = ", van_der_waals_term
@@ -185,14 +187,19 @@ contains
   
   function get_bulk_density(lambda) result(reslt)
     real(dp), dimension(:), intent(in)  :: lambda
-
     real(dp), dimension(size(lambda)) :: reslt
+
+    integer :: start_z_integrate
+    integer :: end_z_integrate
+
+    !Find the maximum range over which we are going to integrate
+    call  get_allowed_z_values(start_z_integrate, end_z_integrate, size(lambda))
     
     !Setting the bulk density to be int(lambda)/plate_separation
     !We could of course calculate the total plate separation by hs_diameter * plate_separations(ith_separation)
     !but we choose the current version so we can calculate it without passing in an extra parameter.
     reslt = integrate_z_cylindrical(lambda, unity_function, "all_z") / &
-         ( (real(size(lambda) - 1, dp) * hs_diameter)/real(n_discretised_points_z,dp) )
+         ( (real(size(lambda(start_z_integrate:end_z_integrate)) - 1, dp) * hs_diameter)/real(n_discretised_points_z,dp) )
     return
   end function get_bulk_density
 

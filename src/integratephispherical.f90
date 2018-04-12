@@ -92,6 +92,7 @@ contains
   function get_angle_from_z_separation(z_integrated, z_fixed) result(angle)
     integer, intent(in) :: z_integrated
     integer, intent(in) :: z_fixed
+
     real(dp)            :: angle
 
     if(z_integrated <= z_fixed) then

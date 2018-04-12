@@ -11,7 +11,8 @@ OBJS =   \
 	integratezcylindrical.o \
 	iteration.o \
 	lambdas.o \
-	helpers.o
+	helpers.o \
+	io.o
 
 all:
 	make ILsimulationssrclib.o

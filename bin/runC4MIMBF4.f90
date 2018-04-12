@@ -46,7 +46,7 @@ program run_C4MIM_BF4
   !***************BEGIN EXECUTION*****************
   !***********************************************
   !***********************************************
-  
+
   print *, "Please Enter the data file prefix"
   read(*,*) file_stub
 
@@ -83,25 +83,38 @@ program run_C4MIM_BF4
         ! First we calculate the contributions from the required sites.
 
         ! Start with the calculation required for the positive bead site.
-        c9c10 = integrate_phi_spherical(lambda_plus)
+        ! Note that there is a factor of 1.0_dp/(4.0_dp * pi * hs_diameter**2)
+        ! from the delta function bond, a factor of 2 * pi from the theta integral
+        ! and a factor of hs_diameter**2 from the jacobian.  Combining these factors
+        ! gives the required 0.5_dp factor that we are multiplying by.
+        c9c10 = 0.5_dp * integrate_phi_spherical(lambda_plus)
 
-        c8c1 = integrate_phi_spherical(lambda_neutral)
+        !print *, "lambda_plus = ", lambda_plus
+        !print *, "c9c10 = ", c9c10
+        !call abort
 
-        c7 = integrate_phi_spherical(lambda_neutral * c8c1)
+        c8c1 = 0.5_dp * integrate_phi_spherical(lambda_neutral)
 
-        c6 = integrate_phi_spherical(lambda_neutral * c7)
+        c7 = 0.5_dp * integrate_phi_spherical(lambda_neutral * c8c1)
 
-        c5 = integrate_phi_spherical(lambda_neutral * c6)
+        c6 = 0.5_dp * integrate_phi_spherical(lambda_neutral * c7)
 
-        c4 = integrate_phi_spherical(lambda_plus * c5)
+        c5 = 0.5_dp * integrate_phi_spherical(lambda_neutral * c6)
 
-        c3p = integrate_phi_spherical(lambda_plus * c4 * c9c10 * c9c10)
+        c4 = 0.5_dp * integrate_phi_spherical(lambda_plus * c5)
 
-        c2 = integrate_phi_spherical(lambda_plus * c8c1)
 
-        c3pp = integrate_phi_spherical(lambda_plus * c4 * c2 * c9c10)
+        ! print *, "lambda_plus = ", lambda_plus
+        ! print *, "c4 = ", c4
+        ! call abort
 
-        c3ppp = integrate_phi_spherical(lambda_plus * c2 * c9c10 * c9c10)
+        c3p = 0.5_dp * integrate_phi_spherical(lambda_plus * c4 * c9c10 * c9c10)
+
+        c2 = 0.5_dp * integrate_phi_spherical(lambda_plus * c8c1)
+
+        c3pp = 0.5_dp * integrate_phi_spherical(lambda_plus * c4 * c2 * c9c10)
+
+        c3ppp = 0.5_dp * integrate_phi_spherical(lambda_plus * c2 * c9c10 * c9c10)
 
         !Calculate the resulting positive bead densities.
         !n_plus_updated = nc2 + nc3 + nc4 + nc9 + nc10 =  nc2 + nc3 + nc4 + 2*nc9
@@ -109,15 +122,15 @@ program run_C4MIM_BF4
              (lambda_plus * c3ppp * c5) + (2 * (lambda_plus * c3pp)) ) 
 
         !Now we calculate the neutral beads
-        c2p = integrate_phi_spherical(lambda_plus * c3p)
+        c2p = 0.5_dp * integrate_phi_spherical(lambda_plus * c3p)
 
-        c4p = integrate_phi_spherical(lambda_plus * c3ppp)
+        c4p = 0.5_dp * integrate_phi_spherical(lambda_plus * c3ppp)
 
-        c5p = integrate_phi_spherical(lambda_neutral * c4p)
+        c5p = 0.5_dp * integrate_phi_spherical(lambda_neutral * c4p)
 
-        c6p = integrate_phi_spherical(lambda_neutral * c5p)
+        c6p = 0.5_dp * integrate_phi_spherical(lambda_neutral * c5p)
 
-        c7p = integrate_phi_spherical(lambda_neutral * c6p)
+        c7p = 0.5_dp * integrate_phi_spherical(lambda_neutral * c6p)
 
         !Calculate the resulting neutral bead densities.
         !n_zero_updated = nc1 + nc5 + nc6 + nc7 + nc8
@@ -125,9 +138,9 @@ program run_C4MIM_BF4
              + (lambda_neutral * c6p * c8c1) + (lambda_neutral * c7p) )
 
         !Calculate the required contributions for the anion
-        a1a2a3a4 = integrate_phi_spherical(lambda_minus)
+        a1a2a3a4 = 0.5_dp * integrate_phi_spherical(lambda_minus)
 
-        a5p = integrate_phi_spherical(lambda_minus * (a1a2a3a4 ** 3.0_dp))
+        a5p = 0.5_dp * integrate_phi_spherical(lambda_minus * (a1a2a3a4 ** 3.0_dp))
 
         !Calculate the resulting negative bead densities.
         !n_minus_updated = na1 + na2 + na3 + na4 + na5 = 4*na1 + na5
@@ -136,11 +149,11 @@ program run_C4MIM_BF4
         print *, "n_plus(1) = ", n_plus(1:10)
         print *, "n_neutral(1) = ", n_neutral(1:10)
         print *, "n_minus(1) = ", n_minus(1:10)
-        print *, "n_plus_updated(1) = ", n_plus_updated(1:10)
-        print *, "n_netural_updated(1) = ", n_neutral_updated(1:10)
-        print *, "n_minus_updated(1) = ", n_minus_updated(1:10)
+        print *, "n_plus_updated(1) = ", n_plus_updated
+        print *, "n_netural_updated(1) = ", n_neutral_updated
+        print *, "n_minus_updated(1) = ", n_minus_updated
         !call abort()
-        
+
         ! Now test convergence
         if(converged(n_plus_updated, n_neutral_updated, n_minus_updated, n_plus, n_neutral, n_minus)) then
 
@@ -150,9 +163,9 @@ program run_C4MIM_BF4
            print *, "writing out density values to file"
            print *, "************************************************************"
            print *, ""
-           !call WriteDensityOutputFormatted(n_plus_updated, trim(file_stub), "n_plus")
-           !call WriteDensityOutputFormatted(n_neutral_updated, trim(file_stub), "n_neutral")
-           !call WriteDensityOutputFormatted(n_minus_updated, trim(file_stub), "n_minus")
+           call WriteDensityOutputFormatted(n_plus_updated, trim(file_stub), "n_plus")
+           call WriteDensityOutputFormatted(n_neutral_updated, trim(file_stub), "n_neutral")
+           call WriteDensityOutputFormatted(n_minus_updated, trim(file_stub), "n_minus")
            exit
 
         else if(iteration == MAX_ITERATION_LIMIT) then
@@ -160,6 +173,9 @@ program run_C4MIM_BF4
            print *, "runC4MIMBf4.x: iteration == MAX_ITERATION_LIMIT"
            print *, "Hit the iteration limit without converging"
            print *, "Increase the iteration limit"
+           call WriteDensityOutputFormatted(n_plus_updated, trim(file_stub), "n_plus")
+           call WriteDensityOutputFormatted(n_neutral_updated, trim(file_stub), "n_neutral")
+           call WriteDensityOutputFormatted(n_minus_updated, trim(file_stub), "n_minus")
            call abort
 
         else if(iteration > MAX_ITERATION_LIMIT) then

@@ -9,5 +9,6 @@ module ILsimulationssrclib
   use iteration
   use lambdas
   use helpers
+  use io
   implicit none
 end module ILsimulationssrclib
