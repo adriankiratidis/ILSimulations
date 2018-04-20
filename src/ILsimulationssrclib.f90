@@ -10,5 +10,7 @@ module ILsimulationssrclib
   use lambdas
   use helpers
   use io
+  use normalisation
+  use surfaceforces
   implicit none
 end module ILsimulationssrclib

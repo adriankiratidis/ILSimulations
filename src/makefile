@@ -12,7 +12,10 @@ OBJS =   \
 	iteration.o \
 	lambdas.o \
 	helpers.o \
-	io.o
+	io.o \
+	normalisation.o \
+	surfaceforces.o \
+	functionalderivatives.o
 
 all:
 	make ILsimulationssrclib.o

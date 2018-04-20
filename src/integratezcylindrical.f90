@@ -12,12 +12,17 @@ module integratezcylindrical
   private
 
   public :: integrate_z_cylindrical
-  
+
+  interface integrate_z_cylindrical
+     module procedure integrate_z_cylindrical_with_range
+     module procedure integrate_z_cylindrical_without_range
+  end interface integrate_z_cylindrical
+
 contains
 
   !When calculating the lambdas for example the integrand array is density dependent, while the integrand function
   !is density independent.
-  function integrate_z_cylindrical(integrand_array, integrand_function, integration_range) result(reslt)
+  function integrate_z_cylindrical_with_range(integrand_array, integrand_function, integration_range) result(reslt)
     real(dp), dimension(:), intent(in) :: integrand_array
     real(dp), external                 :: integrand_function
     character(len=*)                   :: integration_range
@@ -40,22 +45,45 @@ contains
        call get_integrand_array_section_limits(trim(integration_range), ires, size(reslt), &
             lower_z_limit, upper_z_limit, relative_z_index)
 
-       !print *,"helloooooooooooooooo = ", ires, lower_z_limit, upper_z_limit, relative_z_index
-
        reslt(ires) = apply_trapezoidal_rule(integrand_array(lower_z_limit:upper_z_limit), &
             integrand_function, relative_z_index)
-
-       !print *, reslt(ires)
 
     end do
 
     reslt(1:start_z_index-1) = 0.0_dp
     reslt(end_z_index+1:size(reslt)) = 0.0_dp
     return
-    !print *, "reslt = ", reslt
 
-  end function integrate_z_cylindrical
+  end function integrate_z_cylindrical_with_range
 
+  !When calculating the lambdas for example the integrand array is density dependent, while the integrand function
+  !is density independent.
+  function integrate_z_cylindrical_without_range(integrand_array, integrand_function) result(reslt)
+    real(dp), dimension(:), intent(in) :: integrand_array
+    real(dp), external                 :: integrand_function
+
+    real(dp) :: reslt
+
+    integer :: start_z_index
+    integer :: end_z_index
+
+    integer :: dummy_z_index
+    
+    !Doesn't matter what this index is. It's passed to the trapezoidal rule
+    !but all calls to this routine are integrating an array over all z and
+    !therefore want a number, and are independent of the so-called 'integrand_function'
+    !which is this case is just the 'unity_function'.
+    dummy_z_index = 1
+    
+    !Ensure that we only integrate from hs_diameter/2 up to h - hs_diameter/2
+    call get_allowed_z_values(start_z_index, end_z_index, size(integrand_array))
+
+    reslt = apply_trapezoidal_rule(integrand_array(start_z_index:end_z_index), &
+         integrand_function, dummy_z_index)
+
+    return
+
+  end function integrate_z_cylindrical_without_range
 
   !Given an array section 'z_dep_integrand' corresponding to the array section
   !we wish to integrate over and a 'z_index' corresponding to the fixed index that the
@@ -96,7 +124,7 @@ contains
     integer :: highest_z_calculated
 
     call get_allowed_z_values(lowest_z_calculated, highest_z_calculated, h)
-    
+
     if(h < 2*n_discretised_points_z + 1) then
        print *, "integratephispherical.f90: get_integrand_array_section_limits:"
        print *, "distance between plates less than twice the hard sphere diameter"

@@ -3,13 +3,13 @@
 100 		#Epsilon_LJ ( = epsilon_LJ * k_{B})
 0.003125	#surface_charge_density
 2.4		#hs_diameter
-0.04475		#bulk_density ( =n_{b} * [hs_diameter**3] )
+0.04		#bulk_density ( =n_{b} * [hs_diameter**3] )
 294.0		#Temperature in Kelvin
 0.2		#bead_charge
 1.2		#string_length
-10		#number of discretised points
-4		#max_iteration_limit
-0.00001		#iterative_tolerance
+30		#number of discretised points
+100		#max_iteration_limit
+0.0000000001		#iterative_tolerance percentage of previous result within
 1		#n_plate_separations
 10		#plate_separation(1)
 

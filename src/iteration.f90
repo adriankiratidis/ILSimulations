@@ -26,6 +26,10 @@ contains
     real(dp) :: av_sq_diff_minus
     real(dp) :: av_sq_diff_neutral
 
+    real(dp) :: bulk_plus
+    real(dp) :: bulk_neutral
+    real(dp) :: bulk_minus
+    
     converged = .false.
 
     !Ensure that we recieve arrays of the correct size
@@ -40,13 +44,17 @@ contains
 
     !Find the average difference of least squares for the 3 bead types
     av_sq_diff_plus = sum((n_plus_updated - n_plus)**2)/size(n_plus)
-    av_sq_diff_neutral = sum((n_neutral_updated - n_neutral)**2)/size(n_plus)
-    av_sq_diff_minus = sum((n_minus_updated - n_minus)**2)/size(n_plus)
+    av_sq_diff_neutral = sum((n_neutral_updated - n_neutral)**2)/size(n_neutral)
+    av_sq_diff_minus = sum((n_minus_updated - n_minus)**2)/size(n_minus)
 
+    bulk_plus = sum(n_plus)/size(n_plus)
+    bulk_neutral = sum(n_neutral)/size(n_neutral)
+    bulk_minus = sum(n_minus)/size(n_minus)
+    
     !Check for convergence
-    if((av_sq_diff_plus <= iterative_tolerance) .and. &
-         (av_sq_diff_minus <= iterative_tolerance) .and. &
-         (av_sq_diff_neutral <= iterative_tolerance))then
+    if((av_sq_diff_plus <= iterative_tolerance*bulk_plus) .and. &
+         (av_sq_diff_minus <= iterative_tolerance*bulk_minus) .and. &
+         (av_sq_diff_neutral <= iterative_tolerance*bulk_neutral))then
 
        print *, "iteration.f90: converged: Iterative scheme successfully converged."
        converged = .true.
@@ -338,7 +346,8 @@ contains
   subroutine InitialiseIntegrationAnsatzToConstant(array)
     real(dp), dimension(:) :: array
 
-    array(:) = 0.024_dp
+    
+    array(:) = bulk_density
 
   end subroutine InitialiseIntegrationAnsatzToConstant
 
