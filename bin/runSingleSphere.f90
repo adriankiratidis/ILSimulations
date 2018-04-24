@@ -68,6 +68,9 @@ program run_C4MIM_BF4
      print *, "This aids with plotting ease."
      call setNonCalculatedRegionToZero(n_plus, n_minus, n_neutral)
 
+     print *, "Setting Bead Densities from the Bulk Ion Density."
+     call SetSingleSphereBeadDensityFromBulkIonDensity()
+
      iteration = 0
      do while (iteration < MAX_ITERATION_LIMIT)
         iteration = iteration + 1
@@ -75,37 +78,9 @@ program run_C4MIM_BF4
         !Calculate the lambdas from the densities.
         call CalculateLambdas(lambda_plus, lambda_neutral, lambda_minus, n_plus, n_neutral, n_minus, ith_separation)
 
-        call ConstructSingleSphereArrangment(lambda_plus, lambda_neutral, lambda_minus, n_plus_updated, n_neutral_updated, n_minus_updated)
+        call UpdateSingleSphereArrangment(lambda_plus, lambda_neutral, lambda_minus, n_plus_updated, n_neutral_updated, n_minus_updated)
 
         call ReNormaliseToBulkDensity(n_plus_updated, n_neutral_updated, n_minus_updated)        
-             
-        call setNonCalculatedRegionToZero(n_plus_updated, n_minus_updated, n_neutral_updated)
-
-
-        !call get_allowed_z_values(start_z_index, end_z_index, size(lambda_plus))
-        ! !Calculate the value in the bulk
-        ! bulk_plus = get_bulk_density(lambda_plus)
-        ! bulk_neutral = get_bulk_density(lambda_neutral)
-        ! bulk_minus = get_bulk_density(lambda_minus)
-
-        ! n_plus_updated(start_z_index:end_z_index) = bulk_density * &
-        !      lambda_plus(start_z_index:end_z_index) / bulk_plus(start_z_index:end_z_index)
-        ! n_neutral_updated(start_z_index:end_z_index) = bulk_density * &
-        !      lambda_neutral(start_z_index:end_z_index) / bulk_neutral(start_z_index:end_z_index)
-        ! n_minus_updated(start_z_index:end_z_index) = bulk_density * &
-        !      lambda_minus(start_z_index:end_z_index) / bulk_minus(start_z_index:end_z_index)
-
-        ! print *, "bulk_density = ", bulk_density
-        ! print *, "lambda_plus = ", lambda_plus
-        ! print *, "bulk_plus = ", bulk_plus
-        ! call abort()
-
-        print *, "n_plus(1) = ", n_plus(1:10)
-        print *, "n_neutral(1) = ", n_neutral(1:10)
-        print *, "n_minus(1) = ", n_minus(1:10)
-        print *, "n_plus_updated(1) = ", n_plus_updated
-        print *, "n_netural_updated(1) = ", n_neutral_updated
-        print *, "n_minus_updated(1) = ", n_minus_updated
 
         ! Now test convergence
         if(converged(n_plus_updated, n_neutral_updated, n_minus_updated, n_plus, n_neutral, n_minus)) then

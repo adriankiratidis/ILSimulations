@@ -37,10 +37,6 @@ program run_C4MIM_BF4
   !        |
   !        4(-)
   !
-  real(dp), dimension(:), allocatable :: c8c1, c9c10, c7, c6, c5, c4, c2, c3p, c3pp, c3ppp ! Need for +ve beads
-  real(dp), dimension(:), allocatable :: c2p, c4p, c5p, c6p, c7p ! neutral beads need these as well.
-  real(dp), dimension(:), allocatable :: a1a2a3a4, a5p ! contributions needed for the -ve beads.
-
   !***********************************************
   !***********************************************
   !***************BEGIN EXECUTION*****************
@@ -62,9 +58,16 @@ program run_C4MIM_BF4
 
      print *, "Initialise/ReInitialise Discretisation for all the temperary variables we need."
      call InitialiseVariableDiscretisation(id, n_plus_updated, n_minus_updated, n_neutral_updated, &
-          lambda_plus, lambda_minus, lambda_neutral, c8c1, c9c10, c7, c6, c5, c4, c2, c3p, &
-          c3pp, c3ppp, c2p, c4p, c5p, c6p, c7p, a1a2a3a4, a5p)
+          lambda_plus, lambda_minus, lambda_neutral)
 
+     print *, "We don't calculate with hs_diameter/2 of the wall.  Therefore set it zero."
+     print *, "This aids with plotting ease."
+     call setNonCalculatedRegionToZero(n_plus, n_minus, n_neutral)
+     
+     print *, "Setting Bead Densities from the Bulk Ion Density."
+     call SetC4MIN_BF4BeadDensityFromBulkIonDensity()
+     
+     print *, "Starting iteration.  Searching for convergence of density profiles."
      iteration = 0
      do while (iteration < MAX_ITERATION_LIMIT)
         iteration = iteration + 1
@@ -72,87 +75,13 @@ program run_C4MIM_BF4
         !Calculate the lambdas from the densities.
         call CalculateLambdas(lambda_plus, lambda_neutral, lambda_minus, n_plus, n_neutral, n_minus, id)
 
-        ! print *, "lambda_plus = ", lambda_plus(1:10)
-        ! print *, "lambda_neutral = ", lambda_neutral(1:10)
-        ! print *, "lambda_minus = ", lambda_minus(1:10)
-        ! print *, "n_plus(1) = ", n_plus(1)
-        ! print *, "n_neutral(1) = ", n_neutral(1)
-        ! print *, "n_minus(1) = ", n_minus(1)
-        ! call abort()
+        call UpdateC4MIMPositiveBeads(lambda_plus, lambda_neutral, n_plus_updated)
 
-        ! First we calculate the contributions from the required sites.
+        call UpdateC4MINNeutralBeads(lambda_neutral, lambda_neutral, n_neutral_updated)
 
-        ! Start with the calculation required for the positive bead site.
-        ! Note that there is a factor of 1.0_dp/(4.0_dp * pi * hs_diameter**2)
-        ! from the delta function bond, a factor of 2 * pi from the theta integral
-        ! and a factor of hs_diameter**2 from the jacobian.  Combining these factors
-        ! gives the required 0.5_dp factor that we are multiplying by.
-        c9c10 = 0.5_dp * integrate_phi_spherical(lambda_plus)
+        call UpdateBF4NegativeBeads(lambda_minus, n_minus_updated)
 
-        !print *, "lambda_plus = ", lambda_plus
-        !print *, "c9c10 = ", c9c10
-        !call abort
-
-        c8c1 = 0.5_dp * integrate_phi_spherical(lambda_neutral)
-
-        c7 = 0.5_dp * integrate_phi_spherical(lambda_neutral * c8c1)
-
-        c6 = 0.5_dp * integrate_phi_spherical(lambda_neutral * c7)
-
-        c5 = 0.5_dp * integrate_phi_spherical(lambda_neutral * c6)
-
-        c4 = 0.5_dp * integrate_phi_spherical(lambda_plus * c5)
-
-
-        ! print *, "lambda_plus = ", lambda_plus
-        ! print *, "c4 = ", c4
-        ! call abort
-
-        c3p = 0.5_dp * integrate_phi_spherical(lambda_plus * c4 * c9c10 * c9c10)
-
-        c2 = 0.5_dp * integrate_phi_spherical(lambda_plus * c8c1)
-
-        c3pp = 0.5_dp * integrate_phi_spherical(lambda_plus * c4 * c2 * c9c10)
-
-        c3ppp = 0.5_dp * integrate_phi_spherical(lambda_plus * c2 * c9c10 * c9c10)
-
-        !Calculate the resulting positive bead densities.
-        !n_plus_updated = nc2 + nc3 + nc4 + nc9 + nc10 =  nc2 + nc3 + nc4 + 2*nc9
-        n_plus_updated = bulk_density * ( (lambda_plus * c8c1 * c3p) + (lambda_plus * c2 * c9c10 * c9c10 * c4) + &
-             (lambda_plus * c3ppp * c5) + (2 * (lambda_plus * c3pp)) ) 
-
-        !Now we calculate the neutral beads
-        c2p = 0.5_dp * integrate_phi_spherical(lambda_plus * c3p)
-
-        c4p = 0.5_dp * integrate_phi_spherical(lambda_plus * c3ppp)
-
-        c5p = 0.5_dp * integrate_phi_spherical(lambda_neutral * c4p)
-
-        c6p = 0.5_dp * integrate_phi_spherical(lambda_neutral * c5p)
-
-        c7p = 0.5_dp * integrate_phi_spherical(lambda_neutral * c6p)
-
-        !Calculate the resulting neutral bead densities.
-        !n_zero_updated = nc1 + nc5 + nc6 + nc7 + nc8
-        n_neutral_updated = bulk_density * ( (lambda_neutral * c2p) + (lambda_neutral * c4p * c6) + (lambda_neutral * c5p * c7) &
-             + (lambda_neutral * c6p * c8c1) + (lambda_neutral * c7p) )
-
-        !Calculate the required contributions for the anion
-        a1a2a3a4 = 0.5_dp * integrate_phi_spherical(lambda_minus)
-
-        a5p = 0.5_dp * integrate_phi_spherical(lambda_minus * (a1a2a3a4 ** 3.0_dp))
-
-        !Calculate the resulting negative bead densities.
-        !n_minus_updated = na1 + na2 + na3 + na4 + na5 = 4*na1 + na5
-        n_minus_updated = bulk_density * ( 4.0_dp*(lambda_minus * a5p) + (lambda_minus * (a1a2a3a4**4.0_dp)) )
-
-        print *, "n_plus(1) = ", n_plus(1:10)
-        print *, "n_neutral(1) = ", n_neutral(1:10)
-        print *, "n_minus(1) = ", n_minus(1:10)
-        print *, "n_plus_updated(1) = ", n_plus_updated
-        print *, "n_netural_updated(1) = ", n_neutral_updated
-        print *, "n_minus_updated(1) = ", n_minus_updated
-        !call abort()
+        call ReNormaliseToBulkDensity(n_plus_updated, n_neutral_updated, n_minus_updated)
 
         ! Now test convergence
         if(converged(n_plus_updated, n_neutral_updated, n_minus_updated, n_plus, n_neutral, n_minus)) then
