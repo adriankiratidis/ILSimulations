@@ -6,12 +6,16 @@ program run_C4MIM_BF4
   character(len=256) :: file_stub
   integer            :: iteration, ith_separation
 
-  real(dp), dimension(:), allocatable :: n_plus, n_minus, n_neutral! bead densities
-  real(dp), dimension(:), allocatable :: n_plus_updated, n_minus_updated, n_neutral_updated ! bead densities
+  real(dp), dimension(:), allocatable :: n_neutral! bead densities
+  real(dp), dimension(:), allocatable :: n_neutral_updated ! bead densities
 
+  !Need zero array as some contributions depend on n_s = n_+ + n_0 + n_-
+  !and n_+ and n_- and their associated lambdas are zero.
+  real(dp), dimension(:), allocatable :: zero_array 
+  
   !Here we define lambda_{i} = e^{l^{i}_{b} - l^{i}(r) where l^{i}(r) = dF/dn_{i} for example
   !and l^{i}_{b} is the value in the bulk.
-  real(dp), dimension(:), allocatable :: lambda_plus, lambda_minus, lambda_neutral
+  real(dp), dimension(:), allocatable :: lambda_neutral
 
   ! We use the standard notation of cj/aj to denote the contribution from bead j to the cation/anion
   ! as described in J. Phys. Chem C 2017, 121, 1742-1751. DOI: 10.1021/acs.jpcc.6b11491
@@ -58,32 +62,24 @@ program run_C4MIM_BF4
 
      print *, "Initialising/ReInitialising Discretistion and setting integration ansatz."
      print *, "Doing this for the densities"
-     call InitialiseDensityDiscretisationAndSetIntegrationAnsatz(ith_separation, n_plus, n_minus, n_neutral)
+     call InitialiseDensityDiscretisationAndSetIntegrationAnsatz(ith_separation, n_neutral)
 
      print *, "Initialise/ReInitialise Discretisation for all the temperary variables we need."
-     call InitialiseVariableDiscretisation(ith_separation, n_plus_updated, n_minus_updated, n_neutral_updated, &
-          lambda_plus, lambda_minus, lambda_neutral)
+     call InitialiseVariableDiscretisation(ith_separation, n_neutral_updated, lambda_neutral, zero_array)
 
-     print *, "We don't calculate with hs_diameter/2 of the wall.  Therefore set it zero."
-     print *, "This aids with plotting ease."
-     call setNonCalculatedRegionToZero(n_plus, n_minus, n_neutral)
-
-     print *, "Setting Bead Densities from the Bulk Ion Density."
-     call SetSingleSphereBeadDensityFromBulkIonDensity()
-
+     print *, "Starting iteration.  Searching for convergence of density profiles."
      iteration = 0
      do while (iteration < MAX_ITERATION_LIMIT)
         iteration = iteration + 1
 
         !Calculate the lambdas from the densities.
-        call CalculateLambdas(lambda_plus, lambda_neutral, lambda_minus, n_plus, n_neutral, n_minus, ith_separation)
+        zero_array = 0.0_dp
+        call CalculateLambdas(zero_array, zero_array, lambda_neutral, n_neutral, zero_array, zero_array, ith_separation)
 
-        call UpdateSingleSphereArrangment(lambda_plus, lambda_neutral, lambda_minus, n_plus_updated, n_neutral_updated, n_minus_updated)
-
-        call ReNormaliseToBulkDensity(n_plus_updated, n_neutral_updated, n_minus_updated)        
+        call UpdateDensities(lambda_neutral, n_neutral_updated)
 
         ! Now test convergence
-        if(converged(n_plus_updated, n_neutral_updated, n_minus_updated, n_plus, n_neutral, n_minus)) then
+        if(converged(n_neutral_updated, n_neutral)) then
 
            print *, ""
            print *, "************************************************************"
@@ -92,9 +88,7 @@ program run_C4MIM_BF4
            print *, "writing out density values to file"
            print *, "************************************************************"
            print *, ""
-           call WriteDensityOutputFormatted(n_plus_updated, trim(file_stub), "n_plus")
            call WriteDensityOutputFormatted(n_neutral_updated, trim(file_stub), "n_neutral")
-           call WriteDensityOutputFormatted(n_minus_updated, trim(file_stub), "n_minus")
            exit
 
         else if(iteration == MAX_ITERATION_LIMIT) then
@@ -113,9 +107,7 @@ program run_C4MIM_BF4
 
         else !Update and proceed to the next iteration
 
-           n_plus = n_plus_updated
            n_neutral = n_neutral_updated
-           n_minus = n_minus_updated
 
         end if
 
@@ -132,14 +124,8 @@ contains
 
   subroutine DeAllocateLocalVariables()
 
-    if(allocated(n_plus)) deallocate(n_plus)
-    if(allocated(n_minus)) deallocate(n_minus)
     if(allocated(n_neutral)) deallocate(n_neutral)
-    if(allocated(n_plus_updated)) deallocate(n_plus_updated)
-    if(allocated(n_minus_updated)) deallocate(n_minus_updated)
     if(allocated(n_neutral_updated)) deallocate(n_neutral_updated)
-    if(allocated(lambda_plus)) deallocate(lambda_plus)
-    if(allocated(lambda_minus)) deallocate(lambda_minus)
     if(allocated(lambda_neutral)) deallocate(lambda_neutral)
 
   end subroutine DeAllocateLocalVariables

@@ -15,7 +15,8 @@ OBJS =   \
 	io.o \
 	normalisation.o \
 	surfaceforces.o \
-	functionalderivatives.o
+	functionalderivatives.o \
+	constructoligomers.o
 
 all:
 	make ILsimulationssrclib.o

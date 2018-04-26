@@ -2,6 +2,7 @@
 module iteration
   use kinds
   use parameters
+  use helpers
   implicit none
   private
 
@@ -13,51 +14,114 @@ contains
 
   !Routine that returns true iff the average squared difference for all beads is
   !less than the iterative_tolerance input by the user.
-  function converged(n_plus_updated, n_neutral_updated, n_minus_updated, n_plus, n_neutral, n_minus)
-    real(dp), dimension(:), intent(in) :: n_plus_updated
-    real(dp), dimension(:), intent(in) :: n_neutral_updated
-    real(dp), dimension(:), intent(in) :: n_minus_updated
-    real(dp), dimension(:), intent(in) :: n_plus
-    real(dp), dimension(:), intent(in) :: n_neutral
-    real(dp), dimension(:), intent(in) :: n_minus
+  function converged(n1_updated, n1, n2_updated, n2, n3_updated, n3)
+    real(dp), dimension(:), intent(in) :: n1_updated
+    real(dp), dimension(:), intent(in) :: n1
+
+    real(dp), dimension(:), optional, intent(in) :: n2_updated
+    real(dp), dimension(:), optional, intent(in) :: n2
+
+    real(dp), dimension(:), optional, intent(in) :: n3_updated
+    real(dp), dimension(:), optional, intent(in) :: n3
+
     logical                            :: converged
 
-    real(dp) :: av_sq_diff_plus
-    real(dp) :: av_sq_diff_minus
-    real(dp) :: av_sq_diff_neutral
+    logical :: n1_converged
+    logical :: n2_converged
+    logical :: n3_converged
 
-    real(dp) :: bulk_plus
-    real(dp) :: bulk_neutral
-    real(dp) :: bulk_minus
-    
+    real(dp) :: av_sq_diff1
+    real(dp) :: av_sq_diff2
+    real(dp) :: av_sq_diff3
+
+    real(dp) :: bulk1
+    real(dp) :: bulk2
+    real(dp) :: bulk3
+
     converged = .false.
+    n1_converged = .false.
+    n2_converged = .false.
+    n3_converged = .false.
 
     !Ensure that we recieve arrays of the correct size
-    if(size(n_plus_updated) /= size(n_plus) .or. &
-         size(n_neutral_updated) /= size(n_neutral) .or. &
-         size(n_minus_updated) /= size(n_minus)) then
+    if(size(n1_updated) /= size(n1)) then
        print *, "iteration.f90: converged:"
-       print *, "converged needs to compare arrays of same size for convergence."
+       print *, "size(n1_updated) /= size(n1)"
        print *, "array size mismatch...aborting..."
        call abort()
+    else
+       av_sq_diff1 = sum((n1_updated - n1)**2)/size(n1)
+       bulk1 = sum(n1)/size(n1)
+       if(av_sq_diff1 <= iterative_tolerance*bulk1) then
+          n1_converged = .true.
+       else
+          n1_converged = .false.
+       end if
     end if
 
-    !Find the average difference of least squares for the 3 bead types
-    av_sq_diff_plus = sum((n_plus_updated - n_plus)**2)/size(n_plus)
-    av_sq_diff_neutral = sum((n_neutral_updated - n_neutral)**2)/size(n_neutral)
-    av_sq_diff_minus = sum((n_minus_updated - n_minus)**2)/size(n_minus)
+    !Now do n2
+    if(present(n2_updated)) then
 
-    bulk_plus = sum(n_plus)/size(n_plus)
-    bulk_neutral = sum(n_neutral)/size(n_neutral)
-    bulk_minus = sum(n_minus)/size(n_minus)
-    
+       if(.not. present(n2))then
+          print *, "iteration.f90: converged:"
+          print *, "optional argument error.  n2_updated present while n2 isn't present"
+          print *, "...aborting..."
+          call abort()
+       else
+
+          if(size(n2_updated) /= size(n2)) then
+             print *, "iteration.f90: converged:"
+             print *, "size(n2_updated) /= size(n2)"
+             print *, "array size mismatch...aborting..."
+             call abort()
+          else
+             av_sq_diff2 = sum((n2_updated - n2)**2)/size(n2)
+             bulk2 = sum(n2)/size(n2)
+             if(av_sq_diff2 <= iterative_tolerance*bulk2) then
+                n2_converged = .true.
+             else
+                n2_converged = .false.
+             end if
+          end if
+       end if
+
+    end if
+
+    !Now do n3
+    if(present(n3_updated)) then
+
+       if(.not. present(n3)) then
+          print *, "iteration.f90: converged:"
+          print *, "size(n3_updated) /= size(n3)"
+          print *, "array size mismatch...aborting..."
+          call abort() 
+       else
+
+          if(size(n3_updated) /= size(n3)) then
+             print *, "iteration.f90: converged:"
+             print *, "size(n3_updated) /= size(n3)"
+             print *, "array size mismatch...aborting..."
+             call abort()
+          else
+             av_sq_diff3 = sum((n3_updated - n3)**2)/size(n3)
+             bulk3 = sum(n3)/size(n3)
+             if(av_sq_diff3 <= iterative_tolerance*bulk3) then
+                n3_converged = .true.
+             else
+                n3_converged = .false.
+             end if
+          end if
+       end if
+
+    end if
+
     !Check for convergence
-    if((av_sq_diff_plus <= iterative_tolerance*bulk_plus) .and. &
-         (av_sq_diff_minus <= iterative_tolerance*bulk_minus) .and. &
-         (av_sq_diff_neutral <= iterative_tolerance*bulk_neutral))then
+    if(n1_converged .and. n2_converged .and. n3_converged)then
 
        print *, "iteration.f90: converged: Iterative scheme successfully converged."
        converged = .true.
+    else
+       converged = .false.
     end if
 
   end function converged
@@ -67,21 +131,27 @@ contains
   !(i.e. ith_plate_separation = 1) they are initialised to be constant.  In the case of subsequent run throughs
   !(i.e. ith_plate_separation > 1) they are rescaled based on the previously converged value by the routine
   !'ReScaleArray'.
-  subroutine InitialiseDensityDiscretisationAndSetIntegrationAnsatz(ith_plate_separation, n_plus, n_minus, n_neutral)
+  subroutine InitialiseDensityDiscretisationAndSetIntegrationAnsatz(ith_plate_separation, n1, n2, n3)
     integer, intent(in) :: ith_plate_separation
-    real(dp), dimension(:), allocatable, intent(inout) :: n_plus
-    real(dp), dimension(:), allocatable, intent(inout) :: n_minus
-    real(dp), dimension(:), allocatable, intent(inout) :: n_neutral
+    real(dp), dimension(:), allocatable, intent(inout) :: n1
+    real(dp), dimension(:), allocatable, optional, intent(inout) :: n2
+    real(dp), dimension(:), allocatable, optional, intent(inout) :: n3
 
     integer :: new_array_size
 
     !Note we add on one to include values at both endpoints/the walls.
     new_array_size = (plate_separations(ith_plate_separation) *  n_discretised_points_z) + 1
 
-    call UpdateArraySize(n_plus, new_array_size, rescale=allocated(n_plus))
-    call UpdateArraySize(n_minus, new_array_size, rescale=allocated(n_minus))
-    call UpdateArraySize(n_neutral, new_array_size, rescale=allocated(n_neutral))
+    call UpdateArraySize(n1, new_array_size, rescale=allocated(n1))
+    if(present(n2)) call UpdateArraySize(n2, new_array_size, rescale=allocated(n2))
+    if(present(n3)) call UpdateArraySize(n3, new_array_size, rescale=allocated(n3))
 
+    !We don't calculate with hs_diameter/2 of the wall.  Therefore set it zero.
+    !This aids with plotting ease.
+    call setNonCalculatedRegionToZero(n1)
+    if(present(n2)) call setNonCalculatedRegionToZero(n2)
+    if(present(n3)) call setNonCalculatedRegionToZero(n3)
+    
   end subroutine InitialiseDensityDiscretisationAndSetIntegrationAnsatz
 
   !Intialises the all variables (other than the bead densities) that are functions of z.
@@ -345,7 +415,6 @@ contains
   !Routine to initialise our ansatz for our integrative scheme to an arbitrary constant.
   subroutine InitialiseIntegrationAnsatzToConstant(array)
     real(dp), dimension(:) :: array
-
     
     array(:) = bulk_density
 

@@ -4,8 +4,8 @@
 !w.r.t the bead densities.
 module lambdas
   use kinds
-  use parameters
   use helpers
+  use parameters
   use functionalderivatives
   implicit none
   private
@@ -14,12 +14,14 @@ module lambdas
 
 contains
 
-  subroutine CalculateLambdas(lambda_plus, lambda_neutral, lambda_minus, n_plus, n_neutral, n_minus, ith_plate_separation)
+  subroutine CalculateLambdas(lambda_plus, n_plus, lambda_neutral, n_neutral, lambda_minus, n_minus, ith_plate_separation)
     real(dp), dimension(:), intent(out) :: lambda_plus
-    real(dp), dimension(:), intent(out) :: lambda_neutral
-    real(dp), dimension(:), intent(out) :: lambda_minus
     real(dp), dimension(:), intent(in)  :: n_plus
+    
+    real(dp), dimension(:), intent(out) :: lambda_neutral
     real(dp), dimension(:), intent(in)  :: n_neutral
+    
+    real(dp), dimension(:), intent(out) :: lambda_minus
     real(dp), dimension(:), intent(in)  :: n_minus
     integer, intent(in)                 :: ith_plate_separation
 

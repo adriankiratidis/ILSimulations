@@ -12,5 +12,6 @@ module ILsimulationssrclib
   use io
   use normalisation
   use surfaceforces
+  use constructoligomers
   implicit none
 end module ILsimulationssrclib

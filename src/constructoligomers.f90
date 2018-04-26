@@ -6,17 +6,26 @@
 !ideal chain contribution to the free energy.
 module constructoligomers
   use kinds
+  use parameters
+  use integratephispherical
+  use normalisation
   implicit none
   private
 
-  public :: UpdateSingleSphereArrangment
-  public :: UpdateC4MIMPositiveBeads
-  public :: UpdateC4MINNeutralBeads
-  public :: UpdateBF4NegativeBeads
+  public :: UpdateDensities
 
+  !Private subroutines
+  !UpdateSinglePositiveSphereDensity
+  !UpdateSingleNeutralSphereDensity
+  !UpdateSinglePositiveSphereDensity
+  !UpdateSinglePositiveNeutralMinusSphereDensities
+  !UpdateC4MIMPositiveBeadDensities
+  !UpdateC4MINNeutralBeadDensities
+  !UpdateC4MINNegativeBeadDensities
+  
 contains
 
-  subroutine UpdateSingleSphereArrangment(lambda1, n1_updated, lambda2, n2_updated, lambda3, n3_updated)
+  subroutine UpdateDensities(lambda1, n1_updated, lambda2, n2_updated, lambda3, n3_updated)
     real(dp), dimension(:), intent(in) :: lambda1
     real(dp), dimension(:), intent(out) :: n1_updated
 
@@ -26,64 +35,166 @@ contains
     real(dp), dimension(:), intent(in), optional :: lambda3
     real(dp), dimension(:), intent(out), optional :: n3_updated
 
-    !First do the n1 calculation.
-    if(size(lambda1) /= size(n1_updated)) then
+
+    if(trim(ionic_liquid_name) == "SingleNeutralSpheres") then
+
+       if(present(lambda2) .or. present(n2_updated) .or. present(lambda3) .or. present(n3_updated)) then
+          print *, "When doing single spheres should not have more than one lambda/density pair present"
+          print *, "...aborting..."
+          call abort()
+       end if
+
+       call UpdateSingleNeutralSphereDensity(lambda1, n1_updated)
+
+    else if(trim(ionic_liquid_name) == "SinglePositiveSpheres") then
+
+       if(present(lambda2) .or. present(n2_updated) .or. present(lambda3) .or. present(n3_updated)) then
+          print *, "When doing single spheres should not have more than one lambda/density pair present"
+          print *, "...aborting..."
+          call abort()
+       end if
+
+       call UpdateSinglePositiveSphereDensity(lambda1, n1_updated)
+
+    else if(trim(ionic_liquid_name) == "SingleNegativeSpheres") then
+
+       if(present(lambda2) .or. present(n2_updated) .or. present(lambda3) .or. present(n3_updated)) then
+          print *, "When doing single spheres should not have more than one lambda/density pair present"
+          print *, "...aborting..."
+          call abort()
+       end if
+
+       call UpdateSingleNegativeSphereDensity(lambda1, n1_updated)
+
+    else if(trim(ionic_liquid_name) == "SinglePositiveNeutralMinusSpheres") then
+
+       if( (.not. present(lambda2)) .or. (.not. present(n2_updated)) .or. &
+            (.not. present(lambda3)) .or. (.not. present(n3_updated)) ) then
+          print *, "constructoligomers.90: UpdateDensities:"
+          print *, "Trying to Update positive, neutral and negative spheres"
+          print *, "but haven't been passed the appropriate number of arguments"
+          print *, "coding error...aborting..."
+          call abort()
+       else
+          call UpdateSinglePositiveNeutralMinusSphereDensities(lambda1, n1_updated, lambda2, n2_updated, lambda3, n3_updated)
+       end if
+
+    else if(trim(ionic_liquid_name) == "C4MIM_BF4") then
+
+       if( (.not. present(lambda2)) .or. (.not. present(n2_updated)) .or. &
+            (.not. present(lambda3)) .or. (.not. present(n3_updated)) ) then
+          print *, "constructoligomers.90: UpdateDensities:"
+          print *, "Trying to Update positive, neutral and negative spheres"
+          print *, "but haven't been passed the appropriate number of arguments"
+          print *, "coding error...aborting..."
+          call abort()
+       else
+          call UpdateC4MIMPositiveBeadDensities(lambda1, lambda2, n1_updated)
+          call UpdateC4MIMNeutralBeadDensities(lambda1, lambda2, n2_updated)
+          call UpdateBF4NegativeBeadDensities(lambda3, n3_updated)
+       end if
+
+    end if
+
+  end subroutine UpdateDensities
+
+  subroutine UpdateSinglePositiveSphereDensity(lambda_plus, n_plus_updated)
+    real(dp), dimension(:), intent(in) :: lambda_plus
+    real(dp), dimension(:), intent(out) :: n_plus_updated
+
+    if(size(lambda_plus) /= size(n_plus_updated)) then
        print *, "constructoligomers.f90: ConstructSingleSphereArrangment: "
-       print *, "Size mismatch.  size(lambda1) /= size(n1_updated)."
+       print *, "Size mismatch.  size(lambda_plus) /= size(n_plus_updated)."
        print *, "can't update...aborting..."
        call abort()
     else
-       n1_updated = lambda1
+       n_plus_updated = lambda_plus
     end if
 
-    !Now do the n2 calculation
-    if(present(lambda2)) then
-       if(.not. present(n2_updated)) then
-          print *, "constructoligomers.f90: ConstructSingleSphereArrangment: "
-          print *, "Must have n2_updated present if lambda2 is present"
-          print *, "coding error...aborting..."
-          call abort()
-       else
-          if(size(lambda2) /= size(n2_updated)) then
-             print *, "constructoligomers.f90: ConstructSingleSphereArrangment: "
-             print *, "Size mismatch.  size(lambda1) /= size(n1_updated)."
-             print *, "can't update...aborting..."
-             call abort()
-          else
-             n2_updated = lambda2
-          end if
-       end if
+    call RenormaliseToBulkDensity(n_plus_updated, "n+")
+
+  end subroutine UpdateSinglePositiveSphereDensity
+
+  subroutine UpdateSingleNeutralSphereDensity(lambda_neutral, n_neutral_updated)
+    real(dp), dimension(:), intent(in) :: lambda_neutral
+    real(dp), dimension(:), intent(out) :: n_neutral_updated
+
+    if(size(lambda_neutral) /= size(n_neutral_updated)) then
+       print *, "constructoligomers.f90: ConstructSingleSphereArrangment: "
+       print *, "Size mismatch.  size(lambda_neutral) /= size(n_plus_neutral)."
+       print *, "can't update...aborting..."
+       call abort()
+    else
+       n_neutral_updated = lambda_neutral
     end if
 
-    !Now do the n3 calculation
-     if(present(lambda3)) then
-       if(.not. present(n3_updated)) then
-          print *, "constructoligomers.f90: ConstructSingleSphereArrangment: "
-          print *, "Must have n3_updated present if lambda3 is present"
-          print *, "coding error...aborting..."
-          call abort()
-       else
-          if(size(lambda3) /= size(n3_updated)) then
-             print *, "constructoligomers.f90: ConstructSingleSphereArrangment: "
-             print *, "Size mismatch.  size(lambda3) /= size(n3_updated)."
-             print *, "can't update...aborting..."
-             call abort()
-          else
-             n3_updated = lambda3
-          end if
-       end if
+    call RenormaliseToBulkDensity(n_neutral_updated, "n0")
+
+  end subroutine UpdateSingleNeutralSphereDensity
+
+  subroutine UpdateSingleNegativeSphereDensity(lambda_minus, n_minus_updated)
+    real(dp), dimension(:), intent(in) :: lambda_minus
+    real(dp), dimension(:), intent(out) :: n_minus_updated
+
+    if(size(lambda_minus) /= size(n_minus_updated)) then
+       print *, "constructoligomers.f90: ConstructSingleSphereArrangment: "
+       print *, "Size mismatch.  size(lambda_plus) /= size(n_plus_updated)."
+       print *, "can't update...aborting..."
+       call abort()
+    else
+       n_minus_updated = lambda_minus
     end if
 
-  end subroutine ConstructSingleSphereArrangment
-  
-  subroutine UpdateC4MIMPositiveBeads(lambda_plus, lambda_neutral, n_plus_updated)
+    call RenormaliseToBulkDensity(n_minus_updated, "n-")
+
+  end subroutine UpdateSingleNegativeSphereDensity
+
+  subroutine UpdateSinglePositiveNeutralMinusSphereDensities(lambda_plus, n_plus_updated, &
+       lambda_neutral, n_neutral_updated, lambda_minus, n_minus_updated)
+    real(dp), dimension(:), intent(in) :: lambda_plus
+    real(dp), dimension(:), intent(out) :: n_plus_updated
+
+    real(dp), dimension(:), intent(in) :: lambda_neutral
+    real(dp), dimension(:), intent(out) :: n_neutral_updated
+
+    real(dp), dimension(:), intent(in) :: lambda_minus
+    real(dp), dimension(:), intent(out) :: n_minus_updated
+
+    !First ensure all the lambda sizes are the same
+    if((size(lambda_plus) /= size(lambda_neutral)) .or. (size(lambda_plus) /= size(lambda_minus))) then
+       print *, "constructoligomers.f90: UpdateSinglePositiveNeutralMinusSphereDensities:"
+       print *, "(size(lambda_plus) /= size(lambda_neutral)) .or. (size(lambda_plus) /= size(lambda_minus))"
+       print *, "Input variable size mismatch...aborting..."
+       call abort()
+    end if
+
+    call UpdateSinglePositiveSphereDensity(lambda_plus, n_plus_updated)
+    call UpdateSingleNeutralSphereDensity(lambda_neutral, n_neutral_updated)
+    call UpdateSingleNegativeSphereDensity(lambda_minus, n_minus_updated)
+
+  end subroutine UpdateSinglePositiveNeutralMinusSphereDensities
+
+  subroutine UpdateC4MIMPositiveBeadDensities(lambda_plus, lambda_neutral, n_plus_updated)
     real(dp), dimension(:), intent(in) :: lambda_plus
     real(dp), dimension(:), intent(in) :: lambda_neutral
     real(dp), dimension(:), intent(out) :: n_plus_updated
 
     real(dp), dimension(:), allocatable :: c8c1, c9c10, c7, c6, c5, c4, c2, c3p, c3pp, c3ppp
+    integer :: array_size
 
-    call InitialiseVariableDiscretisation(c8c1, c9c10, c7, c6, c5, c4, c2, c3p, c3pp, c3ppp)
+    ! First check the input variables are the same size
+    if( (size(lambda_plus) == size(lambda_neutral)) .and. (size(lambda_plus) == size(n_plus_updated))) then
+
+       array_size = size(lambda_plus)
+       allocate(c8c1(array_size), c9c10(array_size), c7(array_size), c6(array_size), &
+            c5(array_size), c4(array_size), c2(array_size), c3p(array_size), c3pp(array_size), c3ppp(array_size))
+    else
+       print *, "constructoligomers.f90: UpdateC4MIMPositiveBeads:"
+       print *, "Size mismatch. size(lambda_plus) /= size(lambda_neutral)"
+       print *, "or size(lambda_plus) == size(n_plus_updated)"
+       print *, "...aborting..."
+       call abort()
+    end if
 
     ! Note that there is a factor of 1.0_dp/(4.0_dp * pi * hs_diameter**2)
     ! from the delta function bond, a factor of 2 * pi from the theta integral
@@ -112,19 +223,58 @@ contains
     !Calculate the resulting positive bead densities.
     !n_plus_updated = nc2 + nc3 + nc4 + nc9 + nc10 =  nc2 + nc3 + nc4 + 2*nc9
     n_plus_updated = bulk_density * ( (lambda_plus * c8c1 * c3p) + (lambda_plus * c2 * c9c10 * c9c10 * c4) + &
-         (lambda_plus * c3ppp * c5) + (2.0_dp * (lambda_plus * c3pp)) ) 
+         (lambda_plus * c3ppp * c5) + (2.0_dp * (lambda_plus * c3pp)) )
 
-  end subroutine UpdateC4MIMPositiveBeads
+    call RenormaliseToBulkDensity(n_plus_updated, "n+")
 
-  subroutine UpdateC4MINNeutralBeads(lambda_plus, lambda_neutral, n_neutral_updated)
+    !Don't check if the variables have been allocated.
+    !We want an error thrown if they haven't been (which should never happen anyway).
+    deallocate(c8c1, c9c10, c7, c6, c5, c4, c2, c3p, c3pp, c3ppp)
+
+  end subroutine UpdateC4MIMPositiveBeadDensities
+
+  subroutine UpdateC4MIMNeutralBeadDensities(lambda_plus, lambda_neutral, n_neutral_updated)
     real(dp), dimension(:), intent(in) :: lambda_plus
     real(dp), dimension(:), intent(in) :: lambda_neutral
     real(dp), dimension(:), intent(out) :: n_neutral_updated
 
-    real(dp), dimension(:), allocatable :: c2p, c4p, c5p, c6p, c7p
+    real(dp), dimension(:), allocatable :: c3p, c3ppp, c9c10, c8c1, c7, c6, c5, c4, c2 !contributions also used in +ve beads.
+    real(dp), dimension(:), allocatable :: c2p, c4p, c5p, c6p, c7p !extra contributions for -ve beads.
 
-    call InitialiseVariableDiscretisation(c2p, c4p, c5p, c6p, c7p)
-    
+    integer :: array_size
+
+    ! First check the input variables are the same size
+    if( (size(lambda_plus) == size(lambda_neutral)) .and. (size(lambda_plus) == size(n_neutral_updated))) then
+
+       array_size = size(lambda_plus)
+       allocate(c3p(array_size), c3ppp(array_size), c8c1(array_size), c9c10(array_size), c2p(array_size), &
+            c7(array_size), c6(array_size), c5(array_size), c4(array_size), c2(array_size), &
+            c4p(array_size), c5p(array_size), c6p(array_size), c7p(array_size))
+    else
+       print *, "constructoligomers.f90: UpdateC4MINNeutralBeads:"
+       print *, "Size mismatch. size(lambda_plus) /= size(lambda_neutral)"
+       print *, "or size(lambda_plus) == size(n_neutral_updated)"
+       print *, "...aborting..."
+       call abort()
+    end if
+
+    c9c10 = 0.5_dp * integrate_phi_spherical(lambda_plus)
+
+    c8c1 = 0.5_dp * integrate_phi_spherical(lambda_neutral)
+
+    c7 = 0.5_dp * integrate_phi_spherical(lambda_neutral * c8c1)
+
+    c6 = 0.5_dp * integrate_phi_spherical(lambda_neutral * c7)
+
+    c5 = 0.5_dp * integrate_phi_spherical(lambda_neutral * c6)
+
+    c4 = 0.5_dp * integrate_phi_spherical(lambda_plus * c5)
+
+    c2 = 0.5_dp * integrate_phi_spherical(lambda_plus * c8c1)
+
+    c3p = 0.5_dp * integrate_phi_spherical(lambda_plus * c4 * c9c10 * c9c10)
+
+    c3ppp = 0.5_dp * integrate_phi_spherical(lambda_plus * c2 * c9c10 * c9c10)
 
     c2p = 0.5_dp * integrate_phi_spherical(lambda_plus * c3p)
 
@@ -141,17 +291,34 @@ contains
     n_neutral_updated = bulk_density * ( (lambda_neutral * c2p) + (lambda_neutral * c4p * c6) + (lambda_neutral * c5p * c7) &
          + (lambda_neutral * c6p * c8c1) + (lambda_neutral * c7p) )
 
-  end subroutine UpdateC4MINNeutralBeads
+    call RenormaliseToBulkDensity(n_neutral_updated, "n0")
 
-  subroutine UpdateBF4NegativeBeads(lambda_minus, n_minus_updated)
+    !Don't check if the variables have been allocated.
+    !We want an error thrown if they haven't been (which should never happen anyway).
+    deallocate(c3p, c3ppp, c8c1)
+    deallocate(c2p, c4p, c5p, c6p, c7p)
+
+  end subroutine UpdateC4MIMNeutralBeadDensities
+
+  subroutine UpdateBF4NegativeBeadDensities(lambda_minus, n_minus_updated)
     real(dp), dimension(:), intent(in) :: lambda_minus
     real(dp), dimension(:), intent(out) :: n_minus_updated
-    
+
     real(dp), dimension(:), allocatable :: a1a2a3a4, a5p
+    integer :: array_size
 
+    ! First check the input variables are the same size
+    if(size(lambda_minus) == size(n_minus_updated)) then
+       array_size = size(lambda_minus)
+       allocate(a1a2a3a4(array_size))
+       allocate(a5p(array_size))
+    else
+       print *, "constructoligomers.f90: UpdateBF4NegativeBeads:"
+       print *, "Size mismatch. size(lambda_minus) /= size(n_minus_updated)"
+       print *, "...aborting..."
+       call abort()
+    end if
 
-    call InitialiseVariableDiscretisation(a1a2a3a4, a5p)
-    
     !Calculate the required contributions for the anion
     a1a2a3a4 = 0.5_dp * integrate_phi_spherical(lambda_minus)
 
@@ -161,8 +328,12 @@ contains
     !n_minus_updated = na1 + na2 + na3 + na4 + na5 = 4*na1 + na5
     n_minus_updated = bulk_density * ( 4.0_dp*(lambda_minus * a5p) + (lambda_minus * (a1a2a3a4**4.0_dp)) )
 
-  end subroutine UpdateBF4NegativeBeads
+    call RenormaliseToBulkDensity(n_minus_updated, "n-")
 
+    !Don't check if the variables have been allocated.
+    !We want an error thrown if they haven't been (which should never happen anyway).
+    deallocate(a1a2a3a4, a5p)
 
+  end subroutine UpdateBF4NegativeBeadDensities
 
 end module constructoligomers

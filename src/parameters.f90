@@ -7,6 +7,8 @@ module parameters
 
   public :: InitialiseModelParameters
 
+  public :: ionic_liquid_name 
+
   ! 'd' = chi_parameter * hs_diameter provides the only adjusted
   ! parameter in the model. It is fitted to give the correct bulk
   ! ion density for the particlar RTIL at a given pressure and temp.
@@ -30,13 +32,18 @@ module parameters
   public :: max_iteration_limit
   public :: beta
 
+  public :: bulk_density_positive_beads
+  public :: bulk_density_neutral_beads
+  public :: bulk_density_negative_beads
+
+  character(len=256) :: ionic_liquid_name 
   real(dp) :: chi_parameter
   integer  :: n_discretised_points_z
   real(dp) :: epsilonr
   real(dp) :: epsilon_LJ
   real(dp) :: surface_charge_density
   real(dp) :: hs_diameter
-  
+
   !array of plater separations in multiples of hs_diameter
   integer, dimension(:), allocatable  :: plate_separations
 
@@ -47,6 +54,10 @@ module parameters
   real(dp) :: iterative_tolerance
   integer  :: max_iteration_limit
   real(dp) :: beta
+
+  real(dp) :: bulk_density_positive_beads
+  real(dp) :: bulk_density_neutral_beads
+  real(dp) :: bulk_density_negative_beads
 
 contains
 
@@ -61,6 +72,7 @@ contains
 
     open(file_unit, file=trim(file_stub)//".params", action='read')
 
+    read(file_unit, *) ionic_liquid_name
     read(file_unit, *) chi_parameter
     read(file_unit, *) epsilonr
     read(file_unit, *) epsilon_LJ !
@@ -84,12 +96,13 @@ contains
 
     ! Set derived parameters
     beta = 1.0_dp / (k_B * temperature)
-    
+
     ! Apply unit transformations
     epsilon_LJ = epsilon_LJ * k_B
     bulk_density = bulk_density / (hs_diameter**3.0_dp)
-    
+
     print *,  "Succesfully set the following values"
+    print *,  "ionic_liquid_name = ", ionic_liquid_name
     print *,  "chi_parameter = ", chi_parameter
     print *,  "epsilonr = ", epsilonr
     print *,  "epsilon_LJ = ", epsilon_LJ
@@ -106,6 +119,9 @@ contains
     print *,  "plate separations are: ", plate_separations
     print *,  "thermodynamic beta = ", beta
 
+    print *, "Setting Bead Densities from the Bulk Ion Density."
+    call SetBeadDensityFromBulkIonDensity(ionic_liquid_name)
+
   end subroutine InitialiseModelParameters
 
   subroutine DeAllocateModelParams()
@@ -113,4 +129,35 @@ contains
     if(allocated(plate_separations)) deallocate(plate_separations)
 
   end subroutine DeAllocateModelParams
+
+   subroutine SetBeadDensityFromBulkIonDensity(ionic_liquid_name)
+    character(len=*), intent(in) :: ionic_liquid_name
+
+    if(trim(ionic_liquid_name) == "SingleNeutralSphere") then
+       call SetSingleNeutralSphereBeadDensityFromBulkIonDensity()
+    else if(trim(ionic_liquid_name) == "C4MIM_BF4-") then
+       call SetC4MIN_BF4BeadDensityFromBulkIonDensity()
+    else
+       print *, "normalisation.f90: SetBeadDensityFromBulkIonDensity:"
+       print *, "Unsupported 'ionic_liquid_name' value of ", trim(ionic_liquid_name)
+       print *, "...aborting..."
+       call abort()
+    end if
+
+  end subroutine SetBeadDensityFromBulkIonDensity
+
+  subroutine SetSingleNeutralSphereBeadDensityFromBulkIonDensity()
+
+    bulk_density_positive_beads = bulk_density
+    bulk_density_neutral_beads = bulk_density
+    bulk_density_negative_beads = bulk_density
+  end subroutine SetSingleNeutralSphereBeadDensityFromBulkIonDensity
+
+  subroutine SetC4MIN_BF4BeadDensityFromBulkIonDensity()
+
+    bulk_density_positive_beads = 5.0_dp * bulk_density
+    bulk_density_neutral_beads = 5.0_dp * bulk_density
+    bulk_density_negative_beads = 5.0_dp * bulk_density
+  end subroutine SetC4MIN_BF4BeadDensityFromBulkIonDensity
+
 end module parameters

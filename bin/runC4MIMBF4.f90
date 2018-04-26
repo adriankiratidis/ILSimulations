@@ -60,31 +60,18 @@ program run_C4MIM_BF4
      call InitialiseVariableDiscretisation(id, n_plus_updated, n_minus_updated, n_neutral_updated, &
           lambda_plus, lambda_minus, lambda_neutral)
 
-     print *, "We don't calculate with hs_diameter/2 of the wall.  Therefore set it zero."
-     print *, "This aids with plotting ease."
-     call setNonCalculatedRegionToZero(n_plus, n_minus, n_neutral)
-     
-     print *, "Setting Bead Densities from the Bulk Ion Density."
-     call SetC4MIN_BF4BeadDensityFromBulkIonDensity()
-     
      print *, "Starting iteration.  Searching for convergence of density profiles."
      iteration = 0
      do while (iteration < MAX_ITERATION_LIMIT)
         iteration = iteration + 1
 
         !Calculate the lambdas from the densities.
-        call CalculateLambdas(lambda_plus, lambda_neutral, lambda_minus, n_plus, n_neutral, n_minus, id)
+        call CalculateLambdas(lambda_plus, n_plus, lambda_neutral, n_neutral, lambda_minus, n_minus, id)
 
-        call UpdateC4MIMPositiveBeads(lambda_plus, lambda_neutral, n_plus_updated)
-
-        call UpdateC4MINNeutralBeads(lambda_neutral, lambda_neutral, n_neutral_updated)
-
-        call UpdateBF4NegativeBeads(lambda_minus, n_minus_updated)
-
-        call ReNormaliseToBulkDensity(n_plus_updated, n_neutral_updated, n_minus_updated)
-
+        call UpdateDensities(lambda_plus, n_plus_updated, lambda_neutral, n_neutral_updated, lambda_minus, n_minus_updated)
+        
         ! Now test convergence
-        if(converged(n_plus_updated, n_neutral_updated, n_minus_updated, n_plus, n_neutral, n_minus)) then
+        if(converged(n_plus_updated, n_plus, n_neutral_updated, n_neutral, n_minus_updated, n_minus)) then
 
            print *, ""
            print *, "************************************************************"
@@ -142,23 +129,6 @@ contains
     if(allocated(lambda_plus)) deallocate(lambda_plus)
     if(allocated(lambda_minus)) deallocate(lambda_minus)
     if(allocated(lambda_neutral)) deallocate(lambda_neutral)
-    if(allocated(c8c1)) deallocate(c8c1)
-    if(allocated(c9c10)) deallocate(c9c10)
-    if(allocated(c7)) deallocate(c7)
-    if(allocated(c6)) deallocate(c6)
-    if(allocated(c5)) deallocate(c5)
-    if(allocated(c4)) deallocate(c4)
-    if(allocated(c2)) deallocate(c2)
-    if(allocated(c3p)) deallocate(c3p)
-    if(allocated(c3pp)) deallocate(c3pp)
-    if(allocated(c3ppp)) deallocate(c3ppp)
-    if(allocated(c2p)) deallocate(c2p)
-    if(allocated(c4p)) deallocate(c4p)
-    if(allocated(c5p)) deallocate(c5p)
-    if(allocated(c6p)) deallocate(c6p)
-    if(allocated(c7p)) deallocate(c7p)
-    if(allocated(a1a2a3a4)) deallocate(a1a2a3a4)
-    if(allocated(a5p)) deallocate(a5p)
 
   end subroutine DeAllocateLocalVariables
 

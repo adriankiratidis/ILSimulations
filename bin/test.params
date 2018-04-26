@@ -1,3 +1,4 @@
+C4MIM_BF4	#ionic_liquid_name
 0.71		#chi_parameter
 2.3		#Epsilon_r
 100 		#Epsilon_LJ ( = epsilon_LJ * k_{B})
