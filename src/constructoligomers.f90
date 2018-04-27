@@ -7,12 +7,17 @@
 module constructoligomers
   use kinds
   use parameters
+  use helpers
   use integratephispherical
+  use integratezcylindrical
   use normalisation
+  use lambdas
   implicit none
   private
 
   public :: UpdateDensities
+
+  public :: calculate_single_neutral_sphere_ideal_chain_term
 
   !Private subroutines
   !UpdateSinglePositiveSphereDensity
@@ -108,7 +113,7 @@ contains
        print *, "can't update...aborting..."
        call abort()
     else
-       n_plus_updated = lambda_plus
+       n_plus_updated = exp(lambda_plus)
     end if
 
     call RenormaliseToBulkDensity(n_plus_updated, "n+")
@@ -125,12 +130,29 @@ contains
        print *, "can't update...aborting..."
        call abort()
     else
-       n_neutral_updated = lambda_neutral
+       n_neutral_updated = exp(lambda_neutral)
     end if
 
     call RenormaliseToBulkDensity(n_neutral_updated, "n0")
 
   end subroutine UpdateSingleNeutralSphereDensity
+
+
+  function calculate_single_neutral_sphere_ideal_chain_term(n_neutral, ith_plate_separation)
+    real(dp), dimension(:), intent(in) :: n_neutral
+    integer, intent(in) :: ith_plate_separation
+    real(dp) :: calculate_single_neutral_sphere_ideal_chain_term
+
+    real(dp), dimension(size(n_neutral)) :: zero_array
+    real(dp), dimension(size(n_neutral)) :: lambda_neutral
+    
+    call CalculateLambdas(zero_array, zero_array, lambda_neutral, n_neutral, zero_array, zero_array, ith_plate_separation)
+    
+    calculate_single_neutral_sphere_ideal_chain_term = integrate_z_cylindrical(bulk_density_neutral_beads * exp(lambda_neutral) * &
+         (log(bulk_density_neutral_beads) + lambda_neutral) - 1.0_dp, unity_function)
+    
+  end function calculate_single_neutral_sphere_ideal_chain_term
+
 
   subroutine UpdateSingleNegativeSphereDensity(lambda_minus, n_minus_updated)
     real(dp), dimension(:), intent(in) :: lambda_minus
@@ -142,7 +164,7 @@ contains
        print *, "can't update...aborting..."
        call abort()
     else
-       n_minus_updated = lambda_minus
+       n_minus_updated = exp(lambda_minus)
     end if
 
     call RenormaliseToBulkDensity(n_minus_updated, "n-")
@@ -200,30 +222,30 @@ contains
     ! from the delta function bond, a factor of 2 * pi from the theta integral
     ! and a factor of hs_diameter**2 from the jacobian.  Combining these factors
     ! gives the required 0.5_dp factor that we are multiplying by.
-    c9c10 = 0.5_dp * integrate_phi_spherical(lambda_plus)
+    c9c10 = 0.5_dp * integrate_phi_spherical(exp(lambda_plus))
 
-    c8c1 = 0.5_dp * integrate_phi_spherical(lambda_neutral)
+    c8c1 = 0.5_dp * integrate_phi_spherical(exp(lambda_neutral))
 
-    c7 = 0.5_dp * integrate_phi_spherical(lambda_neutral * c8c1)
+    c7 = 0.5_dp * integrate_phi_spherical(exp(lambda_neutral) * c8c1)
 
-    c6 = 0.5_dp * integrate_phi_spherical(lambda_neutral * c7)
+    c6 = 0.5_dp * integrate_phi_spherical(exp(lambda_neutral) * c7)
 
-    c5 = 0.5_dp * integrate_phi_spherical(lambda_neutral * c6)
+    c5 = 0.5_dp * integrate_phi_spherical(exp(lambda_neutral) * c6)
 
-    c4 = 0.5_dp * integrate_phi_spherical(lambda_plus * c5)
+    c4 = 0.5_dp * integrate_phi_spherical(exp(lambda_plus) * c5)
 
-    c3p = 0.5_dp * integrate_phi_spherical(lambda_plus * c4 * c9c10 * c9c10)
+    c3p = 0.5_dp * integrate_phi_spherical(exp(lambda_plus) * c4 * c9c10 * c9c10)
 
-    c2 = 0.5_dp * integrate_phi_spherical(lambda_plus * c8c1)
+    c2 = 0.5_dp * integrate_phi_spherical(exp(lambda_plus) * c8c1)
 
-    c3pp = 0.5_dp * integrate_phi_spherical(lambda_plus * c4 * c2 * c9c10)
+    c3pp = 0.5_dp * integrate_phi_spherical(exp(lambda_plus) * c4 * c2 * c9c10)
 
-    c3ppp = 0.5_dp * integrate_phi_spherical(lambda_plus * c2 * c9c10 * c9c10)
+    c3ppp = 0.5_dp * integrate_phi_spherical(exp(lambda_plus) * c2 * c9c10 * c9c10)
 
     !Calculate the resulting positive bead densities.
     !n_plus_updated = nc2 + nc3 + nc4 + nc9 + nc10 =  nc2 + nc3 + nc4 + 2*nc9
-    n_plus_updated = bulk_density * ( (lambda_plus * c8c1 * c3p) + (lambda_plus * c2 * c9c10 * c9c10 * c4) + &
-         (lambda_plus * c3ppp * c5) + (2.0_dp * (lambda_plus * c3pp)) )
+    n_plus_updated = bulk_density * ( (exp(lambda_plus) * c8c1 * c3p) + (exp(lambda_plus) * c2 * c9c10 * c9c10 * c4) + &
+         (exp(lambda_plus) * c3ppp * c5) + (2.0_dp * (exp(lambda_plus) * c3pp)) )
 
     call RenormaliseToBulkDensity(n_plus_updated, "n+")
 
@@ -258,38 +280,38 @@ contains
        call abort()
     end if
 
-    c9c10 = 0.5_dp * integrate_phi_spherical(lambda_plus)
+    c9c10 = 0.5_dp * integrate_phi_spherical(exp(lambda_plus))
 
-    c8c1 = 0.5_dp * integrate_phi_spherical(lambda_neutral)
+    c8c1 = 0.5_dp * integrate_phi_spherical(exp(lambda_neutral))
 
-    c7 = 0.5_dp * integrate_phi_spherical(lambda_neutral * c8c1)
+    c7 = 0.5_dp * integrate_phi_spherical(exp(lambda_neutral) * c8c1)
 
-    c6 = 0.5_dp * integrate_phi_spherical(lambda_neutral * c7)
+    c6 = 0.5_dp * integrate_phi_spherical(exp(lambda_neutral) * c7)
 
-    c5 = 0.5_dp * integrate_phi_spherical(lambda_neutral * c6)
+    c5 = 0.5_dp * integrate_phi_spherical(exp(lambda_neutral) * c6)
 
-    c4 = 0.5_dp * integrate_phi_spherical(lambda_plus * c5)
+    c4 = 0.5_dp * integrate_phi_spherical(exp(lambda_plus) * c5)
 
-    c2 = 0.5_dp * integrate_phi_spherical(lambda_plus * c8c1)
+    c2 = 0.5_dp * integrate_phi_spherical(exp(lambda_plus) * c8c1)
 
-    c3p = 0.5_dp * integrate_phi_spherical(lambda_plus * c4 * c9c10 * c9c10)
+    c3p = 0.5_dp * integrate_phi_spherical(exp(lambda_plus) * c4 * c9c10 * c9c10)
 
-    c3ppp = 0.5_dp * integrate_phi_spherical(lambda_plus * c2 * c9c10 * c9c10)
+    c3ppp = 0.5_dp * integrate_phi_spherical(exp(lambda_plus) * c2 * c9c10 * c9c10)
 
-    c2p = 0.5_dp * integrate_phi_spherical(lambda_plus * c3p)
+    c2p = 0.5_dp * integrate_phi_spherical(exp(lambda_plus) * c3p)
 
-    c4p = 0.5_dp * integrate_phi_spherical(lambda_plus * c3ppp)
+    c4p = 0.5_dp * integrate_phi_spherical(exp(lambda_plus) * c3ppp)
 
-    c5p = 0.5_dp * integrate_phi_spherical(lambda_neutral * c4p)
+    c5p = 0.5_dp * integrate_phi_spherical(exp(lambda_neutral) * c4p)
 
-    c6p = 0.5_dp * integrate_phi_spherical(lambda_neutral * c5p)
+    c6p = 0.5_dp * integrate_phi_spherical(exp(lambda_neutral) * c5p)
 
-    c7p = 0.5_dp * integrate_phi_spherical(lambda_neutral * c6p)
+    c7p = 0.5_dp * integrate_phi_spherical(exp(lambda_neutral) * c6p)
 
     !Calculate the resulting neutral bead densities.
     !n_zero_updated = nc1 + nc5 + nc6 + nc7 + nc8
-    n_neutral_updated = bulk_density * ( (lambda_neutral * c2p) + (lambda_neutral * c4p * c6) + (lambda_neutral * c5p * c7) &
-         + (lambda_neutral * c6p * c8c1) + (lambda_neutral * c7p) )
+    n_neutral_updated = bulk_density * ( (exp(lambda_neutral) * c2p) + (exp(lambda_neutral) * c4p * c6) + &
+         (exp(lambda_neutral) * c5p * c7) + (exp(lambda_neutral) * c6p * c8c1) + (exp(lambda_neutral) * c7p) )
 
     call RenormaliseToBulkDensity(n_neutral_updated, "n0")
 
@@ -320,13 +342,13 @@ contains
     end if
 
     !Calculate the required contributions for the anion
-    a1a2a3a4 = 0.5_dp * integrate_phi_spherical(lambda_minus)
+    a1a2a3a4 = 0.5_dp * integrate_phi_spherical(exp(lambda_minus))
 
-    a5p = 0.5_dp * integrate_phi_spherical(lambda_minus * (a1a2a3a4 ** 3.0_dp))
+    a5p = 0.5_dp * integrate_phi_spherical(exp(lambda_minus) * (a1a2a3a4 ** 3.0_dp))
 
     !Calculate the resulting negative bead densities.
     !n_minus_updated = na1 + na2 + na3 + na4 + na5 = 4*na1 + na5
-    n_minus_updated = bulk_density * ( 4.0_dp*(lambda_minus * a5p) + (lambda_minus * (a1a2a3a4**4.0_dp)) )
+    n_minus_updated = bulk_density * ( 4.0_dp*(exp(lambda_minus) * a5p) + (exp(lambda_minus) * (a1a2a3a4**4.0_dp)) )
 
     call RenormaliseToBulkDensity(n_minus_updated, "n-")
 

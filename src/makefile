@@ -16,7 +16,8 @@ OBJS =   \
 	normalisation.o \
 	surfaceforces.o \
 	functionalderivatives.o \
-	constructoligomers.o
+	constructoligomers.o \
+	contacttheorem.o
 
 all:
 	make ILsimulationssrclib.o

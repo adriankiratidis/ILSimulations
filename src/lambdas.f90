@@ -63,9 +63,9 @@ contains
     print *, "lambda_plus_diff = ", get_bulk_density(lambda_plus) - lambda_plus
 
     !Now calculate the bulk value, lambda^{bulk} and in order to return e^{lambda^{bulk} - lambda(r)}
-    lambda_plus = exp(get_bulk_density(lambda_plus) - lambda_plus)
-    lambda_neutral = exp(get_bulk_density(lambda_neutral) - lambda_neutral)
-    lambda_minus = exp(get_bulk_density(lambda_minus) - lambda_minus)
+    lambda_plus = get_bulk_density(lambda_plus) - lambda_plus
+    lambda_neutral = get_bulk_density(lambda_neutral) - lambda_neutral
+    lambda_minus = get_bulk_density(lambda_minus) - lambda_minus
 
     print *, "lambda_plus = ", lambda_plus
     ! !print *, "size(lambda_plus) = ", size(lambda_plus)

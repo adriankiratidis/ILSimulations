@@ -79,9 +79,9 @@ program run_C4MIM_BF4
            print *, "writing out density values to file"
            print *, "************************************************************"
            print *, ""
-           call WriteDensityOutputFormatted(n_plus_updated, trim(file_stub), "n_plus")
-           call WriteDensityOutputFormatted(n_neutral_updated, trim(file_stub), "n_neutral")
-           call WriteDensityOutputFormatted(n_minus_updated, trim(file_stub), "n_minus")
+           call WriteOutputFormattedAsFunctionOfPosition(n_plus_updated, trim(file_stub), "n_plus")
+           call WriteOutputFormattedAsFunctionOfPosition(n_neutral_updated, trim(file_stub), "n_neutral")
+           call WriteOutputFormattedAsFunctionOfPosition(n_minus_updated, trim(file_stub), "n_minus")
            exit
 
         else if(iteration == MAX_ITERATION_LIMIT) then
@@ -89,9 +89,9 @@ program run_C4MIM_BF4
            print *, "runC4MIMBf4.x: iteration == MAX_ITERATION_LIMIT"
            print *, "Hit the iteration limit without converging"
            print *, "Increase the iteration limit"
-           call WriteDensityOutputFormatted(n_plus_updated, trim(file_stub), "n_plus")
-           call WriteDensityOutputFormatted(n_neutral_updated, trim(file_stub), "n_neutral")
-           call WriteDensityOutputFormatted(n_minus_updated, trim(file_stub), "n_minus")
+           call WriteOutputFormattedAsFunctionOfPosition(n_plus_updated, trim(file_stub), "n_plus")
+           call WriteOutputFormattedAsFunctionOfPosition(n_neutral_updated, trim(file_stub), "n_neutral")
+           call WriteOutputFormattedAsFunctionOfPosition(n_minus_updated, trim(file_stub), "n_minus")
            call abort
 
         else if(iteration > MAX_ITERATION_LIMIT) then

@@ -12,10 +12,14 @@ program run_C4MIM_BF4
   !Need zero array as some contributions depend on n_s = n_+ + n_0 + n_-
   !and n_+ and n_- and their associated lambdas are zero.
   real(dp), dimension(:), allocatable :: zero_array 
-  
+
   !Here we define lambda_{i} = e^{l^{i}_{b} - l^{i}(r) where l^{i}(r) = dF/dn_{i} for example
   !and l^{i}_{b} is the value in the bulk.
   real(dp), dimension(:), allocatable :: lambda_neutral
+
+  real(dp), dimension(:), allocatable :: grand_potential_per_unit_area
+  real(dp), dimension(:), allocatable :: normal_pressure_left_wall, normal_pressure_right_wall
+  real(dp), dimension(:), allocatable :: negative_deriv_of_potential
 
   ! We use the standard notation of cj/aj to denote the contribution from bead j to the cation/anion
   ! as described in J. Phys. Chem C 2017, 121, 1742-1751. DOI: 10.1021/acs.jpcc.6b11491
@@ -58,8 +62,17 @@ program run_C4MIM_BF4
   print *, "This includes discretisation params and simulation params"
   call InitialiseModelParameters(trim(file_stub))
 
+  print *, "Initialisiong grand potential and variables for contact theorem check."
+  call InitialisePotentialAndContactTheoremVariables(grand_potential_per_unit_area, &
+       normal_pressure_left_wall, normal_pressure_right_wall, negative_deriv_of_potential)
+
   do ith_separation = 1, size(plate_separations)
 
+     print *, ""
+     print *, "****************************************"
+     print *, "Starting calcaluation of ith_separation = ", ith_separation
+     print *, "****************************************"
+     print *, ""
      print *, "Initialising/ReInitialising Discretistion and setting integration ansatz."
      print *, "Doing this for the densities"
      call InitialiseDensityDiscretisationAndSetIntegrationAnsatz(ith_separation, n_neutral)
@@ -88,7 +101,7 @@ program run_C4MIM_BF4
            print *, "writing out density values to file"
            print *, "************************************************************"
            print *, ""
-           call WriteDensityOutputFormatted(n_neutral_updated, trim(file_stub), "n_neutral")
+           call WriteOutputFormattedAsFunctionOfPosition(n_neutral_updated, trim(file_stub), "n_neutral")
            exit
 
         else if(iteration == MAX_ITERATION_LIMIT) then
@@ -113,12 +126,30 @@ program run_C4MIM_BF4
 
      end do !end iteration loop
 
-     !call CalculateGrandPotentialValue(n_plus_updated, n_neutral_updated, n_minus_updated, grand_potential(ith_separation))
+     print *, "Calculating grand potential per unit area value."
+     zero_array = 0.0_dp
+     call CalculateGrandPotentialValuePerUnitArea(zero_array, n_neutral_updated, zero_array, &
+          ith_separation, grand_potential_per_unit_area(ith_separation))
+
+     print *, "Calculating normal from from the contact theorem"
+     zero_array = 0.0_dp
+     call CalculateNormalPressureFromContactTheorem(zero_array, n_neutral_updated, zero_array, &
+          normal_pressure_left_wall(ith_separation), normal_pressure_right_wall(ith_separation))
 
   end do !end loop over plate separation
 
+  call CalculateNegativeDerivOfPotentialPerUnitAreaWRTSeparation(grand_potential_per_unit_area, negative_deriv_of_potential)
+
+  call WriteOutputFormattedAsFunctionOfPlateSeparation(grand_potential_per_unit_area, trim(file_stub), "potential-per-unit-area")
+  call WriteOutputFormattedAsFunctionOfPlateSeparation(normal_pressure_left_wall, trim(file_stub), "normal-pressure-left-wall")
+  call WriteOutputFormattedAsFunctionOfPlateSeparation(normal_pressure_right_wall, trim(file_stub), "normal-pressure-right-wall")
+  call WriteOutputFormattedAsFunctionOfPlateSeparation(negative_deriv_of_potential, trim(file_stub), "negative_deriv_of_potential")
+
   call DeAllocateModelParams()
   call DeAllocateLocalVariables()
+
+  print *, "runSingleSphere.x completed running succesfully."
+  print *, ""
 
 contains
 
@@ -127,7 +158,11 @@ contains
     if(allocated(n_neutral)) deallocate(n_neutral)
     if(allocated(n_neutral_updated)) deallocate(n_neutral_updated)
     if(allocated(lambda_neutral)) deallocate(lambda_neutral)
-
+    if(allocated(grand_potential_per_unit_area)) deallocate(grand_potential_per_unit_area)
+    if(allocated(normal_pressure_left_wall)) deallocate(normal_pressure_left_wall)
+    if(allocated(normal_pressure_right_wall)) deallocate(normal_pressure_right_wall)
+    if(allocated(negative_deriv_of_potential)) deallocate(negative_deriv_of_potential)
+    
   end subroutine DeAllocateLocalVariables
 
 end program run_C4MIM_BF4

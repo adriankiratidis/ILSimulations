@@ -13,5 +13,6 @@ module ILsimulationssrclib
   use normalisation
   use surfaceforces
   use constructoligomers
+  use contacttheorem
   implicit none
 end module ILsimulationssrclib
