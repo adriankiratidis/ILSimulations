@@ -1,18 +1,36 @@
-C4MIM_BF4	#ionic_liquid_name
-0.71		#chi_parameter
-2.3		#Epsilon_r
-100 		#Epsilon_LJ ( = epsilon_LJ * k_{B})
-0.003125	#surface_charge_density
-2.4		#hs_diameter
-0.04		#bulk_density ( =n_{b} * [hs_diameter**3] )
-294.0		#Temperature in Kelvin
-0.2		#bead_charge
-1.2		#string_length
-30		#number of discretised points
-100		#max_iteration_limit
-0.0000000001		#iterative_tolerance percentage of previous result within
-1		#n_plate_separations
-10		#plate_separation(1)
-
-
+SingleNeutralSpheres	#ionic_liquid_name
+0.71			#chi_parameter
+2.3			#Epsilon_r
+100 			#Epsilon_LJ ( = epsilon_LJ * k_{B})
+0.003125		#surface_charge_density
+2.4			#hs_diameter
+0.18			#bulk_density ( =n_{b} * [hs_diameter**3] )
+294.0			#Temperature in Kelvin
+0.2			#bead_charge
+1.2			#string_length
+30			#number of discretised points
+1000			#max_iteration_limit
+0.001		#iterative_tolerance percentage of previous result within
+21			#n_plate_separations
+10			#plate_separation(1)
+11
+12
+13
+14
+15
+16
+17
+18
+19
+20
+21
+22
+23
+24
+25
+26
+27
+28
+29
+30
 

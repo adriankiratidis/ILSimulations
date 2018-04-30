@@ -49,29 +49,17 @@ contains
     !print *, "n_neutral = ", n_neutral
     !print *, "n_minus = ", n_minus
     !print *, "ith_plate_separation = ", ith_plate_separation  
-    print *, "lambda_common_terms = ", lambda_common_terms
+    !print *, "lambda_common_terms = ", lambda_common_terms
 
     ! Now calculate our lambdas(r)
     lambda_plus = beta * (lambda_common_terms + CalculateLambdaPlusSpecificTerms(n_plus, n_neutral, n_minus))
     lambda_neutral = beta * (lambda_common_terms + CalculateLambaNeutralSpecificTerms(n_plus, n_neutral, n_minus))
     lambda_minus = beta * (lambda_common_terms + CalculateLambdaMinusSpecificTerms(n_plus, n_neutral, n_minus))
 
-    ! print *, "error = ", get_bulk_density(lambda_plus) - lambda_plus
-    ! call abort()
-    print *, "lambda_plus = ", lambda_plus
-    print *, "lambda_plus bulk density = ", get_bulk_density(lambda_plus)
-    print *, "lambda_plus_diff = ", get_bulk_density(lambda_plus) - lambda_plus
-
     !Now calculate the bulk value, lambda^{bulk} and in order to return e^{lambda^{bulk} - lambda(r)}
     lambda_plus = get_bulk_density(lambda_plus) - lambda_plus
     lambda_neutral = get_bulk_density(lambda_neutral) - lambda_neutral
     lambda_minus = get_bulk_density(lambda_minus) - lambda_minus
-
-    print *, "lambda_plus = ", lambda_plus
-    ! !print *, "size(lambda_plus) = ", size(lambda_plus)
-    print *, "lambda_neutral = ", lambda_neutral
-    print *, "lambda_minus = ", lambda_minus
-    !call abort()
 
   end subroutine CalculateLambdas
 
@@ -98,10 +86,10 @@ contains
 
     hs_term = calculate_hardsphere_functional_deriv(n_s)
 
-    print *, "hs_term= ", hs_term
-    print *, "van_der_waals_term = ", van_der_waals_term
-    print *, "surface_fluid_dispersion_term = ",&
-         surface_fluid_dispersion_term
+    !print *, "hs_term= ", hs_term
+    !print *, "van_der_waals_term = ", van_der_waals_term
+    !print *, "surface_fluid_dispersion_term = ",&
+    !     surface_fluid_dispersion_term
 
     CalculateLambdaCommonTerms = hs_term + van_der_waals_term + surface_fluid_dispersion_term
 

@@ -47,7 +47,7 @@ contains
     else
        open(file_unit, file=trim(file_stub)//"-"//trim(file_suffix)//".txt", action='write')
        do id = 1, size(output)
-          write(file_unit, *) plate_separations(id), output
+          write(file_unit, *) plate_separations(id), output(id)
        end do
        close(file_unit)
     end if

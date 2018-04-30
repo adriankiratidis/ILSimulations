@@ -30,18 +30,19 @@ contains
     logical :: n2_converged
     logical :: n3_converged
 
-    real(dp) :: av_sq_diff1
-    real(dp) :: av_sq_diff2
-    real(dp) :: av_sq_diff3
-
-    real(dp) :: bulk1
-    real(dp) :: bulk2
-    real(dp) :: bulk3
+    real(dp) :: av_sq_diff
+    real(dp) :: bulk_value
+   
+    integer :: start_z_index
+    integer :: end_z_index
 
     converged = .false.
     n1_converged = .false.
     n2_converged = .false.
     n3_converged = .false.
+
+    !Get the range of non-zero elements
+    call get_allowed_z_values(start_z_index, end_z_index, size(n1))
 
     !Ensure that we recieve arrays of the correct size
     if(size(n1_updated) /= size(n1)) then
@@ -50,9 +51,19 @@ contains
        print *, "array size mismatch...aborting..."
        call abort()
     else
-       av_sq_diff1 = sum((n1_updated - n1)**2)/size(n1)
-       bulk1 = sum(n1)/size(n1)
-       if(av_sq_diff1 <= iterative_tolerance*bulk1) then
+
+       av_sq_diff = sum((n1_updated(start_z_index:end_z_index) - n1(start_z_index:end_z_index))**2)/&
+            size(n1(start_z_index:end_z_index))
+       bulk_value = sum(n1(start_z_index:end_z_index))/size(n1(start_z_index:end_z_index))
+
+       if(av_sq_diff == 0.0_dp) then
+          print *, "iteration.f90: converged: "
+          print *, "average squared difference between dneisty and updated_density == 0.0_dp"
+          print *, "would appear to be a coding bug...aborting..."
+          call abort()
+       end if
+
+       if(av_sq_diff <= iterative_tolerance*bulk_value) then
           n1_converged = .true.
        else
           n1_converged = .false.
@@ -75,9 +86,19 @@ contains
              print *, "array size mismatch...aborting..."
              call abort()
           else
-             av_sq_diff2 = sum((n2_updated - n2)**2)/size(n2)
-             bulk2 = sum(n2)/size(n2)
-             if(av_sq_diff2 <= iterative_tolerance*bulk2) then
+
+             av_sq_diff = sum((n2_updated(start_z_index:end_z_index) - n2(start_z_index:end_z_index))**2)/&
+                  size(n2(start_z_index:end_z_index))
+             bulk_value = sum(n2(start_z_index:end_z_index))/size(n2(start_z_index:end_z_index))
+
+             if(av_sq_diff == 0.0_dp) then
+                print *, "iteration.f90: converged: "
+                print *, "average squared difference between dneisty and updated_density == 0.0_dp"
+                print *, "would appear to be a coding bug...aborting..."
+                call abort()
+             end if
+
+             if(av_sq_diff <= iterative_tolerance*bulk_value) then
                 n2_converged = .true.
              else
                 n2_converged = .false.
@@ -85,6 +106,8 @@ contains
           end if
        end if
 
+    else !if n2 not present, it shouldn't stop convergence
+       n2_converged = .true.
     end if
 
     !Now do n3
@@ -103,9 +126,12 @@ contains
              print *, "array size mismatch...aborting..."
              call abort()
           else
-             av_sq_diff3 = sum((n3_updated - n3)**2)/size(n3)
-             bulk3 = sum(n3)/size(n3)
-             if(av_sq_diff3 <= iterative_tolerance*bulk3) then
+
+             av_sq_diff = sum((n3_updated(start_z_index:end_z_index) - n3(start_z_index:end_z_index))**2)/ &
+                  size(n3(start_z_index:end_z_index))
+             bulk_value = sum(n3(start_z_index:end_z_index))/size(n3(start_z_index:end_z_index))
+
+             if(av_sq_diff <= iterative_tolerance*bulk_value) then
                 n3_converged = .true.
              else
                 n3_converged = .false.
@@ -113,6 +139,8 @@ contains
           end if
        end if
 
+    else
+       n3_converged = .true.
     end if
 
     !Check for convergence
@@ -390,6 +418,12 @@ contains
     integer :: ith_component
     integer :: old_value_index
 
+    integer :: start_z_index_new
+    integer :: end_z_index_new
+
+    integer :: start_z_index_old
+    integer :: end_z_index_old
+    
     if(.not. allocated(array)) then
        print *, "iteration.f90: Unable to rescale array that isn't allocated"
        print *, "This is almost certainly a coding error"
@@ -403,10 +437,17 @@ contains
     !Reallocate the array to be the new size
     if(allocated(array)) deallocate(array)
     allocate(array(new_size))
+    array = 0.0_dp
 
+    !Find the range over which the values are non zero
+    call get_allowed_z_values(start_z_index_new, end_z_index_new, size(array))
+    call get_allowed_z_values(start_z_index_old, end_z_index_old, size(old_array_values))
+    
     !Set the elements of the new array by rescaling the old values
-    do ith_component = 1, size(array)
-       old_value_index = nint( size(old_array_values) * ( real(ith_component, dp) / real(size(array), dp) ) )
+    do ith_component = start_z_index_new, end_z_index_new
+       old_value_index = start_z_index_old + 1 + &
+            nint((end_z_index_old - start_z_index_old + 1) * ( real(ith_component - start_z_index_new + 1, dp) &
+            / real(end_z_index_new - start_z_index_new + 1, dp) ) )
        array(ith_component) = old_array_values(old_value_index)
     end do
 

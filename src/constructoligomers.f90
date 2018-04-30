@@ -84,7 +84,7 @@ contains
           call UpdateSinglePositiveNeutralMinusSphereDensities(lambda1, n1_updated, lambda2, n2_updated, lambda3, n3_updated)
        end if
 
-    else if(trim(ionic_liquid_name) == "C4MIM_BF4") then
+    else if(trim(ionic_liquid_name) == "C4MIM_BF4-") then
 
        if( (.not. present(lambda2)) .or. (.not. present(n2_updated)) .or. &
             (.not. present(lambda3)) .or. (.not. present(n3_updated)) ) then
@@ -99,6 +99,12 @@ contains
           call UpdateBF4NegativeBeadDensities(lambda3, n3_updated)
        end if
 
+    else
+
+       print *, "constructoligomers.f90: UpdateDensities: "
+       print *, "Unsupported ionic_liquid_name value of ", trim(ionic_liquid_name)
+       print *, "...aborting..."
+       call abort()
     end if
 
   end subroutine UpdateDensities

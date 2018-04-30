@@ -3,6 +3,7 @@ module contacttheorem
   use kinds
   use helpers
   use parameters
+  use discretederivatives
   implicit none
   private
 
@@ -36,8 +37,8 @@ contains
     n_s = n_plus + n_neutral + n_minus
     call get_allowed_z_values(start_z_index, end_z_index, size(n_s))
     
-    normal_pressure_left_wall = n_s(start_z_index)
-    normal_pressure_right_wall = n_s(end_z_index)
+    normal_pressure_left_wall = n_s(start_z_index) * beta
+    normal_pressure_right_wall = n_s(end_z_index) * beta
     
   end subroutine CalculateNormalPressureFromContactTheorem
 
@@ -60,8 +61,8 @@ contains
     real(dp), dimension(:), intent(in) :: grand_potential_per_unit_area
     real(dp), dimension(:), intent(out) :: negative_deriv_of_potential
 
-    
-    
+    negative_deriv_of_potential = -1.0_dp * calculate_central_difference(grand_potential_per_unit_area)
+
   end subroutine CalculateNegativeDerivOfPotentialPerUnitAreaWRTSeparation
 
 

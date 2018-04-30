@@ -22,18 +22,14 @@ plt.rc('font', family='serif')
 #5   9.9   0.3
 #then data[2,1] = 7.4 that is the 2+1 row and the 1+1 coloumn.
 #(Default python array indicies start at 0 unlike fortran which starts at 1.) 
-#data_plus = np.loadtxt("../bin/test-n_plus.txt")
-data_neutral = np.loadtxt("../bin/test-n_neutral_separation10.txt")
-#data_minus = np.loadtxt("../bin/test-n_minus.txt")
+data_contactthm = np.loadtxt("../bin/test-normal-pressure-left-wall.txt")
+data_negativederiv = np.loadtxt("../bin/test-negative_deriv_of_potential.txt")
 
-#x_plus = data_plus[:,0]
-#y_plus = data_plus[:,1]
+x_contactthm = data_contactthm[:,0]
+y_contactthm = data_contactthm[:,1]
 
-x_neutral = data_neutral[:,0]
-y_neutral = data_neutral[:,1]
-
-#x_minus = data_minus[:,0]
-#y_minus = data_minus[:,1]
+x_negativederiv = data_negativederiv[:,0]
+y_negativederiv = data_negativederiv[:,1]
 
 #err = data[:,2]
 
@@ -45,12 +41,16 @@ y_neutral = data_neutral[:,1]
 #If you want to plot data but not show a key in the legend use
 #label='_nolegend_'
 #plt.plot(x_plus,y_plus,'rx',label=r'$n_{+}$')
-plt.plot(x_neutral,y_neutral,'bo',label=r'$n_{0}$')
-#plt.plot(x_minus,y_minus,'gs',label=r'$n_{b}\sigma = 0.04$')
+
+y_negativederiv = y_negativederiv - y_negativederiv[-1]
+y_contactthm = y_contactthm - y_contactthm[-1]
+
+plt.plot(x_contactthm,y_contactthm,'bo',label='Pressure from contact theorem')
+plt.plot(x_negativederiv,y_negativederiv,'gs',label='Pressure from derivative of potential')
 
 #Set the axis labels.  Labelpad option controls the spacing between actual axis and axis label.  The r option tells python to interpret as a raw string literal.
 plt.xlabel(r"$\sigma$",labelpad=10)
-plt.ylabel(r"$n\sigma^{3}$",labelpad=5)
+plt.ylabel(r"$beta{P}\sigma^{3}$",labelpad=5)
 
 #Set the axis limits if you want to specify a region of interest.
 #The default is auto zoom.
@@ -72,7 +72,7 @@ plt.legend(loc='best',ncol=1, numpoints=1, frameon=False)
 #Uncomment if title is required
 #plt.title(r"Some Title")
 
-savefig("testingplot.pdf",bbox_inches='tight')
+savefig("verify-contact-theorem-plot.pdf",bbox_inches='tight')
 
 #Open a window and show the plot
 plt.show()

@@ -133,12 +133,12 @@ contains
    subroutine SetBeadDensityFromBulkIonDensity(ionic_liquid_name)
     character(len=*), intent(in) :: ionic_liquid_name
 
-    if(trim(ionic_liquid_name) == "SingleNeutralSphere") then
+    if(trim(ionic_liquid_name) == "SingleNeutralSpheres") then
        call SetSingleNeutralSphereBeadDensityFromBulkIonDensity()
     else if(trim(ionic_liquid_name) == "C4MIM_BF4-") then
        call SetC4MIN_BF4BeadDensityFromBulkIonDensity()
     else
-       print *, "normalisation.f90: SetBeadDensityFromBulkIonDensity:"
+       print *, "parameters.f90: SetBeadDensityFromBulkIonDensity:"
        print *, "Unsupported 'ionic_liquid_name' value of ", trim(ionic_liquid_name)
        print *, "...aborting..."
        call abort()

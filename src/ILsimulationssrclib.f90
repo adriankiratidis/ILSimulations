@@ -14,5 +14,6 @@ module ILsimulationssrclib
   use surfaceforces
   use constructoligomers
   use contacttheorem
+  use discretederivatives
   implicit none
 end module ILsimulationssrclib

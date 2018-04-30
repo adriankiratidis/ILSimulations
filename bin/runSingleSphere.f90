@@ -1,5 +1,5 @@
 !Program to run the hard sphere simulation for the ionic liquid [C4MIM+][BF4-]
-program run_C4MIM_BF4
+program runSingleSphere
   use ILsimulationssrclib
   implicit none
 
@@ -89,7 +89,15 @@ program run_C4MIM_BF4
         zero_array = 0.0_dp
         call CalculateLambdas(zero_array, zero_array, lambda_neutral, n_neutral, zero_array, zero_array, ith_separation)
 
+        print *, "lambda_neutral(1:50) = ",  lambda_neutral(1:50)
+        
         call UpdateDensities(lambda_neutral, n_neutral_updated)
+
+        ! if(iteration == 10) then
+        !print *, "n_neutral_updated = ", n_neutral_updated
+        !print *, "n_neutral = ", n_neutral
+        !    call abort()
+        ! end if
 
         ! Now test convergence
         if(converged(n_neutral_updated, n_neutral)) then
@@ -101,7 +109,8 @@ program run_C4MIM_BF4
            print *, "writing out density values to file"
            print *, "************************************************************"
            print *, ""
-           call WriteOutputFormattedAsFunctionOfPosition(n_neutral_updated, trim(file_stub), "n_neutral")
+           call WriteOutputFormattedAsFunctionOfPosition(n_neutral_updated, trim(file_stub), &
+                "n_neutral_separation"//str(plate_separations(ith_separation)))
            exit
 
         else if(iteration == MAX_ITERATION_LIMIT) then
@@ -109,14 +118,14 @@ program run_C4MIM_BF4
            print *, "runC4MIMBf4.x: iteration == MAX_ITERATION_LIMIT"
            print *, "Hit the iteration limit without converging"
            print *, "Increase the iteration limit"
-           call abort
+           call abort()
 
         else if(iteration > MAX_ITERATION_LIMIT) then
 
            print *, "runC4MIMBf4.x: iteration > MAX_ITERATION_LIMIT"
            print *, "This should never happen"
            print *, "Coding error...aborting..."
-           call abort
+           call abort()
 
         else !Update and proceed to the next iteration
 
@@ -131,6 +140,8 @@ program run_C4MIM_BF4
      call CalculateGrandPotentialValuePerUnitArea(zero_array, n_neutral_updated, zero_array, &
           ith_separation, grand_potential_per_unit_area(ith_separation))
 
+     !print *, "n_neutral_updated = ", n_neutral_updated
+     
      print *, "Calculating normal from from the contact theorem"
      zero_array = 0.0_dp
      call CalculateNormalPressureFromContactTheorem(zero_array, n_neutral_updated, zero_array, &
@@ -148,7 +159,13 @@ program run_C4MIM_BF4
   call DeAllocateModelParams()
   call DeAllocateLocalVariables()
 
+  print *, ""
+  print *, "************************************************"
   print *, "runSingleSphere.x completed running succesfully."
+  print *, "Completed ", size(plate_separations), " different plate separations."
+  print *, "Now check output files to verify results via the contact theorem."
+  print *, "runSingleSphere.x completed running succesfully."
+  print *, "************************************************"
   print *, ""
 
 contains
@@ -162,7 +179,7 @@ contains
     if(allocated(normal_pressure_left_wall)) deallocate(normal_pressure_left_wall)
     if(allocated(normal_pressure_right_wall)) deallocate(normal_pressure_right_wall)
     if(allocated(negative_deriv_of_potential)) deallocate(negative_deriv_of_potential)
-    
+
   end subroutine DeAllocateLocalVariables
 
-end program run_C4MIM_BF4
+end program runSingleSphere

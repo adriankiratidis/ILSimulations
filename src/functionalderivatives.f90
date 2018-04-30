@@ -39,6 +39,12 @@ contains
          (1.0_dp)/(1.0_dp - (hs_diameter**3.0_dp) * n_sbar(start_z_index:end_z_index))) ) / &
          (4.0_dp * pi * (hs_diameter**3.0_dp))
 
+    print *, "n_s = ", n_s
+    print *, "bulk density n_s = ", get_bulk_density(n_s)
+    print *, "n_sbar = ", n_sbar
+    print *, "bulk density n_sbar = ", get_bulk_density(n_sbar)
+    print *, "f_hs = ", calculate_hardsphere_functional_deriv
+    
     call setNonCalculatedRegionToZero(calculate_hardsphere_functional_deriv)
 
   end function calculate_hardsphere_functional_deriv

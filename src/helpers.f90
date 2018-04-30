@@ -10,7 +10,8 @@ module helpers
   public :: setNonCalculatedRegionToZero
   public :: unity_function
   public :: get_bulk_density
-
+  public :: str
+  
 contains
 
   subroutine get_allowed_z_values(start_z_index, end_z_index, total_points_z)
@@ -95,7 +96,7 @@ contains
     unity_function = 1.0_dp
   end function unity_function
 
-    function get_bulk_density(lambda) result(reslt)
+  function get_bulk_density(lambda) result(reslt)
     real(dp), dimension(:), intent(in)  :: lambda
     real(dp) :: reslt
 
@@ -108,7 +109,7 @@ contains
     call  get_allowed_z_values(start_z_integrate, end_z_integrate, size(lambda))
 
     reslt = sum(lambda(start_z_integrate:end_z_integrate))/real(size(lambda(start_z_integrate:end_z_integrate)), dp)
-    
+
     !Setting the bulk density to be int(lambda)/plate_separation
     !We could of course calculate the total plate separation by hs_diameter * plate_separations(ith_separation)
     !but we choose the current version so we can calculate it without passing in an extra parameter.
@@ -126,5 +127,16 @@ contains
 
     return
   end function get_bulk_density
+
+  !Casts an int to a string
+  function str(x)
+    integer, intent(in) :: x
+    character(len=64) :: str
+
+    write(str, *) x
+
+    str = adjustl(str)
+  end function str
+  
   
 end module helpers
