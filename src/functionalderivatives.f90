@@ -24,6 +24,7 @@ contains
     real(dp), dimension(:) :: n_s
     real(dp), dimension(size(n_s)) :: calculate_hardsphere_functional_deriv
 
+    real(dp), dimension(size(n_s)) :: calculate_hardsphere_functional_deriv_integrand
     real(dp), dimension(size(n_s)) :: n_sbar
 
     integer :: start_z_index
@@ -34,17 +35,31 @@ contains
 
     n_sbar = calculate_n_sbar(n_s)
 
-    calculate_hardsphere_functional_deriv(start_z_index:end_z_index) = (-1.0_dp / beta) * &
+    ! calculate_hardsphere_functional_deriv(start_z_index:end_z_index) = (-1.0_dp / beta) * &
+    !      (3.0_dp * (log( (1.0_dp - &
+    !      (hs_diameter**3)*n_sbar(start_z_index:end_z_index))/(n_sbar(start_z_index:end_z_index)) ) - &
+    !      (1.0_dp)/(1.0_dp - (hs_diameter**3.0_dp) * n_sbar(start_z_index:end_z_index))) ) / &
+    !      (4.0_dp * pi * (hs_diameter**3.0_dp))
+
+    calculate_hardsphere_functional_deriv_integrand(start_z_index:end_z_index) = (-1.0_dp / beta) * &
          (3.0_dp * (log( (1.0_dp - (hs_diameter**3)*n_sbar(start_z_index:end_z_index))/(n_sbar(start_z_index:end_z_index)) ) - &
          (1.0_dp)/(1.0_dp - (hs_diameter**3.0_dp) * n_sbar(start_z_index:end_z_index))) ) / &
          (4.0_dp * pi * (hs_diameter**3.0_dp))
 
+    calculate_hardsphere_functional_deriv = calculate_hardsphere_functional_deriv_integrand
+
+    !call setNonCalculatedRegionToZero(calculate_hardsphere_functional_deriv_integrand)
+
+    !(3.0_dp/(4.0_dp * pi * (hs_diameter**3))) *
+    !calculate_hardsphere_functional_deriv =  &
+    !     integrate_z_cylindrical(calculate_hardsphere_functional_deriv_integrand, n_sbar_integrand, "z_lteq_hs_diameter")
+
     print *, "n_s = ", n_s
     print *, "bulk density n_s = ", get_bulk_density(n_s)
-    print *, "n_sbar = ", n_sbar
-    print *, "bulk density n_sbar = ", get_bulk_density(n_sbar)
-    print *, "f_hs = ", calculate_hardsphere_functional_deriv
-    
+    !print *, "n_sbar = ", n_sbar
+    !print *, "bulk density n_sbar = ", get_bulk_density(n_sbar)
+    !print *, "f_hs = ", calculate_hardsphere_functional_deriv
+
     call setNonCalculatedRegionToZero(calculate_hardsphere_functional_deriv)
 
   end function calculate_hardsphere_functional_deriv

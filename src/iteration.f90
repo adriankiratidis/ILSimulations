@@ -430,7 +430,7 @@ contains
        print *, "as opposed to an error with the input parms"
        call abort()
     end if
-
+    
     !Store the values of the array to be deallocated
     old_array_values = array
 
@@ -445,8 +445,8 @@ contains
     
     !Set the elements of the new array by rescaling the old values
     do ith_component = start_z_index_new, end_z_index_new
-       old_value_index = start_z_index_old + 1 + &
-            nint((end_z_index_old - start_z_index_old + 1) * ( real(ith_component - start_z_index_new + 1, dp) &
+       old_value_index = start_z_index_old - 1.0_dp +  &
+            ceiling((end_z_index_old - start_z_index_old + 1) * ( real(ith_component - start_z_index_new + 1, dp) &
             / real(end_z_index_new - start_z_index_new + 1, dp) ) )
        array(ith_component) = old_array_values(old_value_index)
     end do

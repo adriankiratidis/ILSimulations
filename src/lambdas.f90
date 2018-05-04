@@ -79,10 +79,10 @@ contains
 
     n_s = n_plus + n_neutral + n_minus
 
-    van_der_waals_term = calculate_vanderWaals_functional_deriv(n_s)
+    !van_der_waals_term = calculate_vanderWaals_functional_deriv(n_s)
                          
-    surface_fluid_dispersion_term = calculate_surface_dispersion_functional_deriv(&
-         ith_plate_separation, size(surface_fluid_dispersion_term))
+    !surface_fluid_dispersion_term = calculate_surface_dispersion_functional_deriv(&
+    !     ith_plate_separation, size(surface_fluid_dispersion_term))
 
     hs_term = calculate_hardsphere_functional_deriv(n_s)
 
@@ -91,7 +91,7 @@ contains
     !print *, "surface_fluid_dispersion_term = ",&
     !     surface_fluid_dispersion_term
 
-    CalculateLambdaCommonTerms = hs_term + van_der_waals_term + surface_fluid_dispersion_term
+    CalculateLambdaCommonTerms = hs_term !+ van_der_waals_term + surface_fluid_dispersion_term
 
   end function CalculateLambdaCommonTerms
 

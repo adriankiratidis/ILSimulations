@@ -152,10 +152,12 @@ contains
     real(dp), dimension(size(n_neutral)) :: zero_array
     real(dp), dimension(size(n_neutral)) :: lambda_neutral
     
-    call CalculateLambdas(zero_array, zero_array, lambda_neutral, n_neutral, zero_array, zero_array, ith_plate_separation)
+    zero_array = 0.0_dp
     
+    call CalculateLambdas(zero_array, zero_array, lambda_neutral, n_neutral, zero_array, zero_array, ith_plate_separation)
+
     calculate_single_neutral_sphere_ideal_chain_term = integrate_z_cylindrical(bulk_density_neutral_beads * exp(lambda_neutral) * &
-         (log(bulk_density_neutral_beads) + lambda_neutral) - 1.0_dp, unity_function)
+         ((log(bulk_density_neutral_beads) + lambda_neutral) - 1.0_dp), unity_function) / beta
     
   end function calculate_single_neutral_sphere_ideal_chain_term
 

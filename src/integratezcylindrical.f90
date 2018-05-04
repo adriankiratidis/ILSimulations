@@ -126,9 +126,10 @@ contains
     call get_allowed_z_values(lowest_z_calculated, highest_z_calculated, h)
 
     if(h < 2*n_discretised_points_z + 1) then
-       print *, "integratephispherical.f90: get_integrand_array_section_limits:"
+       print *, "integratezcylindrical.f90: get_integrand_array_section_limits:"
        print *, "distance between plates less than twice the hard sphere diameter"
        print *, "Do you really want that small a plate separation?"
+       print *, "h = ", h, "2*n_discretised_points_z + 1 = ", 2*n_discretised_points_z + 1
        print *, "These short plate separations are currently not supported...aborting..."
        call abort()
     end if

@@ -43,20 +43,24 @@ contains
     end if
 
     n_s = n_plus + n_neutral + n_minus
-
+    
     n_sbar = calculate_n_sbar(n_s)
-
+    
     F_ideal_chain = calculate_ideal_chain_term_per_unit_area(n_plus, n_neutral, n_minus, ith_plate_separation, ionic_liquid_name)
-
+    !F_ideal_chain = 0.0_dp
+    
     !Note in the following we don't need to integrate over the theta and rho (r) directions
     !as we are only interested in the value PER UNIT AREA.
     F_hard_sphere = calculate_hardsphere_term_per_unit_area(n_s, n_sbar)
+    !F_hard_sphere = 0.0_dp
+    
+    !F_van_der_waals = integrate_z_cylindrical(0.5_dp * n_s * calculate_vanderWaals_functional_deriv(n_s), unity_function)
 
-    F_van_der_waals = integrate_z_cylindrical(0.5_dp * n_s * calculate_vanderWaals_functional_deriv(n_s), unity_function)
-
-    F_surface_disp = integrate_z_cylindrical(n_s * &
-         calculate_surface_dispersion_functional_deriv(ith_plate_separation, size(n_s)), unity_function)
-
+    !F_surface_disp = integrate_z_cylindrical(n_s * &
+    !     calculate_surface_dispersion_functional_deriv(ith_plate_separation, size(n_s)), unity_function)
+    F_van_der_waals = 0.0_dp
+    F_surface_disp = 0.0_dp
+    
     F_surface_electro = 0.0_dp; F_electric_like = 0.0_dp; F_electric_unlike = 0.0_dp;
     !F_surface_electro = calculate_surface_electrostatic_functional_deriv()
 
@@ -64,9 +68,18 @@ contains
 
     !F_electric_unlike = calculate_electrostatic_unlike_term_functional_deriv()
 
-    grand_potential_per_unit_area = F_ideal_chain + F_van_der_waals + F_van_der_waals + F_hard_sphere + &
-         F_surface_electro + F_electric_like + F_electric_unlike
+    !print *, "F_ideal_chain = ", F_ideal_chain * beta
+    !print *, "F_hard_sphere = ", F_hard_sphere * beta
+    !call abort()
+    grand_potential_per_unit_area = beta * (F_ideal_chain + F_van_der_waals + F_van_der_waals + F_hard_sphere + &
+         F_surface_electro + F_electric_like + F_electric_unlike)
 
+    grand_potential_per_unit_area = grand_potential_per_unit_area / (plate_separations(ith_plate_separation) * hs_diameter)
+    
+    print *, "grand_potential_per_unit_area = ", grand_potential_per_unit_area
+    !call abort()
+    
+    print *, "end of CalculateGrandPotentialValuePerUnitArea"
   end subroutine CalculateGrandPotentialValuePerUnitArea
 
   function calculate_ideal_chain_term_per_unit_area(n_plus, n_neutral, n_minus, ith_plate_separation, ionic_liquid_name)
@@ -102,7 +115,7 @@ contains
 
     real(dp), dimension(size(n_s)) :: hs_integrand
     hs_integrand = 0.0_dp
-    
+
     call get_allowed_z_values(start_z_index, end_z_index, size(n_s))
 
     hs_integrand(start_z_index:end_z_index) = (-1.0_dp / beta) * n_sbar(start_z_index:end_z_index) * &
@@ -110,9 +123,8 @@ contains
 
     call setNonCalculatedRegionToZero(hs_integrand)
 
-    calculate_hardsphere_term_per_unit_area = integrate_z_cylindrical(n_sbar * hs_integrand, unity_function)
-    
+    calculate_hardsphere_term_per_unit_area = integrate_z_cylindrical(hs_integrand, unity_function)
+
   end function calculate_hardsphere_term_per_unit_area
-  
   
 end module surfaceforces

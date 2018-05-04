@@ -89,8 +89,8 @@ program runSingleSphere
         zero_array = 0.0_dp
         call CalculateLambdas(zero_array, zero_array, lambda_neutral, n_neutral, zero_array, zero_array, ith_separation)
 
-        print *, "lambda_neutral(1:50) = ",  lambda_neutral(1:50)
-        
+        !print *, "lambda_neutral(1:50) = ",  lambda_neutral(1:50)
+
         call UpdateDensities(lambda_neutral, n_neutral_updated)
 
         ! if(iteration == 10) then
@@ -109,6 +109,11 @@ program runSingleSphere
            print *, "writing out density values to file"
            print *, "************************************************************"
            print *, ""
+           
+           !Perform this update if we get the solution in one iteration.
+           !Possible in principle because we rescale the solution at the previous separation.
+           n_neutral = n_neutral_updated
+           
            call WriteOutputFormattedAsFunctionOfPosition(n_neutral_updated, trim(file_stub), &
                 "n_neutral_separation"//str(plate_separations(ith_separation)))
            exit
@@ -141,12 +146,15 @@ program runSingleSphere
           ith_separation, grand_potential_per_unit_area(ith_separation))
 
      !print *, "n_neutral_updated = ", n_neutral_updated
-     
+
      print *, "Calculating normal from from the contact theorem"
      zero_array = 0.0_dp
      call CalculateNormalPressureFromContactTheorem(zero_array, n_neutral_updated, zero_array, &
           normal_pressure_left_wall(ith_separation), normal_pressure_right_wall(ith_separation))
 
+     !print *, "n_neutral_updated = ", n_neutral_updated
+     !print *, "normal_pressure_left_wall = ", normal_pressure_left_wall
+     !call abort()
   end do !end loop over plate separation
 
   call CalculateNegativeDerivOfPotentialPerUnitAreaWRTSeparation(grand_potential_per_unit_area, negative_deriv_of_potential)
