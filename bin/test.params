@@ -11,8 +11,17 @@ SingleNeutralSpheres	#ionic_liquid_name
 30			#number of discretised points
 1000			#max_iteration_limit
 0.0001			#iterative_tolerance percentage of previous result within
-52			#n_plate_separations
+61			#n_plate_separations
 2			#plate_separation(1)
+2.1
+2.2
+2.3
+2.4
+2.5
+2.6
+2.7
+2.8
+2.9
 3
 4
 5

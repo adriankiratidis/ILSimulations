@@ -22,8 +22,8 @@ plt.rc('font', family='serif')
 #5   9.9   0.3
 #then data[2,1] = 7.4 that is the 2+1 row and the 1+1 coloumn.
 #(Default python array indicies start at 0 unlike fortran which starts at 1.) 
-data_contactthm = np.loadtxt("../bin/test-normal-pressure-left-wall.txt")
-data_negativederiv = np.loadtxt("../bin/test-negative_deriv_of_potential.txt")
+data_contactthm = np.loadtxt("../bin/testing-normal-pressure-left-wall.txt")
+data_negativederiv = np.loadtxt("../bin/testing-negative_deriv_of_potential.txt")
 
 x_contactthm = data_contactthm[:,0]
 y_contactthm = data_contactthm[:,1]

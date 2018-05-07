@@ -11,7 +11,13 @@ module helpers
   public :: unity_function
   public :: get_bulk_density
   public :: str
-  
+
+  interface str
+     module procedure str_int
+     module procedure str_real_dp
+     module procedure str_real_sp
+  end interface str
+
 contains
 
   subroutine get_allowed_z_values(start_z_index, end_z_index, total_points_z)
@@ -129,14 +135,33 @@ contains
   end function get_bulk_density
 
   !Casts an int to a string
-  function str(x)
+  function str_int(x)
     integer, intent(in) :: x
-    character(len=64) :: str
+    character(len=64) :: str_int
 
-    write(str, *) x
+    write(str_int, *) x
 
-    str = adjustl(str)
-  end function str
-  
-  
+    str_int = adjustl(str_int)
+  end function str_int
+
+  !Casts a double precision real to a string
+  function str_real_dp(x)
+    real(dp), intent(in) :: x
+    character(len=64) :: str_real_dp
+
+    write(str_real_dp, '(f10.5)') x
+
+    str_real_dp = adjustl(str_real_dp)
+  end function str_real_dp
+
+  !Casts a single precision real to a string
+  function str_real_sp(x)
+    real(sp), intent(in) :: x
+    character(len=64) :: str_real_sp
+
+    write(str_real_sp, '(f10.5)') x
+
+    str_real_sp = adjustl(str_real_sp)
+  end function str_real_sp
+
 end module helpers

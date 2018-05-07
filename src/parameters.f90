@@ -45,7 +45,7 @@ module parameters
   real(dp) :: hs_diameter
 
   !array of plater separations in multiples of hs_diameter
-  integer, dimension(:), allocatable  :: plate_separations
+  real(dp), dimension(:), allocatable  :: plate_separations
 
   real(dp) :: bulk_density
   real(dp) :: temperature
@@ -122,6 +122,9 @@ contains
     print *, "Setting Bead Densities from the Bulk Ion Density."
     call SetBeadDensityFromBulkIonDensity(ionic_liquid_name)
 
+    print *, "Checking plate separations are valid given discretisation scheme."
+    call CheckValidityOfPlateSeparations()
+    
   end subroutine InitialiseModelParameters
 
   subroutine DeAllocateModelParams()
@@ -159,5 +162,39 @@ contains
     bulk_density_neutral_beads = 5.0_dp * bulk_density
     bulk_density_negative_beads = 5.0_dp * bulk_density
   end subroutine SetC4MIN_BF4BeadDensityFromBulkIonDensity
+
+  subroutine CheckValidityOfPlateSeparations()
+
+    integer :: ith_separation
+
+    real(dp) :: distance_between_z_values
+    real(dp) :: distance_beyond_hs_diameter_multiple
+    real(dp) :: n_extra_discretisation_points
+
+    distance_between_z_values = hs_diameter / n_discretised_points_z
+
+    !Check that all the separations are a multiple of the distance between allowed points
+    do ith_separation = 1, size(plate_separations)
+
+       distance_beyond_hs_diameter_multiple = hs_diameter * &
+            (plate_separations(ith_separation) - floor(plate_separations(ith_separation)))
+
+       n_extra_discretisation_points = distance_beyond_hs_diameter_multiple / distance_between_z_values
+
+       if(abs(n_extra_discretisation_points - nint(n_extra_discretisation_points)) > 1.0E-6) then
+          print *, "parameter.f90: CheckValidityOfPlateSeparations: "
+          print *, "abs(n_extra_discretisation_points - nint(n_extra_discretisation_points)) > 1.0E-6"
+          print *, "abs(n_extra_discretisation_points - nint(n_extra_discretisation_points)) = ", &
+               abs(n_extra_discretisation_points - nint(n_extra_discretisation_points))
+          print *, "distance_beyond_hs_diameter_multiple = ", distance_beyond_hs_diameter_multiple
+          print *, "n_extra_discretisation_points = ", n_extra_discretisation_points
+          print *, "Total distance between plates is not an integer multiple of the distance between"
+          print *, "discretisations.  Input error.  Change plate separations...aborting..."
+          call abort()
+       end if
+
+    end do
+
+  end subroutine CheckValidityOfPlateSeparations
 
 end module parameters

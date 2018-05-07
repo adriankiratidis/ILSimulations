@@ -23,7 +23,7 @@ plt.rc('font', family='serif')
 #then data[2,1] = 7.4 that is the 2+1 row and the 1+1 coloumn.
 #(Default python array indicies start at 0 unlike fortran which starts at 1.) 
 #data_plus = np.loadtxt("../bin/test-n_plus.txt")
-data_neutral = np.loadtxt("../bin/test-potential-per-unit-area.txt")
+data_neutral = np.loadtxt("../bin/testing-potential-per-unit-area.txt")
 #data_minus = np.loadtxt("../bin/test-n_minus.txt")
 
 #x_plus = data_plus[:,0]
