@@ -4,6 +4,48 @@ TO COMPILE: Run the command 'make' in the root directory.  This will run the mak
 that are present in the src directory (containing the source files) and the bin
 directory (containing the executable files).
 
+
 TO RUN: Run the command ./<executable name>.x from the bin directory.
 e.g. ./runC4MIMBF4.x
-TODO: Add a shell script directory to construct the input file and run the executable.
+This runs the executable and prompts for an input file stub.
+RECOMMENDED: Run the bash script bin/runSingleSphere.sh via "bash bin/runSingleSphere.sh"
+This constructs the input file and runs the executable.
+You can change the input parameters within this script.
+
+
+TO ADD AN IONIC LIQUID STRUCTURE:
+If you would like to add functionality to the code to perform a currently unsupported
+value of "ionic_liquid_name" (i.e. do a new ionic liquid) then you must perform the following alterations.
+
+1. In src/parameters.f90
+a) Add a routine that sets the constituent bead density from the bulk ion density.
+See the routine "SetC4MIN_BF4BeadDensityFromBulkIonDensity" as an example.
+b) Add the function call to the routine writen in part a) to the call within the
+the if construct in the routine "SetBeadDensityFromBulkIonDensity".
+
+2. In src/constructoligomers.f90
+a) Write a routine to update the bead densities of your new ionic liquid based on the structure.
+See the routine "UpdateC4MIMPositiveBeadDensities" for example.
+b) In the routine "UpdateDensities", add a call to the routine you wrote in part a) within the
+if construct that selects based on the value of "ionic_liquid_name".
+Note that you need to update the densities of positive, negative and neutral beads here.
+Currently there are done in separate routines to maintain generality for the case of possible
+mixing/re-use of routines/structures.
+
+THESE ARE ALL THE REQUIRED CHANGES TO CALCULATE THE DENSITY PROFILE.
+IN ORDER TO CALCULATE THE POTENTIAL/VERIFY RESULTS VIA CONTACT THEOREM
+THE FOLLOWING CHANGES MUST ALSO BE MADE.
+
+3. In src/constructoligomers.f90
+a) Write a routine that calculates the ideal chain contribution to the free energy.
+See for example the routine "calculate_single_neutral_sphere_ideal_chain_term".
+
+4. In src/surfaceforces.f90
+a) In the function "calculate_ideal_chain_term_per_unit_area" add a call to the routine writen
+in 3a) with the if construct.
+
+
+
+Then change the value of "ionic_liquid_name" in the input script to whatever you have called it
+in the above routines, cross your fingers, and hope your changes work as advertised.
+

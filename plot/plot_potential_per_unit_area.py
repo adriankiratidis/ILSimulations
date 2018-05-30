@@ -23,7 +23,7 @@ plt.rc('font', family='serif')
 #then data[2,1] = 7.4 that is the 2+1 row and the 1+1 coloumn.
 #(Default python array indicies start at 0 unlike fortran which starts at 1.) 
 #data_plus = np.loadtxt("../bin/test-n_plus.txt")
-data_neutral = np.loadtxt("../bin/testing-potential-per-unit-area.txt")
+data_neutral = np.loadtxt("../testing-potential-per-unit-area.txt")
 #data_minus = np.loadtxt("../bin/test-n_minus.txt")
 
 #x_plus = data_plus[:,0]
@@ -37,6 +37,8 @@ y_neutral = data_neutral[:,1]
 
 #err = data[:,2]
 
+y_neutral2 = y_neutral - y_neutral[-1]
+
 #A description of the available plotting characters and colours 
 #to be used in place of 'rx' can be found here...
 #http://matplotlib.org/api/pyplot_api.html#matplotlib.pyplot.plot
@@ -45,7 +47,8 @@ y_neutral = data_neutral[:,1]
 #If you want to plot data but not show a key in the legend use
 #label='_nolegend_'
 #plt.plot(x_plus,y_plus,'rx',label=r'$n_{+}$')
-plt.plot(x_neutral,y_neutral,'bo',label=r'$n_{0}$')
+plt.plot(x_neutral,y_neutral,'-bo',label=r'$\Omega - \Omega^{bulk.}$')
+plt.plot(x_neutral,y_neutral2,'-rs',label=r'$\Omega - \Omega^{bulk.} - \Omega(\infty)$')
 #plt.plot(x_minus,y_minus,'gs',label=r'$n_{b}\sigma = 0.04$')
 
 #Set the axis labels.  Labelpad option controls the spacing between actual axis and axis label.  The r option tells python to interpret as a raw string literal.

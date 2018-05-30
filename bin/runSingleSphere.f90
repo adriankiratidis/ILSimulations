@@ -11,13 +11,14 @@ program runSingleSphere
 
   !Need zero array as some contributions depend on n_s = n_+ + n_0 + n_-
   !and n_+ and n_- and their associated lambdas are zero.
-  real(dp), dimension(:), allocatable :: zero_array 
+  real(dp), dimension(:), allocatable :: zero_array1, zero_array2 
+  real(dp), dimension(:), allocatable :: dummy_array1, dummy_array2 
 
   !Here we define lambda_{i} = e^{l^{i}_{b} - l^{i}(r) where l^{i}(r) = dF/dn_{i} for example
   !and l^{i}_{b} is the value in the bulk.
   real(dp), dimension(:), allocatable :: lambda_neutral
 
-  real(dp), dimension(:), allocatable :: grand_potential_per_unit_area
+  real(dp), dimension(:), allocatable :: grand_potential_per_unit_area, grand_potential_per_unit_area_in_bulk
   real(dp), dimension(:), allocatable :: normal_pressure_left_wall, normal_pressure_right_wall
   real(dp), dimension(:), allocatable :: negative_deriv_of_potential
 
@@ -45,10 +46,6 @@ program runSingleSphere
   !        |
   !        4(-)
   !
-
-  integer :: start_z_index
-  integer :: end_z_index
-
   !***********************************************
   !***********************************************
   !***************BEGIN EXECUTION*****************
@@ -63,7 +60,7 @@ program runSingleSphere
   call InitialiseModelParameters(trim(file_stub))
 
   print *, "Initialisiong grand potential and variables for contact theorem check."
-  call InitialisePotentialAndContactTheoremVariables(grand_potential_per_unit_area, &
+  call InitialisePotentialAndContactTheoremVariables(grand_potential_per_unit_area, grand_potential_per_unit_area_in_bulk, &
        normal_pressure_left_wall, normal_pressure_right_wall, negative_deriv_of_potential)
 
   do ith_separation = 1, size(plate_separations)
@@ -78,7 +75,9 @@ program runSingleSphere
      call InitialiseDensityDiscretisationAndSetIntegrationAnsatz(ith_separation, n_neutral)
 
      print *, "Initialise/ReInitialise Discretisation for all the temperary variables we need."
-     call InitialiseVariableDiscretisation(ith_separation, n_neutral_updated, lambda_neutral, zero_array)
+     call InitialiseVariableDiscretisation(ith_separation, n_neutral_updated, lambda_neutral, &
+          zero_array1, zero_array2, dummy_array1, dummy_array2)
+     call SetToZero(n_neutral_updated, lambda_neutral, zero_array1, zero_array2)
 
      print *, "Starting iteration.  Searching for convergence of density profiles."
      iteration = 0
@@ -86,12 +85,16 @@ program runSingleSphere
         iteration = iteration + 1
 
         !Calculate the lambdas from the densities.
-        zero_array = 0.0_dp
-        call CalculateLambdas(zero_array, zero_array, lambda_neutral, n_neutral, zero_array, zero_array, ith_separation)
+        call SetToZero(zero_array1, zero_array2)
+        print *, "n_neutral before update = ", n_neutral * (hs_diameter**3)
 
-        !print *, "lambda_neutral(1:50) = ",  lambda_neutral(1:50)
+        call CalculateLambdas(dummy_array1, zero_array1, lambda_neutral, n_neutral, dummy_array2, zero_array2, ith_separation, iteration)
+
+        !print *, "lambda_neutral(1:50) = ",  lambda_neutral(1:50) 
 
         call UpdateDensities(lambda_neutral, n_neutral_updated)
+
+        print *, "n_neutral_updated after update = ", n_neutral_updated * (hs_diameter**3)
 
         ! if(iteration == 10) then
         !print *, "n_neutral_updated = ", n_neutral_updated
@@ -99,40 +102,45 @@ program runSingleSphere
         !    call abort()
         ! end if
 
+
+
         ! Now test convergence
         if(converged(n_neutral_updated, n_neutral)) then
 
            print *, ""
            print *, "************************************************************"
-           print *, "runC4MIMBF4.x: Density calculations successfully converged."
+           print *, "runSingleSphere.x: Density calculations successfully converged."
            print *, "took ", iteration, " iterations."
            print *, "writing out density values to file"
            print *, "************************************************************"
            print *, ""
-           
+
            !Perform this update if we get the solution in one iteration.
            !Possible in principle because we rescale the solution at the previous separation.
            n_neutral = n_neutral_updated
-           
+
            call WriteOutputFormattedAsFunctionOfPosition(n_neutral_updated, trim(file_stub), &
                 "n_neutral_separation"//str(plate_separations(ith_separation)))
            exit
 
         else if(iteration == MAX_ITERATION_LIMIT) then
 
-           print *, "runC4MIMBf4.x: iteration == MAX_ITERATION_LIMIT"
+           print *, "runSingleSphere.x: iteration == MAX_ITERATION_LIMIT"
            print *, "Hit the iteration limit without converging"
            print *, "Increase the iteration limit"
            call abort()
 
         else if(iteration > MAX_ITERATION_LIMIT) then
 
-           print *, "runC4MIMBf4.x: iteration > MAX_ITERATION_LIMIT"
+           print *, "runSingleSphere.x: iteration > MAX_ITERATION_LIMIT"
            print *, "This should never happen"
            print *, "Coding error...aborting..."
            call abort()
 
         else !Update and proceed to the next iteration
+
+           call WriteOutputFormattedAsFunctionOfPosition(n_neutral_updated, trim(file_stub), &
+                "n_neutral_separation"//trim(str(plate_separations(ith_separation)))//"iteration"//trim(str(iteration)))
 
            n_neutral = n_neutral_updated
 
@@ -141,15 +149,27 @@ program runSingleSphere
      end do !end iteration loop
 
      print *, "Calculating grand potential per unit area value."
-     zero_array = 0.0_dp
-     call CalculateGrandPotentialValuePerUnitArea(zero_array, n_neutral_updated, zero_array, &
-          ith_separation, grand_potential_per_unit_area(ith_separation))
+     call SetToZero(zero_array1, zero_array2)
+     call CalculateGrandPotentialValuePerUnitArea(ith_separation, grand_potential_per_unit_area(ith_separation), &
+          size(n_neutral_updated), zero_array1, n_neutral_updated, zero_array2)
 
-     !print *, "n_neutral_updated = ", n_neutral_updated
+     print *, "Calculating grand potential per unit area value in the bulk."
+     call CalculateGrandPotentialValuePerUnitArea(ith_separation, &
+          grand_potential_per_unit_area_in_bulk(ith_separation), size(n_neutral_updated))
 
-     print *, "Calculating normal from from the contact theorem"
-     zero_array = 0.0_dp
-     call CalculateNormalPressureFromContactTheorem(zero_array, n_neutral_updated, zero_array, &
+     print *, "grand_potential_per_unit_area(ith_separation) = ", grand_potential_per_unit_area(ith_separation)
+     print *, "grand_potential_per_unit_area_in_bulk(ith_separation) = ", grand_potential_per_unit_area_in_bulk(ith_separation)
+     call abort
+
+
+     grand_potential_per_unit_area(ith_separation) = grand_potential_per_unit_area(ith_separation) -&
+          grand_potential_per_unit_area_in_bulk(ith_separation)
+
+
+
+     print *, "Calculating normal pressure from the contact theorem"
+     call SetToZero(zero_array1, zero_array2)
+     call CalculateNormalPressureFromContactTheorem(zero_array1, n_neutral_updated, zero_array2, &
           normal_pressure_left_wall(ith_separation), normal_pressure_right_wall(ith_separation))
 
      !print *, "n_neutral_updated = ", n_neutral_updated
@@ -184,9 +204,14 @@ contains
     if(allocated(n_neutral_updated)) deallocate(n_neutral_updated)
     if(allocated(lambda_neutral)) deallocate(lambda_neutral)
     if(allocated(grand_potential_per_unit_area)) deallocate(grand_potential_per_unit_area)
+    if(allocated(grand_potential_per_unit_area_in_bulk)) deallocate(grand_potential_per_unit_area_in_bulk)
     if(allocated(normal_pressure_left_wall)) deallocate(normal_pressure_left_wall)
     if(allocated(normal_pressure_right_wall)) deallocate(normal_pressure_right_wall)
     if(allocated(negative_deriv_of_potential)) deallocate(negative_deriv_of_potential)
+    if(allocated(zero_array1)) deallocate(zero_array1)
+    if(allocated(zero_array2)) deallocate(zero_array2)
+    if(allocated(dummy_array1)) deallocate(dummy_array1)
+    if(allocated(dummy_array2)) deallocate(dummy_array2)
 
   end subroutine DeAllocateLocalVariables
 

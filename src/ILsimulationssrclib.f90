@@ -15,5 +15,6 @@ module ILsimulationssrclib
   use constructoligomers
   use contacttheorem
   use discretederivatives
+  use excessenergyfunctionalparameters
   implicit none
 end module ILsimulationssrclib

@@ -22,8 +22,8 @@ plt.rc('font', family='serif')
 #5   9.9   0.3
 #then data[2,1] = 7.4 that is the 2+1 row and the 1+1 coloumn.
 #(Default python array indicies start at 0 unlike fortran which starts at 1.) 
-data_contactthm = np.loadtxt("../bin/testing-normal-pressure-left-wall.txt")
-data_negativederiv = np.loadtxt("../bin/testing-negative_deriv_of_potential.txt")
+data_contactthm = np.loadtxt("../testing-normal-pressure-left-wall.txt")
+data_negativederiv = np.loadtxt("../testing-negative_deriv_of_potential.txt")
 
 x_contactthm = data_contactthm[:,0]
 y_contactthm = data_contactthm[:,1]
@@ -43,10 +43,14 @@ y_negativederiv = data_negativederiv[:,1]
 #plt.plot(x_plus,y_plus,'rx',label=r'$n_{+}$')
 
 #y_negativederiv = y_negativederiv - y_negativederiv[-1]
+#y_contactthm = y_contactthm - y_contactthm[-1]
+
 y_contactthm = y_contactthm - y_contactthm[-1]
 
+#y_contactthm = y_contactthm * (y_negativederiv[0]/y_contactthm[0])
+
 plt.plot(x_contactthm,y_contactthm,'bo',label='Pressure from contact theorem')
-plt.plot(x_negativederiv, -1 * y_negativederiv,'gs',label='Pressure from derivative of potential')
+#plt.plot(x_negativederiv, y_negativederiv,'gs',label='Pressure from derivative of potential')
 
 #Set the axis labels.  Labelpad option controls the spacing between actual axis and axis label.  The r option tells python to interpret as a raw string literal.
 plt.xlabel(r"$\sigma$",labelpad=10)

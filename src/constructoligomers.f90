@@ -18,6 +18,7 @@ module constructoligomers
   public :: UpdateDensities
 
   public :: calculate_single_neutral_sphere_ideal_chain_term
+  public :: calculate_neutral_dimers_ideal_chain_term
 
   !Private subroutines
   !UpdateSinglePositiveSphereDensity
@@ -27,7 +28,7 @@ module constructoligomers
   !UpdateC4MIMPositiveBeadDensities
   !UpdateC4MINNeutralBeadDensities
   !UpdateC4MINNegativeBeadDensities
-  
+
 contains
 
   subroutine UpdateDensities(lambda1, n1_updated, lambda2, n2_updated, lambda3, n3_updated)
@@ -84,6 +85,16 @@ contains
           call UpdateSinglePositiveNeutralMinusSphereDensities(lambda1, n1_updated, lambda2, n2_updated, lambda3, n3_updated)
        end if
 
+    else if(trim(ionic_liquid_name) == "NeutralDimers") then
+
+       if(present(lambda2) .or. present(n2_updated) .or. present(lambda3) .or. present(n3_updated)) then
+          print *, "When doing Neutral Dimers should not have more than one lambda/density pair present"
+          print *, "...aborting..."
+          call abort()
+       else
+          call UpdateNeutralDimerDensity(lambda1, n1_updated)
+       end if
+
     else if(trim(ionic_liquid_name) == "C4MIM_BF4-") then
 
        if( (.not. present(lambda2)) .or. (.not. present(n2_updated)) .or. &
@@ -119,10 +130,11 @@ contains
        print *, "can't update...aborting..."
        call abort()
     else
-       n_plus_updated = exp(lambda_plus)
+       n_plus_updated = bulk_density_positive_beads * exp(lambda_plus)
     end if
 
-    call RenormaliseToBulkDensity(n_plus_updated, "n+")
+    call setNonCalculatedRegionToZero(n_plus_updated)
+    !call RenormaliseToBulkDensity(n_plus_updated, "n+")
 
   end subroutine UpdateSinglePositiveSphereDensity
 
@@ -136,31 +148,13 @@ contains
        print *, "can't update...aborting..."
        call abort()
     else
-       n_neutral_updated = exp(lambda_neutral)
+       n_neutral_updated = bulk_density_neutral_beads * exp(lambda_neutral)
     end if
 
-    call RenormaliseToBulkDensity(n_neutral_updated, "n0")
+    call setNonCalculatedRegionToZero(n_neutral_updated)
+    !call RenormaliseToBulkDensity(n_neutral_updated, "n0")
 
   end subroutine UpdateSingleNeutralSphereDensity
-
-
-  function calculate_single_neutral_sphere_ideal_chain_term(n_neutral, ith_plate_separation)
-    real(dp), dimension(:), intent(in) :: n_neutral
-    integer, intent(in) :: ith_plate_separation
-    real(dp) :: calculate_single_neutral_sphere_ideal_chain_term
-
-    real(dp), dimension(size(n_neutral)) :: zero_array
-    real(dp), dimension(size(n_neutral)) :: lambda_neutral
-    
-    zero_array = 0.0_dp
-    
-    call CalculateLambdas(zero_array, zero_array, lambda_neutral, n_neutral, zero_array, zero_array, ith_plate_separation)
-
-    calculate_single_neutral_sphere_ideal_chain_term = integrate_z_cylindrical(bulk_density_neutral_beads * exp(lambda_neutral) * &
-         ((log(bulk_density_neutral_beads) + lambda_neutral) - 1.0_dp), unity_function) / beta
-    
-  end function calculate_single_neutral_sphere_ideal_chain_term
-
 
   subroutine UpdateSingleNegativeSphereDensity(lambda_minus, n_minus_updated)
     real(dp), dimension(:), intent(in) :: lambda_minus
@@ -172,12 +166,99 @@ contains
        print *, "can't update...aborting..."
        call abort()
     else
-       n_minus_updated = exp(lambda_minus)
+       n_minus_updated = bulk_density_negative_beads * exp(lambda_minus)
     end if
 
-    call RenormaliseToBulkDensity(n_minus_updated, "n-")
+    call setNonCalculatedRegionToZero(n_minus_updated)
+    !call RenormaliseToBulkDensity(n_minus_updated, "n-")
 
   end subroutine UpdateSingleNegativeSphereDensity
+
+  subroutine UpdateNeutralDimerDensity(lambda_neutral, n_neutral_updated)
+    real(dp), dimension(:), intent(in) :: lambda_neutral
+    real(dp), dimension(:), intent(out) :: n_neutral_updated
+
+    real(dp), dimension(:), allocatable :: c1
+
+    ! First check the input variables are the same size
+    if( (size(lambda_neutral) == size(n_neutral_updated)) ) then
+       allocate(c1(size(lambda_neutral)))
+    else
+       print *, "constructoligomers.f90: UpdateNeutralDimerDensity:"
+       print *, "Size mismatch. size(lambda_neutral) /= size(n_neutral_updated)"
+       print *, "...aborting..."
+       call abort()
+    end if
+
+    ! Note that there is a factor of 1.0_dp/(4.0_dp * pi * hs_diameter**2)
+    ! from the delta function bond, a factor of 2 * pi from the theta integral
+    ! and a factor of hs_diameter**2 from the jacobian.  Combining these factors
+    ! gives the required 0.5_dp factor that we are multiplying by.
+    c1 = 0.5_dp * integrate_phi_spherical(exp(lambda_neutral))
+
+    !Note the factor of 2 is present as this formulation calculates the density of
+    !an individual bead.  By symmetry we need both the beads are the same and to
+    !get the total bead density we must add them.  Hence the factor of 2.
+    n_neutral_updated = 2.0_dp * bulk_density * exp(lambda_neutral) * c1
+
+    !Don't check if the variables have been allocated.
+    !We want an error thrown if they haven't been (which should never happen anyway).
+    deallocate(c1)
+
+    call setNonCalculatedRegionToZero(n_neutral_updated)
+
+  end subroutine UpdateNeutralDimerDensity
+
+  function calculate_single_neutral_sphere_ideal_chain_term(n_neutral)
+    real(dp), dimension(:), intent(in) :: n_neutral
+    real(dp) :: calculate_single_neutral_sphere_ideal_chain_term
+
+    real(dp), dimension(size(n_neutral)) :: integrand
+
+    integer :: start_z_index
+    integer :: end_z_index
+
+    integrand(:) = 0.0_dp
+    call get_allowed_z_values(start_z_index, end_z_index, size(n_neutral))
+
+    integrand(start_z_index:end_z_index) = n_neutral(start_z_index:end_z_index) * (log(n_neutral(start_z_index:end_z_index)) - 1.0_dp)
+
+    calculate_single_neutral_sphere_ideal_chain_term = integrate_z_cylindrical(integrand, unity_function) / beta
+
+    !integer, intent(in) :: ith_plate_separation
+    ! real(dp), dimension(size(n_neutral)) :: zero_array1, zero_array2
+    ! real(dp), dimension(size(n_neutral)) :: dummy_array1, dummy_array2
+    ! real(dp), dimension(size(n_neutral)) :: lambda_neutral
+
+    ! call SetToZero(zero_array1, zero_array2)
+    ! call CalculateLambdas(dummy_array1, zero_array1, lambda_neutral, n_neutral, dummy_array2, zero_array2, ith_plate_separation)
+
+    ! calculate_single_neutral_sphere_ideal_chain_term = integrate_z_cylindrical(bulk_density_neutral_beads * exp(lambda_neutral) * &
+    !      ((log(bulk_density_neutral_beads) + lambda_neutral) - 1.0_dp), unity_function) / beta
+
+  end function calculate_single_neutral_sphere_ideal_chain_term
+
+  function calculate_neutral_dimers_ideal_chain_term(lambda_neutral)
+    real(dp), dimension(:), intent(in) :: lambda_neutral
+    real(dp) :: calculate_neutral_dimers_ideal_chain_term
+
+    real(dp), dimension(size(lambda_neutral)) :: integrand
+
+    integer :: start_z_index
+    integer :: end_z_index
+
+    integrand(:) = 0.0_dp
+    call get_allowed_z_values(start_z_index, end_z_index, size(lambda_neutral))
+
+    integrand = integrate_phi_spherical(exp(lambda_neutral) * lambda_neutral) + log(bulk_density_neutral_beads) + lambda_neutral - 1.0_dp
+
+    calculate_neutral_dimers_ideal_chain_term = bulk_density_neutral_beads * integrate_z_cylindrical(integrand, unity_function) / beta
+
+    !integrand(start_z_index:end_z_index) = n_neutral(start_z_index:end_z_index) * (log(n_neutral(start_z_index:end_z_index)) - 1.0_dp)
+    !calculate_single_neutral_sphere_ideal_chain_term = 
+
+  end function calculate_neutral_dimers_ideal_chain_term
+
 
   subroutine UpdateSinglePositiveNeutralMinusSphereDensities(lambda_plus, n_plus_updated, &
        lambda_neutral, n_neutral_updated, lambda_minus, n_minus_updated)
@@ -255,7 +336,7 @@ contains
     n_plus_updated = bulk_density * ( (exp(lambda_plus) * c8c1 * c3p) + (exp(lambda_plus) * c2 * c9c10 * c9c10 * c4) + &
          (exp(lambda_plus) * c3ppp * c5) + (2.0_dp * (exp(lambda_plus) * c3pp)) )
 
-    call RenormaliseToBulkDensity(n_plus_updated, "n+")
+    !call RenormaliseToBulkDensity(n_plus_updated, "n+")
 
     !Don't check if the variables have been allocated.
     !We want an error thrown if they haven't been (which should never happen anyway).
@@ -321,7 +402,7 @@ contains
     n_neutral_updated = bulk_density * ( (exp(lambda_neutral) * c2p) + (exp(lambda_neutral) * c4p * c6) + &
          (exp(lambda_neutral) * c5p * c7) + (exp(lambda_neutral) * c6p * c8c1) + (exp(lambda_neutral) * c7p) )
 
-    call RenormaliseToBulkDensity(n_neutral_updated, "n0")
+    !call RenormaliseToBulkDensity(n_neutral_updated, "n0")
 
     !Don't check if the variables have been allocated.
     !We want an error thrown if they haven't been (which should never happen anyway).
@@ -358,7 +439,7 @@ contains
     !n_minus_updated = na1 + na2 + na3 + na4 + na5 = 4*na1 + na5
     n_minus_updated = bulk_density * ( 4.0_dp*(exp(lambda_minus) * a5p) + (exp(lambda_minus) * (a1a2a3a4**4.0_dp)) )
 
-    call RenormaliseToBulkDensity(n_minus_updated, "n-")
+    !call RenormaliseToBulkDensity(n_minus_updated, "n-")
 
     !Don't check if the variables have been allocated.
     !We want an error thrown if they haven't been (which should never happen anyway).

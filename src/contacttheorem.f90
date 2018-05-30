@@ -37,27 +37,30 @@ contains
     n_s = n_plus + n_neutral + n_minus
     call get_allowed_z_values(start_z_index, end_z_index, size(n_s))
     
-    normal_pressure_left_wall = n_s(start_z_index) * (hs_diameter**3)
-    normal_pressure_right_wall = n_s(end_z_index) * (hs_diameter**3)
+    normal_pressure_left_wall =  n_s(start_z_index) / beta
+    normal_pressure_right_wall =  n_s(end_z_index) / beta
     
   end subroutine CalculateNormalPressureFromContactTheorem
 
-  subroutine InitialisePotentialAndContactTheoremVariables(grand_potential_per_unit_area, &
+  subroutine InitialisePotentialAndContactTheoremVariables(grand_potential_per_unit_area, grand_potential_per_unit_area_in_bulk, &
        normal_pressure_left_wall, normal_pressure_right_wall, negative_deriv_of_potential)
     real(dp), dimension(:), allocatable :: grand_potential_per_unit_area
+    real(dp), dimension(:), allocatable :: grand_potential_per_unit_area_in_bulk
     real(dp), dimension(:), allocatable :: normal_pressure_left_wall
     real(dp), dimension(:), allocatable :: normal_pressure_right_wall
     real(dp), dimension(:), allocatable :: negative_deriv_of_potential
 
     allocate(grand_potential_per_unit_area(size(plate_separations)))
+    allocate(grand_potential_per_unit_area_in_bulk(size(plate_separations)))
     allocate(normal_pressure_left_wall(size(plate_separations)))
     allocate(normal_pressure_right_wall(size(plate_separations)))
     allocate(negative_deriv_of_potential(size(plate_separations)))
 
-    grand_potential_per_unit_area = 0.0_dp
-    normal_pressure_left_wall = 0.0_dp
-    normal_pressure_right_wall = 0.0_dp
-    negative_deriv_of_potential = 0.0_dp
+    grand_potential_per_unit_area(:) = 0.0_dp
+    grand_potential_per_unit_area_in_bulk(:) = 0.0_dp
+    normal_pressure_left_wall(:) = 0.0_dp
+    normal_pressure_right_wall(:) = 0.0_dp
+    negative_deriv_of_potential(:) = 0.0_dp
 
   end subroutine InitialisePotentialAndContactTheoremVariables
 

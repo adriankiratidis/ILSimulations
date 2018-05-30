@@ -22,19 +22,43 @@ plt.rc('font', family='serif')
 #5   9.9   0.3
 #then data[2,1] = 7.4 that is the 2+1 row and the 1+1 coloumn.
 #(Default python array indicies start at 0 unlike fortran which starts at 1.) 
-#data_plus = np.loadtxt("../bin/test-n_plus.txt")
-data_neutral = np.loadtxt("../bin/testing-n_neutral_separation4.00000.txt")
-#data_minus = np.loadtxt("../bin/test-n_minus.txt")
+data_1 = np.loadtxt("../testing-fraction-iteration1.txt")
+data_2 = np.loadtxt("../testing-fraction-iteration2.txt")
+data_3 = np.loadtxt("../testing-fraction-iteration3.txt")
+data_4 = np.loadtxt("../testing-fraction-iteration4.txt")
+data_5 = np.loadtxt("../testing-fraction-iteration5.txt")
+data_6 = np.loadtxt("../testing-fraction-iteration6.txt")
+data_7 = np.loadtxt("../testing-fraction-iteration7.txt")
+data_8 = np.loadtxt("../testing-fraction-iteration8.txt")
+data_9 = np.loadtxt("../testing-fraction-iteration9.txt")
 
-#x_plus = data_plus[:,0]
-#y_plus = data_plus[:,1]
+x_1 = data_1[:,0]
+y_1 = data_1[:,1]
 
-x_neutral = data_neutral[:,0]
-y_neutral = data_neutral[:,1]
-#x_minus = data_minus[:,0]
-#y_minus = data_minus[:,1]
+x_2 = data_2[:,0]
+y_2 = data_2[:,1]
 
-#err = data[:,2]
+x_3 = data_3[:,0]
+y_3 = data_3[:,1]
+
+x_4 = data_4[:,0]
+y_4 = data_4[:,1]
+
+x_5 = data_5[:,0]
+y_5 = data_5[:,1]
+
+x_6 = data_6[:,0]
+y_6 = data_6[:,1]
+
+x_7 = data_7[:,0]
+y_7 = data_7[:,1]
+
+x_8 = data_8[:,0]
+y_8 = data_8[:,1]
+
+x_9 = data_9[:,0]
+y_9 = data_9[:,1]
+
 
 #A description of the available plotting characters and colours 
 #to be used in place of 'rx' can be found here...
@@ -43,18 +67,24 @@ y_neutral = data_neutral[:,1]
 #plt.errorbar(x,y,err,fmt='bo',label="Some Label")
 #If you want to plot data but not show a key in the legend use
 #label='_nolegend_'
-#plt.plot(x_plus,y_plus,'rx',label=r'$n_{+}$')
-plt.plot(x_neutral,y_neutral,'bo',label=r'$n^{b}_{0}\sigma=0.35; d = 10\sigma$')
-#plt.plot(x_minus,y_minus,'gs',label=r'$n_{b}\sigma = 0.04$')
+plt.plot(x_1,y_1,'bx',label='iteration 1')
+plt.plot(x_2,y_2,'go',label='iteration 2')
+plt.plot(x_3,y_3,'rs',label='iteration 3')
+plt.plot(x_4,y_4,'ch',label='iteration 4')
+plt.plot(x_5,y_5,'m*',label='iteration 5')
+plt.plot(x_6,y_6,'y<',label='iteration 6')
+plt.plot(x_7,y_7,'k>',label='iteration 7')
+plt.plot(x_8,y_8,'w^',label='iteration 8')
+plt.plot(x_9,y_9,'bD',label='iteration 9')
 
 #Set the axis labels.  Labelpad option controls the spacing between actual axis and axis label.  The r option tells python to interpret as a raw string literal.
-plt.xlabel(r"$h/\sigma$",labelpad=10)
-plt.ylabel(r"$n\sigma^{3}$",labelpad=5)
+plt.xlabel(r"$z/\sigma$",labelpad=10)
+plt.ylabel("Fraction Term Value",labelpad=5)
 
 #Set the axis limits if you want to specify a region of interest.
 #The default is auto zoom.
-#plt.ylim(0.348,0.358)
-#plt.xlim(0,350)
+#plt.ylim(-0.2,1.1)
+#lt.xlim(0.5,4.5)
 
 #Change the position and label of the axis ticks.
 #xtickloc = [ -1.5,-1.0,-0.5,0.0,0.5,1.0,1.5 ]
@@ -71,7 +101,7 @@ plt.legend(loc='best',ncol=1, numpoints=1, frameon=False)
 #Uncomment if title is required
 #plt.title(r"Some Title")
 
-savefig("density_profiles_at_varying_separation_nb35.pdf",bbox_inches='tight')
+savefig("Fhs_fraction_contribution.pdf",bbox_inches='tight')
 
 #Open a window and show the plot
 plt.show()

@@ -23,6 +23,7 @@ module parameters
   public :: epsilon_LJ
   public :: surface_charge_density
   public :: hs_diameter
+  public :: a_term_index !Index on a_ex in hard sphere term
   public :: plate_separations ! in multiples of hs_diameter
   public :: bulk_density
   public :: temperature
@@ -43,6 +44,7 @@ module parameters
   real(dp) :: epsilon_LJ
   real(dp) :: surface_charge_density
   real(dp) :: hs_diameter
+  integer  :: a_term_index
 
   !array of plater separations in multiples of hs_diameter
   real(dp), dimension(:), allocatable  :: plate_separations
@@ -78,6 +80,7 @@ contains
     read(file_unit, *) epsilon_LJ !
     read(file_unit, *) surface_charge_density
     read(file_unit, *) hs_diameter
+    read(file_unit, *) a_term_index
     read(file_unit, *) bulk_density !
     read(file_unit, *) temperature
     read(file_unit, *) bead_charge
@@ -98,7 +101,7 @@ contains
     beta = 1.0_dp / (k_B * temperature)
 
     ! Apply unit transformations
-    epsilon_LJ = epsilon_LJ * k_B
+    epsilon_LJ = epsilon_LJ !* k_B
     bulk_density = bulk_density / (hs_diameter**3.0_dp)
 
     print *,  "Succesfully set the following values"
@@ -108,6 +111,7 @@ contains
     print *,  "epsilon_LJ = ", epsilon_LJ
     print *,  "surface_charge_density = ", surface_charge_density
     print *,  "hs_diameter = ", hs_diameter
+    print *,  "a_term_index = ", a_term_index
     print *,  "bulk_density = ", bulk_density
     print *,  "temperature = ", temperature
     print *,  "bead_charge = ", bead_charge
@@ -124,7 +128,7 @@ contains
 
     print *, "Checking plate separations are valid given discretisation scheme."
     call CheckValidityOfPlateSeparations()
-    
+
   end subroutine InitialiseModelParameters
 
   subroutine DeAllocateModelParams()
@@ -133,13 +137,24 @@ contains
 
   end subroutine DeAllocateModelParams
 
-   subroutine SetBeadDensityFromBulkIonDensity(ionic_liquid_name)
+  subroutine SetBeadDensityFromBulkIonDensity(ionic_liquid_name)
     character(len=*), intent(in) :: ionic_liquid_name
 
     if(trim(ionic_liquid_name) == "SingleNeutralSpheres") then
        call SetSingleNeutralSphereBeadDensityFromBulkIonDensity()
+
+    else if(trim(ionic_liquid_name) == "SinglePositiveSpheres") then
+       call SetSinglePositiveSphereBeadDensityFromBulkIonDensity()
+
+    else if(trim(ionic_liquid_name) == "SingleNegativeSpheres") then
+       call SetSingleNegativeSphereBeadDensityFromBulkIonDensity()
+
+    else if(trim(ionic_liquid_name) == "NeutralDimers") then
+       call SetNeutralDimerDensityFromBulkIonDensity()
+
     else if(trim(ionic_liquid_name) == "C4MIM_BF4-") then
        call SetC4MIN_BF4BeadDensityFromBulkIonDensity()
+
     else
        print *, "parameters.f90: SetBeadDensityFromBulkIonDensity:"
        print *, "Unsupported 'ionic_liquid_name' value of ", trim(ionic_liquid_name)
@@ -151,10 +166,31 @@ contains
 
   subroutine SetSingleNeutralSphereBeadDensityFromBulkIonDensity()
 
-    bulk_density_positive_beads = bulk_density
+    bulk_density_positive_beads = 0.0_dp
     bulk_density_neutral_beads = bulk_density
-    bulk_density_negative_beads = bulk_density
+    bulk_density_negative_beads = 0.0_dp
   end subroutine SetSingleNeutralSphereBeadDensityFromBulkIonDensity
+
+  subroutine SetSinglePositiveSphereBeadDensityFromBulkIonDensity()
+
+    bulk_density_positive_beads = bulk_density
+    bulk_density_neutral_beads = 0.0_dp
+    bulk_density_negative_beads = 0.0_dp
+  end subroutine SetSinglePositiveSphereBeadDensityFromBulkIonDensity
+
+  subroutine SetSingleNegativeSphereBeadDensityFromBulkIonDensity()
+
+    bulk_density_positive_beads = 0.0_dp
+    bulk_density_neutral_beads = 0.0_dp
+    bulk_density_negative_beads = bulk_density
+  end subroutine SetSingleNegativeSphereBeadDensityFromBulkIonDensity
+
+  subroutine SetNeutralDimerDensityFromBulkIonDensity()
+
+    bulk_density_positive_beads = 0.0_dp
+    bulk_density_neutral_beads = 2.0_dp * bulk_density
+    bulk_density_negative_beads = 0.0_dp
+  end subroutine SetNeutralDimerDensityFromBulkIonDensity
 
   subroutine SetC4MIN_BF4BeadDensityFromBulkIonDensity()
 

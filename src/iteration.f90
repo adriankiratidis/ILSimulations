@@ -9,7 +9,7 @@ module iteration
   public :: converged
   public :: InitialiseDensityDiscretisationAndSetIntegrationAnsatz
   public :: InitialiseVariableDiscretisation
-
+  
 contains
 
   !Routine that returns true iff the average squared difference for all beads is
@@ -32,7 +32,7 @@ contains
 
     real(dp) :: av_sq_diff
     real(dp) :: bulk_value
-   
+
     integer :: start_z_index
     integer :: end_z_index
 
@@ -52,16 +52,16 @@ contains
        call abort()
     else
 
-       av_sq_diff = sum((n1_updated(start_z_index:end_z_index) - n1(start_z_index:end_z_index))**2)/&
-            size(n1(start_z_index:end_z_index))
-       bulk_value = sum(n1(start_z_index:end_z_index))/size(n1(start_z_index:end_z_index))
+       av_sq_diff = sum((n1_updated(start_z_index:end_z_index) - n1(start_z_index:end_z_index))**2)&
+            /real(size(n1(start_z_index:end_z_index)),dp)
+       bulk_value = sum(n1(start_z_index:end_z_index))/real(size(n1(start_z_index:end_z_index)),dp)
 
-       if(av_sq_diff == 0.0_dp) then
-          print *, "iteration.f90: converged: "
-          print *, "average squared difference between dneisty and updated_density == 0.0_dp"
-          print *, "would appear to be a coding bug...aborting..."
-          call abort()
-       end if
+       ! if(av_sq_diff == 0.0_dp) then
+       !    print *, "iteration.f90: converged: "
+       !    print *, "average squared difference between dneisty and updated_density == 0.0_dp"
+       !    print *, "would appear to be a coding bug...aborting..."
+       !    call abort()
+       ! end if
 
        if(av_sq_diff <= iterative_tolerance*bulk_value) then
           n1_converged = .true.
@@ -168,7 +168,7 @@ contains
     integer :: new_array_size
 
     !Note we add on one to include values at both endpoints/the walls.
-    new_array_size = (plate_separations(ith_plate_separation) *  n_discretised_points_z) + 1
+    new_array_size = nint(plate_separations(ith_plate_separation) *  n_discretised_points_z) + 1
 
     call UpdateArraySize(n1, new_array_size, rescale=allocated(n1))
     if(present(n2)) call UpdateArraySize(n2, new_array_size, rescale=allocated(n2))
@@ -273,7 +273,7 @@ contains
     integer :: new_array_size
 
     !Note we add on one to include values at both endpoints/the walls.
-    new_array_size = (plate_separations(ith_plate_separation) *  n_discretised_points_z) + 1
+    new_array_size = nint(plate_separations(ith_plate_separation) *  n_discretised_points_z) + 1
 
     call UpdateArraySize(a1, new_array_size)
     if(present(a2)) call UpdateArraySize(a2, new_array_size)
@@ -445,7 +445,7 @@ contains
     
     !Set the elements of the new array by rescaling the old values
     do ith_component = start_z_index_new, end_z_index_new
-       old_value_index = start_z_index_old - 1.0_dp +  &
+       old_value_index = start_z_index_old - 1 +  &
             ceiling((end_z_index_old - start_z_index_old + 1) * ( real(ith_component - start_z_index_new + 1, dp) &
             / real(end_z_index_new - start_z_index_new + 1, dp) ) )
        array(ith_component) = old_array_values(old_value_index)
@@ -457,7 +457,7 @@ contains
   subroutine InitialiseIntegrationAnsatzToConstant(array)
     real(dp), dimension(:) :: array
     
-    array(:) = bulk_density
+    array(:) = bulk_density 
 
   end subroutine InitialiseIntegrationAnsatzToConstant
 

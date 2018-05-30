@@ -11,6 +11,7 @@ module helpers
   public :: unity_function
   public :: get_bulk_density
   public :: str
+  public :: SetToZero
 
   interface str
      module procedure str_int
@@ -109,8 +110,6 @@ contains
     integer :: start_z_integrate
     integer :: end_z_integrate
 
-    real(dp), dimension(size(lambda)) :: result_array
-
     !Find the maximum range over which we are going to integrate
     call  get_allowed_z_values(start_z_integrate, end_z_integrate, size(lambda))
 
@@ -163,5 +162,18 @@ contains
 
     str_real_sp = adjustl(str_real_sp)
   end function str_real_sp
+
+  subroutine SetToZero(array1, array2, array3, array4)
+    real(dp), dimension(:) :: array1
+    real(dp), dimension(:), optional :: array2
+    real(dp), dimension(:), optional :: array3
+    real(dp), dimension(:), optional :: array4
+
+    array1(:) = 0.0_dp
+    if(present(array2)) array2(:) = 0.0_dp
+    if(present(array3)) array3(:) = 0.0_dp
+    if(present(array4)) array4(:) = 0.0_dp
+
+  end subroutine SetToZero
 
 end module helpers

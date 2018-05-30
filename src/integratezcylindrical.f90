@@ -43,10 +43,26 @@ contains
     do ires = start_z_index, end_z_index
 
        call get_integrand_array_section_limits(trim(integration_range), ires, size(reslt), &
-            lower_z_limit, upper_z_limit, relative_z_index)
+            lower_z_limit, upper_z_limit, relative_z_index)   
 
+       ! print *, "trim(integration_range) = ", trim(integration_range)
+       ! print *, "ires = ", ires
+       ! print * , "size(reslt) = ", size(reslt)
+       
+       ! print *, "lower_limit = ", lower_z_limit
+       ! print *, "upper_limit = ", upper_z_limit
+       
        reslt(ires) = apply_trapezoidal_rule(integrand_array(lower_z_limit:upper_z_limit), &
             integrand_function, relative_z_index)
+
+       ! if(ires == 101) then
+       !    print *, "ires = 101"
+       !    print *, "lower lim = ", lower_z_limit
+       !    print *, "upper lim = ", upper_z_limit
+       !    print *, "rel ", relative_z_index
+       !    print *, "array= ", integrand_array(lower_z_limit:upper_z_limit)
+       !    print *, "reslt = ", reslt(ires)
+       ! end if
 
     end do
 
@@ -143,26 +159,33 @@ contains
 
     else if(trim(integration_range) == "z_lteq_hs_diameter") then
 
-       if(z_index < n_discretised_points_z + 1) then !0 <= z < hs_diameter
+       if(z_index < lowest_z_calculated + n_discretised_points_z) then !0 <= z < hs_diameter
 
           lower_z_limit = lowest_z_calculated
           upper_z_limit = z_index + n_discretised_points_z
           relative_z_index = z_index - lowest_z_calculated + 1
 
-       else if((z_index >= n_discretised_points_z + 1) .and.  ((h - z_index) >= n_discretised_points_z)) then !hs_diameter <= z <= h-hs_diameter
+          !print *, "indicies 1= ", lower_z_limit, upper_z_limit, relative_z_index
+
+       else if((z_index >= lowest_z_calculated + n_discretised_points_z) .and.  &
+            ((highest_z_calculated - z_index) >= n_discretised_points_z)) then !hs_diameter <= z <= h-hs_diameter
 
           lower_z_limit = z_index - n_discretised_points_z
           upper_z_limit = z_index + n_discretised_points_z
           relative_z_index = n_discretised_points_z + 1
 
-       else if((h - z_index) < n_discretised_points_z) then !h-hs_diameter < z <= h
+          !print *, "indicies 2= ", lower_z_limit, upper_z_limit, relative_z_index
+
+       else if((highest_z_calculated - z_index) >= 0) then !h-hs_diameter < z <= h
 
           lower_z_limit = z_index - n_discretised_points_z
           upper_z_limit = highest_z_calculated
           relative_z_index = n_discretised_points_z + 1
 
+          !print *, "indicies 3= ", lower_z_limit, upper_z_limit, relative_z_index
+          
        else ! z > h which is unphysical
-          print *, "integratephispherical.f90:get_integrand_array_section_limits:"
+          print *, "integratezcylindrical.f90:get_integrand_array_section_limits:"
           print *, "Invalid values of z_index/h."
           print *, "z_index must be <= h."
           print *, "Almost certainly a coding error as opposed to an input error...aborting..."
