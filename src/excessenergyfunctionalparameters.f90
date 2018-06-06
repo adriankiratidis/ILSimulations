@@ -1,3 +1,7 @@
+!The notation used in this module follows that of the paper
+!"Evaluating the accuracy of a density functional theory of polymer
+!solutions with additive hard sphere diameters", by Forsman and Woodward
+!Journal of Chemical Physics, volume 120, number 1, Jan 2004.
 module excessenergyfunctionalparameters
   use kinds
   use universalconstants
@@ -7,13 +11,12 @@ module excessenergyfunctionalparameters
 
   public :: GetAEx
   public :: GetAExDerivIntegrand
-  
+
+  real(dp) :: sigma_monomer
+  real(dp) :: sigma_solvent
+
 contains
 
-  !The notation used in this routine follows that of the paper
-  !"Evaluating the accuracy of a density functional theory of polymer
-  !solutions with additive hard sphere diameters", by Forsman and Woodward
-  !Journal of Chemical Physics, volume 120, number 1, Jan 2004.
   subroutine GetAExTermWeightings(n_mbar, n_sbar, term_index, Y_special, Psi, X, W, Z)
     real(dp), dimension(:), intent(in)              :: n_mbar
     real(dp), dimension(:), intent(in)              :: n_sbar
@@ -24,15 +27,12 @@ contains
     real(dp), dimension(size(n_mbar)), intent(out)  :: X
     real(dp), dimension(size(n_mbar)), intent(out)  :: Z
 
-    real(dp) :: sigma_monomer
-    real(dp) :: sigma_solvent
-
     real(dp) :: q
 
     real(dp) :: r_0, r_1, r_2
     real(dp) :: s_0, s_1, s_2
     real(dp) :: b_0, b_1, b_2
-    
+
     real(dp), dimension(size(n_mbar)) :: x_d_hat
     real(dp), dimension(size(n_mbar)) :: x_m_hat
 
@@ -61,9 +61,8 @@ contains
        call abort()
     end if
 
-    sigma_monomer = hs_diameter
-    sigma_solvent = hs_diameter
-
+    call InitialiseHardSphereDiameters(sigma_monomer, sigma_solvent)
+    
     q = sigma_solvent / sigma_monomer
 
     eta(:) = pi * (n_mbar(:) + n_sbar(:)) * (hs_diameter**3) / 6.0_dp
@@ -181,7 +180,7 @@ contains
     ! print *, "X = ", X
     ! print *, "W = ", W
     ! call abort()
-    
+
   end subroutine GetAExTermWeightings
 
   function GetAEx(n_mbar, n_sbar, term_index)
@@ -192,7 +191,7 @@ contains
 
     real(dp), dimension(size(n_mbar)) :: Y_special, Psi, X, W, Z
     real(dp), dimension(size(n_mbar)) :: eta_bar
-    
+
     if(size(n_mbar) /= size(n_sbar)) then
        print *, "excessenergyfunctionalparameters.f90: GetAEx"
        print *, "size(n_mbar) /= size(n_sbar)"
@@ -210,9 +209,8 @@ contains
          ( (Psi(:) + (2.0_dp * Z(:)) - X(:)) * (((1.0_dp)/(2.0_dp * ((1.0_dp - eta_bar(:))**2))) - 0.5_dp) ) + &
          (W(:) * ((1.0_dp/(2.0_dp * ((1.0_dp - eta_bar(:))**2))) - (2.0_dp/(1.0_dp - eta_bar(:))) - log(1.0_dp - eta_bar(:)) + 1.5_dp )) +&
          (Psi(:) * ((1.0_dp / (1.0_dp - eta_bar(:))) - (1.0_dp / (2.0_dp * ((1.0_dp - eta_bar(:))**2))) - 0.5_dp) )
-    
-  end function GetAEx
 
+  end function GetAEx
 
   function GetAExDerivIntegrand(n_mbar, n_sbar, term_index)
     real(dp), dimension(:), intent(in) :: n_mbar
@@ -245,4 +243,29 @@ contains
 
   end function GetAExDerivIntegrand
 
+  ! function GetYMix(n_mbar, n_sbar)
+  !   real(dp), dimension(:), intent(in) :: n_mbar
+  !   real(dp), dimension(:), intent(in) :: n_sbar
+  !   real(dp), dimension(size(n_mbar)) :: GetYMix
+
+  !   real(dp), dimension(size(n_mbar)) :: phi_m
+
+  !   real(dp) :: q
+  !   call InitialiseHardSphereDiameters(sigma_monomer, sigma_solvent)
+  !   q = sigma_solvent / sigma_monomer
+
+  !   phi_m(:) = n_mbar / (n_mbar + n_sbar*q)
+
+    
+  ! end function GetYMix
+
+  subroutine InitialiseHardSphereDiameters(sigma_monomer, sigma_solvent)
+    real(dp), intent(out) :: sigma_monomer
+    real(dp), intent(out) :: sigma_solvent
+    
+    sigma_monomer = hs_diameter
+    sigma_solvent = hs_diameter
+    
+  end subroutine InitialiseHardSphereDiameters
+  
 end module excessenergyfunctionalparameters

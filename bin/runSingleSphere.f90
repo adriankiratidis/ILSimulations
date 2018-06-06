@@ -153,18 +153,7 @@ program runSingleSphere
      call CalculateGrandPotentialValuePerUnitArea(ith_separation, grand_potential_per_unit_area(ith_separation), &
           size(n_neutral_updated), zero_array1, n_neutral_updated, zero_array2)
 
-     print *, "Calculating grand potential per unit area value in the bulk."
-     call CalculateGrandPotentialValuePerUnitArea(ith_separation, &
-          grand_potential_per_unit_area_in_bulk(ith_separation), size(n_neutral_updated))
-
-     print *, "grand_potential_per_unit_area(ith_separation) = ", grand_potential_per_unit_area(ith_separation)
-     print *, "grand_potential_per_unit_area_in_bulk(ith_separation) = ", grand_potential_per_unit_area_in_bulk(ith_separation)
-     call abort
-
-
-     grand_potential_per_unit_area(ith_separation) = grand_potential_per_unit_area(ith_separation) -&
-          grand_potential_per_unit_area_in_bulk(ith_separation)
-
+     !grand_potential_per_unit_area(ith_separation) = (grand_potential_per_unit_area(ith_separation) / plate_separations(ith_separation)) * (hs_diameter/real(n_discretised_points_z,dp))
 
 
      print *, "Calculating normal pressure from the contact theorem"

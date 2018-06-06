@@ -50,6 +50,9 @@ contains
 
     end do
 
+    reslt(1:start_z_index-1) = 0.0_dp
+    reslt(end_z_index+1:size(reslt)) = 0.0_dp
+    
   end function integrate_phi_spherical
 
   !Returns the Jacobian's phi dependence in spherical coordinates.

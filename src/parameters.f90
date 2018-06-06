@@ -21,7 +21,8 @@ module parameters
 
   public :: epsilonr
   public :: epsilon_LJ
-  public :: surface_charge_density
+  public :: surface_charge_density_left_wall
+  public :: surface_charge_density_right_wall
   public :: hs_diameter
   public :: a_term_index !Index on a_ex in hard sphere term
   public :: plate_separations ! in multiples of hs_diameter
@@ -42,7 +43,8 @@ module parameters
   integer  :: n_discretised_points_z
   real(dp) :: epsilonr
   real(dp) :: epsilon_LJ
-  real(dp) :: surface_charge_density
+  real(dp) :: surface_charge_density_left_wall
+  real(dp) :: surface_charge_density_right_wall
   real(dp) :: hs_diameter
   integer  :: a_term_index
 
@@ -78,7 +80,8 @@ contains
     read(file_unit, *) chi_parameter
     read(file_unit, *) epsilonr
     read(file_unit, *) epsilon_LJ !
-    read(file_unit, *) surface_charge_density
+    read(file_unit, *) surface_charge_density_left_wall
+    read(file_unit, *) surface_charge_density_right_wall
     read(file_unit, *) hs_diameter
     read(file_unit, *) a_term_index
     read(file_unit, *) bulk_density !
@@ -109,7 +112,8 @@ contains
     print *,  "chi_parameter = ", chi_parameter
     print *,  "epsilonr = ", epsilonr
     print *,  "epsilon_LJ = ", epsilon_LJ
-    print *,  "surface_charge_density = ", surface_charge_density
+    print *,  "surface_charge_density_left_wall = ", surface_charge_density_left_wall
+    print *,  "surface_charge_density_right_wall = ", surface_charge_density_right_wall
     print *,  "hs_diameter = ", hs_diameter
     print *,  "a_term_index = ", a_term_index
     print *,  "bulk_density = ", bulk_density

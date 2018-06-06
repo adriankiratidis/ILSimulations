@@ -141,7 +141,7 @@ contains
   subroutine UpdateSingleNeutralSphereDensity(lambda_neutral, n_neutral_updated)
     real(dp), dimension(:), intent(in) :: lambda_neutral
     real(dp), dimension(:), intent(out) :: n_neutral_updated
-
+    
     if(size(lambda_neutral) /= size(n_neutral_updated)) then
        print *, "constructoligomers.f90: ConstructSingleSphereArrangment: "
        print *, "Size mismatch.  size(lambda_neutral) /= size(n_plus_neutral)."
@@ -150,7 +150,7 @@ contains
     else
        n_neutral_updated = bulk_density_neutral_beads * exp(lambda_neutral)
     end if
-
+    
     call setNonCalculatedRegionToZero(n_neutral_updated)
     !call RenormaliseToBulkDensity(n_neutral_updated, "n0")
 
@@ -248,11 +248,11 @@ contains
     integer :: end_z_index
 
     integrand(:) = 0.0_dp
-    call get_allowed_z_values(start_z_index, end_z_index, size(lambda_neutral))
+    !call get_allowed_z_values(start_z_index, end_z_index, size(lambda_neutral))
 
-    integrand = integrate_phi_spherical(exp(lambda_neutral) * lambda_neutral) + log(bulk_density_neutral_beads) + lambda_neutral - 1.0_dp
+    integrand = (0.5_dp * integrate_phi_spherical(exp(lambda_neutral) * lambda_neutral)) + log(bulk_density_neutral_beads) + lambda_neutral - 1.0_dp
 
-    calculate_neutral_dimers_ideal_chain_term = bulk_density_neutral_beads * integrate_z_cylindrical(integrand, unity_function) / beta
+    calculate_neutral_dimers_ideal_chain_term = bulk_density_neutral_beads * integrate_z_cylindrical(integrand * exp(lambda_neutral), unity_function) / beta
 
     !integrand(start_z_index:end_z_index) = n_neutral(start_z_index:end_z_index) * (log(n_neutral(start_z_index:end_z_index)) - 1.0_dp)
     !calculate_single_neutral_sphere_ideal_chain_term = 
@@ -337,7 +337,8 @@ contains
          (exp(lambda_plus) * c3ppp * c5) + (2.0_dp * (exp(lambda_plus) * c3pp)) )
 
     !call RenormaliseToBulkDensity(n_plus_updated, "n+")
-
+    call setNonCalculatedRegionToZero(n_plus_updated)
+    
     !Don't check if the variables have been allocated.
     !We want an error thrown if they haven't been (which should never happen anyway).
     deallocate(c8c1, c9c10, c7, c6, c5, c4, c2, c3p, c3pp, c3ppp)
@@ -403,7 +404,8 @@ contains
          (exp(lambda_neutral) * c5p * c7) + (exp(lambda_neutral) * c6p * c8c1) + (exp(lambda_neutral) * c7p) )
 
     !call RenormaliseToBulkDensity(n_neutral_updated, "n0")
-
+    call setNonCalculatedRegionToZero(n_neutral_updated)
+    
     !Don't check if the variables have been allocated.
     !We want an error thrown if they haven't been (which should never happen anyway).
     deallocate(c3p, c3ppp, c8c1)
@@ -423,6 +425,9 @@ contains
        array_size = size(lambda_minus)
        allocate(a1a2a3a4(array_size))
        allocate(a5p(array_size))
+       
+       a1a2a3a4(:) = 0.0_dp
+       a5p(:) = 0.0_dp
     else
        print *, "constructoligomers.f90: UpdateBF4NegativeBeads:"
        print *, "Size mismatch. size(lambda_minus) /= size(n_minus_updated)"
@@ -430,17 +435,27 @@ contains
        call abort()
     end if
 
+    print *, "lambda_minus = ", lambda_minus
+    print *, "exp(lambda_minus) = ", exp(lambda_minus)
+    
     !Calculate the required contributions for the anion
     a1a2a3a4 = 0.5_dp * integrate_phi_spherical(exp(lambda_minus))
 
+    print *, "a1a2a3a4 = ", a1a2a3a4 
+    
     a5p = 0.5_dp * integrate_phi_spherical(exp(lambda_minus) * (a1a2a3a4 ** 3.0_dp))
+
+    print *, "a5p = ", a5p
 
     !Calculate the resulting negative bead densities.
     !n_minus_updated = na1 + na2 + na3 + na4 + na5 = 4*na1 + na5
     n_minus_updated = bulk_density * ( 4.0_dp*(exp(lambda_minus) * a5p) + (exp(lambda_minus) * (a1a2a3a4**4.0_dp)) )
 
     !call RenormaliseToBulkDensity(n_minus_updated, "n-")
+    call setNonCalculatedRegionToZero(n_minus_updated)
 
+    print *, "n_minus_updated = ", n_minus_updated
+    
     !Don't check if the variables have been allocated.
     !We want an error thrown if they haven't been (which should never happen anyway).
     deallocate(a1a2a3a4, a5p)

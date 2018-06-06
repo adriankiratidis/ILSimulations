@@ -73,5 +73,16 @@ contains
 
   end subroutine CalculateNegativeDerivOfPotentialPerUnitAreaWRTSeparation
 
+  subroutine CalculateMaxwellStressTerm(maxwell_stress_term_left_wall, maxwell_stress_term_right_wall)
+    real(dp), intent(out) :: maxwell_stress_term_left_wall
+    real(dp), intent(out) :: maxwell_stress_term_right_wall
+
+    maxwell_stress_term_left_wall = 2.0_dp * pi * (surface_charge_density_left_wall**2)/ (epsilonr * epsilon0)
+    maxwell_stress_term_right_wall = 2.0_dp * pi * (surface_charge_density_right_wall**2)/ (epsilonr * epsilon0)
+
+  end subroutine CalculateMaxwellStressTerm
+
+
+
 
 end module contacttheorem

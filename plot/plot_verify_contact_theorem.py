@@ -45,7 +45,7 @@ y_negativederiv = data_negativederiv[:,1]
 #y_negativederiv = y_negativederiv - y_negativederiv[-1]
 #y_contactthm = y_contactthm - y_contactthm[-1]
 
-y_contactthm = y_contactthm - y_contactthm[-1]
+#y_contactthm = y_contactthm - y_contactthm[-1]
 
 #y_contactthm = y_contactthm * (y_negativederiv[0]/y_contactthm[0])
 
@@ -54,7 +54,7 @@ plt.plot(x_contactthm,y_contactthm,'bo',label='Pressure from contact theorem')
 
 #Set the axis labels.  Labelpad option controls the spacing between actual axis and axis label.  The r option tells python to interpret as a raw string literal.
 plt.xlabel(r"$\sigma$",labelpad=10)
-plt.ylabel(r"$beta{P}\sigma^{3}$",labelpad=5)
+plt.ylabel(r"${P}$",labelpad=5)
 
 #Set the axis limits if you want to specify a region of interest.
 #The default is auto zoom.
@@ -76,7 +76,7 @@ plt.legend(loc='best',ncol=1, numpoints=1, frameon=False)
 #Uncomment if title is required
 #plt.title(r"Some Title")
 
-savefig("verify-contact-theorem-plot.pdf",bbox_inches='tight')
+savefig("pressure_from_contact_theorem.pdf",bbox_inches='tight')
 
 #Open a window and show the plot
 plt.show()

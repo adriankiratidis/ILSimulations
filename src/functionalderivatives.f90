@@ -48,15 +48,15 @@ contains
     if(calculate_bulk) then !n_s input parameter is the bulk value so
 
 
-       calculate_hardsphere_functional_deriv(start_z_index:end_z_index) = (1.0_dp/beta) * (&
+       calculate_hardsphere_functional_deriv(start_z_index:end_z_index) = 0.5_dp * (1.0_dp/beta) * (&
             GetAEx(n_s(start_z_index:end_z_index), n_sbar(start_z_index:end_z_index), a_term_index) + &
             ((((4.0_dp * pi * (hs_diameter**3))/3.0_dp) * (n_s(start_z_index:end_z_index)) * &
             GetAExDerivIntegrand(n_s(start_z_index:end_z_index), n_sbar(start_z_index:end_z_index), a_term_index))))
 
-       calculate_hardsphere_functional_deriv(start_z_index:end_z_index) = (1.0_dp/beta) * (&
-            GetAEx(n_s(start_z_index:end_z_index), n_sbar(start_z_index:end_z_index), a_term_index) + &
-            ((n_s(start_z_index:end_z_index) * &
-            GetAExDerivIntegrand(n_s(start_z_index:end_z_index), n_sbar(start_z_index:end_z_index), a_term_index))))
+       ! calculate_hardsphere_functional_deriv(start_z_index:end_z_index) = (1.0_dp/beta) * (&
+       !      GetAEx(n_s(start_z_index:end_z_index), n_sbar(start_z_index:end_z_index), a_term_index) + &
+       !      ((n_s(start_z_index:end_z_index) * &
+       !      GetAExDerivIntegrand(n_s(start_z_index:end_z_index), n_sbar(start_z_index:end_z_index), a_term_index))))
 
 
     else
@@ -66,14 +66,14 @@ contains
 
        integral(:) = calculate_n_sbar(integrand(:))
 
-       calculate_hardsphere_functional_deriv(start_z_index:end_z_index) = (1.0_dp/beta) * (&
+       calculate_hardsphere_functional_deriv(start_z_index:end_z_index) = 0.5_dp * (1.0_dp/beta) * (&
             GetAEx(n_mbar(start_z_index:end_z_index), n_sbar(start_z_index:end_z_index), a_term_index) + &
             (((4.0_dp * pi * (hs_diameter**3))/3.0_dp) * integral(start_z_index:end_z_index)))
 
-       calculate_hardsphere_functional_deriv(start_z_index:end_z_index) = (1.0_dp/beta) * (&
-            GetAEx(n_mbar(start_z_index:end_z_index), n_sbar(start_z_index:end_z_index), a_term_index) + &
-            ((n_s(start_z_index:end_z_index) * &
-            GetAExDerivIntegrand(n_mbar(start_z_index:end_z_index), n_sbar(start_z_index:end_z_index), a_term_index))))
+       ! calculate_hardsphere_functional_deriv(start_z_index:end_z_index) = (1.0_dp/beta) * (&
+       !      GetAEx(n_mbar(start_z_index:end_z_index), n_sbar(start_z_index:end_z_index), a_term_index) + &
+       !      ((n_s(start_z_index:end_z_index) * &
+       !      GetAExDerivIntegrand(n_mbar(start_z_index:end_z_index), n_sbar(start_z_index:end_z_index), a_term_index))))
 
        !print *, "calculate_hardsphere_functional_deriv(:) = ", calculate_hardsphere_functional_deriv(:)
        !call abort()
@@ -114,30 +114,8 @@ contains
     !         extra_integral_contribution2(start_z_index:end_z_index) + &
     !         extra_integral_contribution(start_z_index:end_z_index) )
 
-    !    !print *, "deriv = ", beta * calculate_hardsphere_functional_deriv
-    !    ! if(present(iteration)) then
-    !    !    print *, "extra_integral_contribution after = ", extra_integral_contribution
-    !    !    call WriteOutputFormattedAsFunctionOfPosition(extra_integral_contribution / (hs_diameter**3), "testing", &
-    !    !         "extra_integral_contribution-iteration"//trim(str(iteration)))
-    !    ! end if
 
-    !    ! extra_integral_contribution(start_z_index:end_z_index) = &
-    !    !      ((n_s(start_z_index:end_z_index) * (hs_diameter**3))/(1.0_dp - ((hs_diameter**3)*n_s(start_z_index:end_z_index))))
 
-    !    ! if(present(iteration)) then
-    !    !    print *, "fraction = ", extra_integral_contribution
-    !    !    call WriteOutputFormattedAsFunctionOfPosition(extra_integral_contribution / (hs_diameter**3), "testing", &
-    !    !         "fraction-iteration"//trim(str(iteration)))
-    !    !    !call abort
-    !    ! end if
-
-    !    ! extra_integral_contribution(start_z_index:end_z_index) = &
-    !    !      log(n_sbar(start_z_index:end_z_index) / (1.0_dp - ((hs_diameter**3)*n_s(start_z_index:end_z_index))))
-
-    !    ! if(present(iteration)) then
-    !    !    print *, "log = ", extra_integral_contribution
-    !    !    call WriteOutputFormattedAsFunctionOfPosition(extra_integral_contribution / (hs_diameter**3), "testing", &
-    !    !         "log-iteration"//trim(str(iteration)))
     !    ! end if
     !    !call abort()
 
@@ -189,7 +167,7 @@ contains
 
     call setNonCalculatedRegionToZero(calculate_surface_dispersion_functional_deriv)
 
-    !calculate_surface_dispersion_functional_deriv = 0.0_dp
+    calculate_surface_dispersion_functional_deriv = 0.0_dp
 
   end function calculate_surface_dispersion_functional_deriv
            
