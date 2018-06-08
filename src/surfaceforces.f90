@@ -73,27 +73,27 @@ contains
 
     !potential_per_unit_area_not_in_bulk = 0.0_dp
     
-    !Now calculate the value of the potential in the bulk
-    F_ideal_chain = 0.0_dp
-    F_van_der_waals = 0.0_dp
-    F_hard_sphere = 0.0_dp
-    F_surface_disp = 0.0_dp
-    F_surface_electro = 0.0_dp
-    F_electric_like = 0.0_dp
-    F_electric_unlike = 0.0_dp
+    ! !Now calculate the value of the potential in the bulk
+    ! F_ideal_chain = 0.0_dp
+    ! F_van_der_waals = 0.0_dp
+    ! F_hard_sphere = 0.0_dp
+    ! F_surface_disp = 0.0_dp
+    ! F_surface_electro = 0.0_dp
+    ! F_electric_like = 0.0_dp
+    ! F_electric_unlike = 0.0_dp
 
-    n_s(:) = bulk_density_positive_beads + bulk_density_neutral_beads + bulk_density_negative_beads
-    n_sbar(:) = n_s(:)
+    ! n_s(:) = bulk_density_positive_beads + bulk_density_neutral_beads + bulk_density_negative_beads
+    ! n_sbar(:) = n_s(:)
 
-    !Note: Only passing onw input parameters calculates the value in the bulk.
-    F_ideal_chain = calculate_ideal_chain_term_per_unit_area(size(n_plus_input))
+    ! !Note: Only passing onw input parameters calculates the value in the bulk.
+    ! F_ideal_chain = calculate_ideal_chain_term_per_unit_area(size(n_plus_input))
     
-    !Note in the following we don't need to integrate over the theta and rho (r) directions
-    !as we are only interested in the value PER UNIT AREA.
-    F_hard_sphere = calculate_hardsphere_term_per_unit_area(n_s, n_sbar)
+    ! !Note in the following we don't need to integrate over the theta and rho (r) directions
+    ! !as we are only interested in the value PER UNIT AREA.
+    ! F_hard_sphere = calculate_hardsphere_term_per_unit_area(n_s, n_sbar)
 
-    potential_per_unit_area_in_bulk = (F_ideal_chain + F_van_der_waals + F_surface_disp + F_hard_sphere + &
-         F_surface_electro + F_electric_like + F_electric_unlike)
+    ! potential_per_unit_area_in_bulk = (F_ideal_chain + F_van_der_waals + F_surface_disp + F_hard_sphere + &
+    !      F_surface_electro + F_electric_like + F_electric_unlike)
 
 
 
@@ -104,7 +104,8 @@ contains
     !F_electric_like = calculate_electrostatic_like_term_functional_deriv()
     !F_electric_unlike = calculate_electrostatic_unlike_term_functional_deriv()
 
-    grand_potential_per_unit_area = potential_per_unit_area_not_in_bulk - potential_per_unit_area_in_bulk 
+    grand_potential_per_unit_area = potential_per_unit_area_not_in_bulk !- potential_per_unit_area_in_bulk
+    !grand_potential_per_unit_area = potential_per_unit_area_in_bulk 
     !print *, "grand_potential_per_unit_area = ", grand_potential_per_unit_area
     !call abort()
 
@@ -188,7 +189,7 @@ function calculate_hardsphere_term_per_unit_area(n_s, n_sbar)
 
  call get_allowed_z_values(start_z_index, end_z_index, size(n_s))
 
- hs_integrand(start_z_index:end_z_index) = (1.0_dp / beta) * n_s(start_z_index:end_z_index) * &
+ hs_integrand(start_z_index:end_z_index) = (0.5_dp / beta) * n_s(start_z_index:end_z_index) * &
       GetAEx(n_sbar(start_z_index:end_z_index), n_solvent(start_z_index:end_z_index), a_term_index)
 
  !call setNonCalculatedRegionToZero(hs_integrand)

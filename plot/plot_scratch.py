@@ -12,7 +12,7 @@ import math
 plt.rc('text', usetex=True)
 plt.rc('font', family='serif')
 
-separation = 8
+separation = 4
 
 charge = "neutral"
 

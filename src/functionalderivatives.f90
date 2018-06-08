@@ -48,7 +48,7 @@ contains
     if(calculate_bulk) then !n_s input parameter is the bulk value so
 
 
-       calculate_hardsphere_functional_deriv(start_z_index:end_z_index) = 0.5_dp * (1.0_dp/beta) * (&
+       calculate_hardsphere_functional_deriv(start_z_index:end_z_index) = (0.5_dp / beta) * (&
             GetAEx(n_s(start_z_index:end_z_index), n_sbar(start_z_index:end_z_index), a_term_index) + &
             ((((4.0_dp * pi * (hs_diameter**3))/3.0_dp) * (n_s(start_z_index:end_z_index)) * &
             GetAExDerivIntegrand(n_s(start_z_index:end_z_index), n_sbar(start_z_index:end_z_index), a_term_index))))
@@ -66,7 +66,7 @@ contains
 
        integral(:) = calculate_n_sbar(integrand(:))
 
-       calculate_hardsphere_functional_deriv(start_z_index:end_z_index) = 0.5_dp * (1.0_dp/beta) * (&
+       calculate_hardsphere_functional_deriv(start_z_index:end_z_index) = (0.5_dp / beta) * (&
             GetAEx(n_mbar(start_z_index:end_z_index), n_sbar(start_z_index:end_z_index), a_term_index) + &
             (((4.0_dp * pi * (hs_diameter**3))/3.0_dp) * integral(start_z_index:end_z_index)))
 

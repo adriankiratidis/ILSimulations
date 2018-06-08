@@ -166,6 +166,22 @@ program runSingleSphere
      !call abort()
   end do !end loop over plate separation
 
+
+  ! do ith_separation = 1, size(plate_separations)
+  !    grand_potential_per_unit_area(ith_separation) = grand_potential_per_unit_area(ith_separation) - &
+  !         grand_potential_per_unit_area(size(grand_potential_per_unit_area)) + &
+  !         (normal_pressure_left_wall(size(grand_potential_per_unit_area)) * plate_separations(ith_separation) * hs_diameter)
+  ! end do
+
+  call CalculateNegativeDerivOfPotentialPerUnitAreaWRTSeparation(grand_potential_per_unit_area, negative_deriv_of_potential)
+
+  do ith_separation = 1, size(plate_separations)
+     grand_potential_per_unit_area(ith_separation) = grand_potential_per_unit_area(ith_separation) + &
+          ( negative_deriv_of_potential(size(negative_deriv_of_potential)) * (plate_separations(ith_separation) + 1.0_dp) * &
+          (hs_diameter)) - &
+          grand_potential_per_unit_area(size(negative_deriv_of_potential))
+  end do
+
   call CalculateNegativeDerivOfPotentialPerUnitAreaWRTSeparation(grand_potential_per_unit_area, negative_deriv_of_potential)
 
   call WriteOutputFormattedAsFunctionOfPlateSeparation(grand_potential_per_unit_area, trim(file_stub), "potential-per-unit-area")

@@ -45,7 +45,7 @@ y_negativederiv = data_negativederiv[:,1]
 #y_negativederiv = y_negativederiv - y_negativederiv[-1]
 #y_contactthm = y_contactthm - y_contactthm[-1]
 
-#y_contactthm = y_contactthm - y_contactthm[-1]
+y_contactthm = y_contactthm - y_contactthm[-1]
 
 #y_contactthm = y_contactthm * (y_negativederiv[0]/y_contactthm[0])
 

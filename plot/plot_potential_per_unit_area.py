@@ -37,7 +37,7 @@ y_neutral = data_neutral[:,1]
 
 #err = data[:,2]
 
-y_neutral2 = y_neutral - y_neutral[-1]
+y_neutral2 = y_neutral #- y_neutral[-1]
 
 #A description of the available plotting characters and colours 
 #to be used in place of 'rx' can be found here...
