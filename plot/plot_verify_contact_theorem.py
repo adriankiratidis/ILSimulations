@@ -49,8 +49,8 @@ y_contactthm = y_contactthm - y_contactthm[-1]
 
 #y_contactthm = y_contactthm * (y_negativederiv[0]/y_contactthm[0])
 
-plt.plot(x_contactthm,y_contactthm,'bo',label='Pressure from contact theorem')
-#plt.plot(x_negativederiv, y_negativederiv,'gs',label='Pressure from derivative of potential')
+plt.plot(x_contactthm+0.02,y_contactthm,'bo',label='Pressure from contact theorem')
+plt.plot(x_negativederiv, y_negativederiv,'gs',label='Pressure from derivative of potential')
 
 #Set the axis labels.  Labelpad option controls the spacing between actual axis and axis label.  The r option tells python to interpret as a raw string literal.
 plt.xlabel(r"$\sigma$",labelpad=10)
@@ -76,7 +76,7 @@ plt.legend(loc='best',ncol=1, numpoints=1, frameon=False)
 #Uncomment if title is required
 #plt.title(r"Some Title")
 
-savefig("pressure_from_contact_theorem.pdf",bbox_inches='tight')
+savefig("Pressure_comparison.pdf",bbox_inches='tight')
 
 #Open a window and show the plot
 plt.show()

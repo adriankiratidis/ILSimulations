@@ -19,7 +19,8 @@ module constructoligomers
 
   public :: calculate_single_neutral_sphere_ideal_chain_term
   public :: calculate_neutral_dimers_ideal_chain_term
-
+  public :: calculate_chemical_potential_term_neutral_spheres
+  
   !Private subroutines
   !UpdateSinglePositiveSphereDensity
   !UpdateSingleNeutralSphereDensity
@@ -195,6 +196,7 @@ contains
     ! and a factor of hs_diameter**2 from the jacobian.  Combining these factors
     ! gives the required 0.5_dp factor that we are multiplying by.
     c1 = 0.5_dp * integrate_phi_spherical(exp(lambda_neutral))
+    !c1 = 0.5_dp * (exp(lambda_neutral))
 
     !Note the factor of 2 is present as this formulation calculates the density of
     !an individual bead.  By symmetry we need both the beads are the same and to
@@ -209,6 +211,44 @@ contains
 
   end subroutine UpdateNeutralDimerDensity
 
+  
+  function calculate_chemical_potential_term_neutral_spheres(n_plus, n_neutral, n_minus, ith_plate_separation)
+    real(dp), dimension(:), intent(in) :: n_plus
+    real(dp), dimension(:), intent(in) :: n_neutral
+    real(dp), dimension(:), intent(in) :: n_minus
+    integer, intent(in) :: ith_plate_separation
+
+    real(dp) :: calculate_chemical_potential_term_neutral_spheres
+
+    real(dp), dimension(size(n_plus)) :: lambda_plus
+    real(dp), dimension(size(n_neutral)) :: lambda_neutral
+    real(dp), dimension(size(n_minus)) :: lambda_minus
+
+    real(dp) :: lambda
+
+    integer :: start_z_index, end_z_index
+
+    call get_allowed_z_values(start_z_index, end_z_index, size(lambda_neutral))
+    
+    call CalculateLambdasBulk(lambda_plus, n_plus, lambda_neutral, n_neutral, lambda_minus, n_minus, ith_plate_separation)
+
+    !Check that lambda_bulk is the same everywhere.
+    if(all(lambda_neutral(start_z_index:end_z_index) - lambda_neutral(start_z_index) < 0.000001_dp)) then
+       lambda = lambda_neutral(start_z_index)
+    else
+       print *, "lambda_neutral = ", lambda_neutral
+       print *, "constructoligomers.f90: calculate_chemical_potential_term_neutral_spheres: "
+       print *, "When calculating lambda bulk all the values of lambda should be the same"
+       print *, "but they aren't, they are...(printed above)...aborting"
+       call abort()
+    end if
+
+    calculate_chemical_potential_term_neutral_spheres = (1.0_dp/beta) * (log(bulk_density_neutral_beads) + lambda) * &
+         integrate_z_cylindrical(n_neutral, unity_function)
+
+  end function calculate_chemical_potential_term_neutral_spheres
+
+  
   function calculate_single_neutral_sphere_ideal_chain_term(n_neutral)
     real(dp), dimension(:), intent(in) :: n_neutral
     real(dp) :: calculate_single_neutral_sphere_ideal_chain_term
@@ -338,7 +378,7 @@ contains
 
     !call RenormaliseToBulkDensity(n_plus_updated, "n+")
     call setNonCalculatedRegionToZero(n_plus_updated)
-    
+
     !Don't check if the variables have been allocated.
     !We want an error thrown if they haven't been (which should never happen anyway).
     deallocate(c8c1, c9c10, c7, c6, c5, c4, c2, c3p, c3pp, c3ppp)
@@ -405,7 +445,7 @@ contains
 
     !call RenormaliseToBulkDensity(n_neutral_updated, "n0")
     call setNonCalculatedRegionToZero(n_neutral_updated)
-    
+
     !Don't check if the variables have been allocated.
     !We want an error thrown if they haven't been (which should never happen anyway).
     deallocate(c3p, c3ppp, c8c1)
@@ -425,7 +465,7 @@ contains
        array_size = size(lambda_minus)
        allocate(a1a2a3a4(array_size))
        allocate(a5p(array_size))
-       
+
        a1a2a3a4(:) = 0.0_dp
        a5p(:) = 0.0_dp
     else
@@ -437,12 +477,12 @@ contains
 
     print *, "lambda_minus = ", lambda_minus
     print *, "exp(lambda_minus) = ", exp(lambda_minus)
-    
+
     !Calculate the required contributions for the anion
     a1a2a3a4 = 0.5_dp * integrate_phi_spherical(exp(lambda_minus))
 
     print *, "a1a2a3a4 = ", a1a2a3a4 
-    
+
     a5p = 0.5_dp * integrate_phi_spherical(exp(lambda_minus) * (a1a2a3a4 ** 3.0_dp))
 
     print *, "a5p = ", a5p
@@ -455,7 +495,7 @@ contains
     call setNonCalculatedRegionToZero(n_minus_updated)
 
     print *, "n_minus_updated = ", n_minus_updated
-    
+
     !Don't check if the variables have been allocated.
     !We want an error thrown if they haven't been (which should never happen anyway).
     deallocate(a1a2a3a4, a5p)

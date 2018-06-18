@@ -50,7 +50,7 @@ contains
 
        calculate_hardsphere_functional_deriv(start_z_index:end_z_index) = (0.5_dp / beta) * (&
             GetAEx(n_s(start_z_index:end_z_index), n_sbar(start_z_index:end_z_index), a_term_index) + &
-            ((((4.0_dp * pi * (hs_diameter**3))/3.0_dp) * (n_s(start_z_index:end_z_index)) * &
+            (((4.0_dp * pi * (hs_diameter**3))/3.0_dp) * ((n_s(start_z_index:end_z_index)) * &
             GetAExDerivIntegrand(n_s(start_z_index:end_z_index), n_sbar(start_z_index:end_z_index), a_term_index))))
 
        ! calculate_hardsphere_functional_deriv(start_z_index:end_z_index) = (1.0_dp/beta) * (&
@@ -167,7 +167,7 @@ contains
 
     call setNonCalculatedRegionToZero(calculate_surface_dispersion_functional_deriv)
 
-    calculate_surface_dispersion_functional_deriv = 0.0_dp
+    !calculate_surface_dispersion_functional_deriv = 0.0_dp
 
   end function calculate_surface_dispersion_functional_deriv
            

@@ -84,15 +84,15 @@ contains
 
     rhat_2(:) = (x_d_hat(:) * r_2) + ((1.0_dp - x_d_hat(:)) * r_0)
     rhat_1(:) = (x_m_hat(:) * r_1) + ((1.0_dp - x_m_hat(:)) * r_0)
-    rhat_0(:) = rhat_2
+    rhat_0(:) = rhat_2(:)
 
     shat_2(:) = (x_d_hat(:) * s_2) + ((1.0_dp - x_d_hat(:)) * s_0)
     shat_1(:) = (x_m_hat(:) * s_1) + ((1.0_dp - x_m_hat(:)) * s_0)
-    shat_0(:) = shat_2
+    shat_0(:) = shat_2(:)
 
     bhat_2(:) = (x_d_hat(:) * b_2) + ((1.0_dp - x_d_hat(:)) * b_0)
     bhat_1(:) = (x_m_hat(:) * b_1) + ((1.0_dp - x_m_hat(:)) * b_0)
-    bhat_0(:) = bhat_2
+    bhat_0(:) = bhat_2(:)
 
     c_2(:) = (x_d_hat(:) * (r_2**2)) + ((1.0_dp - x_d_hat(:)) * (r_0**2))
     c_1(:) = (x_m_hat(:) * (r_1**2)) + ((1.0_dp - x_m_hat(:)) * (r_0**2))

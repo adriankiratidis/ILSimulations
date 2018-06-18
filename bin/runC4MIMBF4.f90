@@ -82,7 +82,7 @@ program runSingleSphere
         !Calculate the lambdas from the densities.
         !call SetToZero(zero_array1, zero_array2)
 
-        call CalculateLambdas(lambda_plus, n_plus, lambda_neutral, n_neutral, lambda_minus, n_minus, ith_separation, iteration)
+        call CalculateLambdasDifference(lambda_plus, n_plus, lambda_neutral, n_neutral, lambda_minus, n_minus, ith_separation)
 
         !print *, "lambda_neutral(1:50) = ",  lambda_neutral(1:50) 
 

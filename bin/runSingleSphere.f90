@@ -88,7 +88,8 @@ program runSingleSphere
         call SetToZero(zero_array1, zero_array2)
         print *, "n_neutral before update = ", n_neutral * (hs_diameter**3)
 
-        call CalculateLambdas(dummy_array1, zero_array1, lambda_neutral, n_neutral, dummy_array2, zero_array2, ith_separation, iteration)
+        !Calculates lambda_b - lambda the difference between lambda in the bulk and lambda.
+        call CalculateLambdasDifference(dummy_array1, zero_array1, lambda_neutral, n_neutral, dummy_array2, zero_array2, ith_separation)
 
         !print *, "lambda_neutral(1:50) = ",  lambda_neutral(1:50) 
 
@@ -167,24 +168,44 @@ program runSingleSphere
   end do !end loop over plate separation
 
 
+
+  ! print *, "normal_pressure_left_wall(size(grand_potential_per_unit_area) = ", normal_pressure_left_wall(size(grand_potential_per_unit_area))
+  ! print *, "normal_pressure_right_wall(size(grand_potential_per_unit_area) = ", normal_pressure_right_wall(size(grand_potential_per_unit_area))
+
+  ! call CalculateNegativeDerivOfPotentialPerUnitAreaWRTSeparation(grand_potential_per_unit_area, negative_deriv_of_potential)
   ! do ith_separation = 1, size(plate_separations)
-  !    grand_potential_per_unit_area(ith_separation) = grand_potential_per_unit_area(ith_separation) - &
-  !         grand_potential_per_unit_area(size(grand_potential_per_unit_area)) + &
-  !         (normal_pressure_left_wall(size(grand_potential_per_unit_area)) * plate_separations(ith_separation) * hs_diameter)
+  !    grand_potential_per_unit_area(ith_separation) = grand_potential_per_unit_area(ith_separation) + &
+  !         (negative_deriv_of_potential(size(negative_deriv_of_potential)) * (plate_separations(ith_separation)) * &
+  !         (hs_diameter))
   ! end do
 
+  ! do ith_separation = 1, size(plate_separations)
+  !    grand_potential_per_unit_area(ith_separation) = grand_potential_per_unit_area(ith_separation) - &
+  !         ( grand_potential_per_unit_area(size(negative_deriv_of_potential)))
+  ! end do
+  
   call CalculateNegativeDerivOfPotentialPerUnitAreaWRTSeparation(grand_potential_per_unit_area, negative_deriv_of_potential)
 
   do ith_separation = 1, size(plate_separations)
      grand_potential_per_unit_area(ith_separation) = grand_potential_per_unit_area(ith_separation) + &
-          ( negative_deriv_of_potential(size(negative_deriv_of_potential)) * (plate_separations(ith_separation) + 1.0_dp) * &
-          (hs_diameter)) - &
-          grand_potential_per_unit_area(size(negative_deriv_of_potential))
+          (negative_deriv_of_potential(size(negative_deriv_of_potential)) * (plate_separations(ith_separation) - 1.0_dp) * &
+          (hs_diameter))
   end do
 
-  call CalculateNegativeDerivOfPotentialPerUnitAreaWRTSeparation(grand_potential_per_unit_area, negative_deriv_of_potential)
+  do ith_separation = 1, size(plate_separations)
+     grand_potential_per_unit_area(ith_separation) = grand_potential_per_unit_area(ith_separation) - &
+          ( grand_potential_per_unit_area(size(negative_deriv_of_potential)))
+  end do
 
-  call WriteOutputFormattedAsFunctionOfPlateSeparation(grand_potential_per_unit_area, trim(file_stub), "potential-per-unit-area")
+
+  
+  
+  call CalculateNegativeDerivOfPotentialPerUnitAreaWRTSeparation(grand_potential_per_unit_area, negative_deriv_of_potential)
+  
+
+
+  call WriteOutputFormattedAsFunctionOfPlateSeparation(grand_potential_per_unit_area, &
+       trim(file_stub), "potential-per-unit-area")
   call WriteOutputFormattedAsFunctionOfPlateSeparation(normal_pressure_left_wall, trim(file_stub), "normal-pressure-left-wall")
   call WriteOutputFormattedAsFunctionOfPlateSeparation(normal_pressure_right_wall, trim(file_stub), "normal-pressure-right-wall")
   call WriteOutputFormattedAsFunctionOfPlateSeparation(negative_deriv_of_potential, trim(file_stub), "negative_deriv_of_potential")
