@@ -242,8 +242,8 @@ contains
        n_s(:) = bulk_density_positive_beads + bulk_density_neutral_beads + bulk_density_negative_beads
 
        hs_term = calculate_hardsphere_functional_deriv(n_s, .true.)
+       !van_der_waals_term = calculate_vanderWaals_functional_deriv(n_s)
 
-       !print *, "hs_term bulk = ", beta * hs_term
     else
        n_s = n_plus + n_neutral + n_minus
        hs_term = calculate_hardsphere_functional_deriv(n_s, .false.)
@@ -251,14 +251,13 @@ contains
        surface_fluid_dispersion_term = calculate_surface_dispersion_functional_deriv(&
             ith_plate_separation, size(surface_fluid_dispersion_term))
 
-
-       !print *, "hs_term non bulk = ", beta * hs_term
-       !print *, "surface_fluid_dispersion_term non bulk = ", beta * surface_fluid_dispersion_term
-
        !van_der_waals_term = calculate_vanderWaals_functional_deriv(n_s)
     end if
 
-
+    !print *, "hs_term = ", hs_term
+    !print *, "surface_fluid_dispersion_term = ", surface_fluid_dispersion_term
+    !print *, "van_der_waals_term = ", van_der_waals_term
+    !call abort()
 
     CalculateLambdaCommonTerms = hs_term + surface_fluid_dispersion_term + van_der_waals_term
 

@@ -45,24 +45,8 @@ contains
        call get_integrand_array_section_limits(trim(integration_range), ires, size(reslt), &
             lower_z_limit, upper_z_limit, relative_z_index)   
 
-       ! print *, "trim(integration_range) = ", trim(integration_range)
-       ! print *, "ires = ", ires
-       ! print * , "size(reslt) = ", size(reslt)
-       
-       ! print *, "lower_limit = ", lower_z_limit
-       ! print *, "upper_limit = ", upper_z_limit
-       
        reslt(ires) = apply_trapezoidal_rule(integrand_array(lower_z_limit:upper_z_limit), &
             integrand_function, relative_z_index)
-
-       ! if(ires == 101) then
-       !    print *, "ires = 101"
-       !    print *, "lower lim = ", lower_z_limit
-       !    print *, "upper lim = ", upper_z_limit
-       !    print *, "rel ", relative_z_index
-       !    print *, "array= ", integrand_array(lower_z_limit:upper_z_limit)
-       !    print *, "reslt = ", reslt(ires)
-       ! end if
 
     end do
 

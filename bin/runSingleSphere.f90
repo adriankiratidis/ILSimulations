@@ -22,6 +22,9 @@ program runSingleSphere
   real(dp), dimension(:), allocatable :: normal_pressure_left_wall, normal_pressure_right_wall
   real(dp), dimension(:), allocatable :: negative_deriv_of_potential
 
+
+  real(dp), dimension(100) :: testing_array
+ 
   ! We use the standard notation of cj/aj to denote the contribution from bead j to the cation/anion
   ! as described in J. Phys. Chem C 2017, 121, 1742-1751. DOI: 10.1021/acs.jpcc.6b11491
   ! Here we use the notation c8c1 for example to denote the fact that due to symmetry c8 and c1
@@ -63,6 +66,15 @@ program runSingleSphere
   call InitialisePotentialAndContactTheoremVariables(grand_potential_per_unit_area, grand_potential_per_unit_area_in_bulk, &
        normal_pressure_left_wall, normal_pressure_right_wall, negative_deriv_of_potential)
 
+
+  !testing_array(:) = 10.0_dp
+  !testing_array(1:5) = 0.0_dp
+  !testing_array(96:100) = 0.0_dp
+  !print * , "testging_array = ", testing_array
+  !print *, "printed array = ", 0.5_dp * integrate_phi_spherical(testing_array)
+  !call abort()
+
+  
   do ith_separation = 1, size(plate_separations)
 
      print *, ""
@@ -86,7 +98,7 @@ program runSingleSphere
 
         !Calculate the lambdas from the densities.
         call SetToZero(zero_array1, zero_array2)
-        print *, "n_neutral before update = ", n_neutral * (hs_diameter**3)
+        !print *, "n_neutral before update = ", n_neutral * (hs_diameter**3)
 
         !Calculates lambda_b - lambda the difference between lambda in the bulk and lambda.
         call CalculateLambdasDifference(dummy_array1, zero_array1, lambda_neutral, n_neutral, dummy_array2, zero_array2, ith_separation)
@@ -95,15 +107,7 @@ program runSingleSphere
 
         call UpdateDensities(lambda_neutral, n_neutral_updated)
 
-        print *, "n_neutral_updated after update = ", n_neutral_updated * (hs_diameter**3)
-
-        ! if(iteration == 10) then
-        !print *, "n_neutral_updated = ", n_neutral_updated
-        !print *, "n_neutral = ", n_neutral
-        !    call abort()
-        ! end if
-
-
+        !print *, "n_neutral_updated after update = ", n_neutral_updated * (hs_diameter**3)
 
         ! Now test convergence
         if(converged(n_neutral_updated, n_neutral)) then
@@ -188,7 +192,7 @@ program runSingleSphere
 
   do ith_separation = 1, size(plate_separations)
      grand_potential_per_unit_area(ith_separation) = grand_potential_per_unit_area(ith_separation) + &
-          (negative_deriv_of_potential(size(negative_deriv_of_potential)) * (plate_separations(ith_separation) - 1.0_dp) * &
+          (negative_deriv_of_potential(size(negative_deriv_of_potential)) * (plate_separations(ith_separation)) * &
           (hs_diameter))
   end do
 

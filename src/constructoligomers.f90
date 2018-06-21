@@ -20,6 +20,7 @@ module constructoligomers
   public :: calculate_single_neutral_sphere_ideal_chain_term
   public :: calculate_neutral_dimers_ideal_chain_term
   public :: calculate_chemical_potential_term_neutral_spheres
+  public :: calculate_chemical_potential_term_neutral_dimers
   
   !Private subroutines
   !UpdateSinglePositiveSphereDensity
@@ -93,6 +94,7 @@ contains
           print *, "...aborting..."
           call abort()
        else
+          !call UpdateSingleNeutralSphereDensity(lambda1, n1_updated)
           call UpdateNeutralDimerDensity(lambda1, n1_updated)
        end if
 
@@ -144,7 +146,7 @@ contains
     real(dp), dimension(:), intent(out) :: n_neutral_updated
     
     if(size(lambda_neutral) /= size(n_neutral_updated)) then
-       print *, "constructoligomers.f90: ConstructSingleSphereArrangment: "
+       print *, "constructoligomers.f90: UpdateSingleNeutralSphereDensity: "
        print *, "Size mismatch.  size(lambda_neutral) /= size(n_plus_neutral)."
        print *, "can't update...aborting..."
        call abort()
@@ -162,7 +164,7 @@ contains
     real(dp), dimension(:), intent(out) :: n_minus_updated
 
     if(size(lambda_minus) /= size(n_minus_updated)) then
-       print *, "constructoligomers.f90: ConstructSingleSphereArrangment: "
+       print *, "constructoligomers.f90: UpdateSingleNegativeSphereDensity: "
        print *, "Size mismatch.  size(lambda_plus) /= size(n_plus_updated)."
        print *, "can't update...aborting..."
        call abort()
@@ -278,27 +280,72 @@ contains
 
   end function calculate_single_neutral_sphere_ideal_chain_term
 
+  function calculate_chemical_potential_term_neutral_dimers(n_plus, n_neutral, n_minus, ith_plate_separation)
+    real(dp), dimension(:), intent(in) :: n_plus
+    real(dp), dimension(:), intent(in) :: n_neutral
+    real(dp), dimension(:), intent(in) :: n_minus
+    integer, intent(in) :: ith_plate_separation
+
+    real(dp) :: calculate_chemical_potential_term_neutral_dimers
+
+    real(dp), dimension(size(n_plus)) :: lambda_plus
+    real(dp), dimension(size(n_neutral)) :: lambda_neutral
+    real(dp), dimension(size(n_minus)) :: lambda_minus
+
+    real(dp) :: lambda
+
+    integer :: start_z_index, end_z_index
+
+    call get_allowed_z_values(start_z_index, end_z_index, size(lambda_neutral))
+
+    call CalculateLambdasBulk(lambda_plus, n_plus, lambda_neutral, n_neutral, lambda_minus, n_minus, ith_plate_separation)
+
+    !Check that lambda_bulk is the same everywhere.
+    if(all(lambda_neutral(start_z_index:end_z_index) - lambda_neutral(start_z_index) < 0.000001_dp)) then
+       lambda = lambda_neutral(start_z_index)
+    else
+       print *, "lambda_neutral = ", lambda_neutral
+       print *, "constructoligomers.f90: calculate_chemical_potential_term_neutral_spheres: "
+       print *, "When calculating lambda bulk all the values of lambda should be the same"
+       print *, "but they aren't, they are...(printed above)...aborting"
+       call abort()
+    end if
+
+    call CalculateLambdasDifference(lambda_plus, n_plus, lambda_neutral, n_neutral, lambda_minus, n_minus, ith_plate_separation)
+
+    calculate_chemical_potential_term_neutral_dimers = (1.0_dp/beta) * (log(bulk_density) + (2.0_dp * lambda)) * bulk_density * &
+         integrate_z_cylindrical(0.5_dp * integrate_phi_spherical(exp(lambda_neutral)) * exp(lambda_neutral), unity_function)
+
+    !calculate_chemical_potential_term_neutral_dimers = (1.0_dp/beta) * (log(bulk_density) + (1.0_dp * lambda)) * &
+    !     integrate_z_cylindrical(0.5_dp * n_neutral, unity_function)
+
+  end function calculate_chemical_potential_term_neutral_dimers
+
   function calculate_neutral_dimers_ideal_chain_term(lambda_neutral)
     real(dp), dimension(:), intent(in) :: lambda_neutral
     real(dp) :: calculate_neutral_dimers_ideal_chain_term
 
     real(dp), dimension(size(lambda_neutral)) :: integrand
+    real(dp), dimension(size(lambda_neutral)) :: integrand_with_lambda
 
     integer :: start_z_index
     integer :: end_z_index
 
     integrand(:) = 0.0_dp
+    integrand_with_lambda(:) = 0.0_dp
     !call get_allowed_z_values(start_z_index, end_z_index, size(lambda_neutral))
 
-    integrand = (0.5_dp * integrate_phi_spherical(exp(lambda_neutral) * lambda_neutral)) + log(bulk_density_neutral_beads) + lambda_neutral - 1.0_dp
 
-    calculate_neutral_dimers_ideal_chain_term = bulk_density_neutral_beads * integrate_z_cylindrical(integrand * exp(lambda_neutral), unity_function) / beta
+    ! integrand = (0.5_dp * integrate_phi_spherical(exp(lambda_neutral) * lambda_neutral)) + log(bulk_density_neutral_beads) + lambda_neutral - 1.0_dp
+    ! calculate_neutral_dimers_ideal_chain_term = bulk_density_neutral_beads * integrate_z_cylindrical(integrand * exp(lambda_neutral), unity_function) / beta
 
-    !integrand(start_z_index:end_z_index) = n_neutral(start_z_index:end_z_index) * (log(n_neutral(start_z_index:end_z_index)) - 1.0_dp)
-    !calculate_single_neutral_sphere_ideal_chain_term = 
+    integrand(:) = 0.5_dp * integrate_phi_spherical(exp(lambda_neutral))
+    integrand_with_lambda(:) = 0.5_dp * integrate_phi_spherical(exp(lambda_neutral) * lambda_neutral)
+
+    calculate_neutral_dimers_ideal_chain_term = bulk_density * integrate_z_cylindrical(&
+         (integrand_with_lambda(:) + (integrand(:) * (lambda_neutral + log(bulk_density) - 1.0_dp))) * exp(lambda_neutral), unity_function ) / beta
 
   end function calculate_neutral_dimers_ideal_chain_term
-
 
   subroutine UpdateSinglePositiveNeutralMinusSphereDensities(lambda_plus, n_plus_updated, &
        lambda_neutral, n_neutral_updated, lambda_minus, n_minus_updated)

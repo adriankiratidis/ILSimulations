@@ -117,6 +117,11 @@ contains
     integer, intent(out)  :: upper_z_limit
     integer, intent(out)  :: relative_z_index
 
+    integer :: lowest_z_calculated
+    integer :: highest_z_calculated
+    
+    call get_allowed_z_values(lowest_z_calculated, highest_z_calculated, h)
+
     if(h < 2*n_discretised_points_z + 1) then
        print *, "integratephispherical.f90: get_integrand_array_section_limits:"
        print *, "distance between plates less than twice the hard sphere diameter"
@@ -126,11 +131,11 @@ contains
     end if
 
     if(z_index < n_discretised_points_z + 1) then
-       
-       lower_z_limit = 1
+
+       lower_z_limit = lowest_z_calculated
        upper_z_limit = z_index + n_discretised_points_z
-       relative_z_index = z_index
-       
+       relative_z_index = z_index - lowest_z_calculated + 1
+
     else if((z_index >= n_discretised_points_z + 1) .and.  ((h - z_index) >= n_discretised_points_z)) then
 
        lower_z_limit = z_index - n_discretised_points_z
@@ -140,7 +145,7 @@ contains
     else if((h - z_index) < n_discretised_points_z) then
 
        lower_z_limit = z_index - n_discretised_points_z
-       upper_z_limit = h
+       upper_z_limit = highest_z_calculated
        relative_z_index = n_discretised_points_z + 1
 
     else

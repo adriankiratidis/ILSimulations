@@ -49,7 +49,7 @@ y_contactthm = y_contactthm - y_contactthm[-1]
 
 #y_contactthm = y_contactthm * (y_negativederiv[0]/y_contactthm[0])
 
-plt.plot(x_contactthm+0.02,y_contactthm,'bo',label='Pressure from contact theorem')
+plt.plot(x_contactthm,y_contactthm,'bo',label='Pressure from contact theorem')
 plt.plot(x_negativederiv, y_negativederiv,'gs',label='Pressure from derivative of potential')
 
 #Set the axis labels.  Labelpad option controls the spacing between actual axis and axis label.  The r option tells python to interpret as a raw string literal.

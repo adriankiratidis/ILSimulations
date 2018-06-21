@@ -175,10 +175,11 @@ contains
     real(dp), dimension(:), intent(in) :: n_s
     real(dp), dimension(size(n_s)) :: calculate_vanderWaals_functional_deriv
 
-    calculate_vanderWaals_functional_deriv = -4.0_dp * epsilon_LJ * (hs_diameter**6.0_dp) * &
+    calculate_vanderWaals_functional_deriv = -4.0_dp * epsilon_LJ * (hs_diameter**6.0_dp) * (1.0_dp/beta) * &
          2.0_dp * pi * integrate_z_cylindrical(n_s, van_der_waals_density_indept_integrand, "all_z")
 
     call setNonCalculatedRegionToZero(calculate_vanderWaals_functional_deriv)
+    calculate_vanderWaals_functional_deriv = 0.0_dp
 
   end function calculate_vanderWaals_functional_deriv
 
