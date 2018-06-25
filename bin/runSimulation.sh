@@ -3,8 +3,8 @@
 
 test_file_stub="testing"
 
-ionic_liquid_name="NeutralDimers"
-#ionic_liquid_name="SingleNeutralSpheres"
+#ionic_liquid_name="NeutralDimers"
+ionic_liquid_name="SingleNeutralSpheres"
 #ionic_liquid_name="C4MIM_BF4-"
 chi_parameter=0.71
 Epsilon_r=2.3

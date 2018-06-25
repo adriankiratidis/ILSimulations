@@ -38,15 +38,15 @@ contains
        call abort()
     end if
 
-    left_wall_dispersion_integrand = 0.0_dp
-    right_wall_dispersion_integrand = 0.0_dp
+    !left_wall_dispersion_integrand = 0.0_dp
+    !right_wall_dispersion_integrand = 0.0_dp
     n_s = n_plus + n_neutral + n_minus
     call get_allowed_z_values(start_z_index, end_z_index, size(n_s))
 
     call CalculateDerivOfWallTerm(left_wall_dispersion_integrand, right_wall_dispersion_integrand)
 
-    !left_wall_dispersion_integrand = 0.0_dp
-    !right_wall_dispersion_integrand = 0.0_dp
+    left_wall_dispersion_integrand = 0.0_dp
+    right_wall_dispersion_integrand = 0.0_dp
 
 
     !right_wall_dispersion_integrand = 0.0_dp

@@ -40,13 +40,17 @@ contains
     integer :: start_z_index
     integer :: end_z_index
 
+    real(dp) :: surface_area_fraction
+    
     !Ensure that we only integrate from hs_diameter/2 up to h - hs_diameter/2
     call get_allowed_z_values(start_z_index, end_z_index, size(reslt))
     
     do ires = start_z_index, end_z_index
 
-       call get_integrand_array_section_limits(ires, size(reslt), lower_z_limit, upper_z_limit, relative_z_index)
-       reslt(ires) = apply_trapezoidal_rule(integrand_array(lower_z_limit:upper_z_limit), relative_z_index)
+       call get_integrand_array_section_limits_and_surface_area_fraction(ires, size(reslt), lower_z_limit, upper_z_limit, &
+            relative_z_index, surface_area_fraction)
+       
+       reslt(ires) = surface_area_fraction * apply_trapezoidal_rule(integrand_array(lower_z_limit:upper_z_limit), relative_z_index)
 
     end do
 
@@ -110,16 +114,17 @@ contains
   !discretised values between the plates, this routine calculates the upper and lower possible z limits for the
   !spherical integral and calculates the value of 'z_index' relative to this array section, storing the result in
   !'relative_z_index'.
-  subroutine get_integrand_array_section_limits(z_index, h, lower_z_limit, upper_z_limit, relative_z_index)
+  subroutine get_integrand_array_section_limits_and_surface_area_fraction(z_index, h, lower_z_limit, upper_z_limit, relative_z_index, surface_area_fraction)
     integer, intent(in)   :: z_index
     integer, intent(in)   :: h
     integer, intent(out)  :: lower_z_limit
     integer, intent(out)  :: upper_z_limit
     integer, intent(out)  :: relative_z_index
+    real(dp), intent(out) :: surface_area_fraction
 
     integer :: lowest_z_calculated
     integer :: highest_z_calculated
-    
+
     call get_allowed_z_values(lowest_z_calculated, highest_z_calculated, h)
 
     if(h < 2*n_discretised_points_z + 1) then
@@ -130,23 +135,38 @@ contains
        call abort()
     end if
 
-    if(z_index < n_discretised_points_z + 1) then
+    if(z_index < 3*(n_discretised_points_z)/2 + 1) then
 
        lower_z_limit = lowest_z_calculated
        upper_z_limit = z_index + n_discretised_points_z
        relative_z_index = z_index - lowest_z_calculated + 1
 
-    else if((z_index >= n_discretised_points_z + 1) .and.  ((h - z_index) >= n_discretised_points_z)) then
+       ! lower_z_limit = 1
+       ! upper_z_limit = z_index + n_discretised_points_z
+       ! relative_z_index = z_index 
+
+       !surface_area_fraction = 1.0_dp / (1.0_dp - cos(pi - acos((z_index - lowest_z_calculated)/real(n_discretised_points_z, dp))))
+       surface_area_fraction = 0.5_dp
+    else if((z_index >= (3*n_discretised_points_z/2) + 1) .and.  ((h - z_index) >= 3*n_discretised_points_z/2)) then
 
        lower_z_limit = z_index - n_discretised_points_z
        upper_z_limit = z_index + n_discretised_points_z
        relative_z_index = n_discretised_points_z + 1
 
-    else if((h - z_index) < n_discretised_points_z) then
+       surface_area_fraction = 0.5_dp
+       
+    else if((h - z_index) < 3*(n_discretised_points_z)/2) then
 
        lower_z_limit = z_index - n_discretised_points_z
        upper_z_limit = highest_z_calculated
        relative_z_index = n_discretised_points_z + 1
+
+       ! lower_z_limit = z_index - n_discretised_points_z
+       ! upper_z_limit = h
+       ! relative_z_index = n_discretised_points_z + 1
+
+       !surface_area_fraction = 1.0_dp / (1.0_dp + ((highest_z_calculated - z_index)/real(n_discretised_points_z, dp)))
+       surface_area_fraction = 0.5_dp
 
     else
        print *, "integratephispherical.f90:get_integrand_array_section_limits:"
@@ -156,7 +176,7 @@ contains
        call abort()
     end if
 
-  end subroutine get_integrand_array_section_limits
+  end subroutine get_integrand_array_section_limits_and_surface_area_fraction
 
   
   ! subroutine get_integral_limits(z_index, h, lower_phi_limit, upper_phi_limit)

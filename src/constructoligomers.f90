@@ -197,7 +197,8 @@ contains
     ! from the delta function bond, a factor of 2 * pi from the theta integral
     ! and a factor of hs_diameter**2 from the jacobian.  Combining these factors
     ! gives the required 0.5_dp factor that we are multiplying by.
-    c1 = 0.5_dp * integrate_phi_spherical(exp(lambda_neutral))
+    !c1 = 0.5_dp * integrate_phi_spherical(exp(lambda_neutral))
+    c1 = integrate_phi_spherical(exp(lambda_neutral))
     !c1 = 0.5_dp * (exp(lambda_neutral))
 
     !Note the factor of 2 is present as this formulation calculates the density of
@@ -314,10 +315,10 @@ contains
     call CalculateLambdasDifference(lambda_plus, n_plus, lambda_neutral, n_neutral, lambda_minus, n_minus, ith_plate_separation)
 
     calculate_chemical_potential_term_neutral_dimers = (1.0_dp/beta) * (log(bulk_density) + (2.0_dp * lambda)) * bulk_density * &
-         integrate_z_cylindrical(0.5_dp * integrate_phi_spherical(exp(lambda_neutral)) * exp(lambda_neutral), unity_function)
+        integrate_z_cylindrical(integrate_phi_spherical(exp(lambda_neutral)) * exp(lambda_neutral), unity_function)
 
-    !calculate_chemical_potential_term_neutral_dimers = (1.0_dp/beta) * (log(bulk_density) + (1.0_dp * lambda)) * &
-    !     integrate_z_cylindrical(0.5_dp * n_neutral, unity_function)
+    ! calculate_chemical_potential_term_neutral_dimers = (1.0_dp/beta) * (log(bulk_density) + (2.0_dp * lambda)) * &
+    !      integrate_z_cylindrical(0.5_dp * n_neutral, unity_function)
 
   end function calculate_chemical_potential_term_neutral_dimers
 
@@ -333,14 +334,12 @@ contains
 
     integrand(:) = 0.0_dp
     integrand_with_lambda(:) = 0.0_dp
-    !call get_allowed_z_values(start_z_index, end_z_index, size(lambda_neutral))
 
-
-    ! integrand = (0.5_dp * integrate_phi_spherical(exp(lambda_neutral) * lambda_neutral)) + log(bulk_density_neutral_beads) + lambda_neutral - 1.0_dp
-    ! calculate_neutral_dimers_ideal_chain_term = bulk_density_neutral_beads * integrate_z_cylindrical(integrand * exp(lambda_neutral), unity_function) / beta
-
-    integrand(:) = 0.5_dp * integrate_phi_spherical(exp(lambda_neutral))
-    integrand_with_lambda(:) = 0.5_dp * integrate_phi_spherical(exp(lambda_neutral) * lambda_neutral)
+    ! integrand(:) = 4.0_dp * pi * (hs_diameter**2) * integrate_phi_spherical(exp(lambda_neutral))
+    ! integrand_with_lambda(:) = 4.0_dp * pi * (hs_diameter**2) * integrate_phi_spherical(exp(lambda_neutral) * lambda_neutral)
+    
+    integrand(:) = integrate_phi_spherical(exp(lambda_neutral))
+    integrand_with_lambda(:) = integrate_phi_spherical(exp(lambda_neutral) * lambda_neutral)
 
     calculate_neutral_dimers_ideal_chain_term = bulk_density * integrate_z_cylindrical(&
          (integrand_with_lambda(:) + (integrand(:) * (lambda_neutral + log(bulk_density) - 1.0_dp))) * exp(lambda_neutral), unity_function ) / beta

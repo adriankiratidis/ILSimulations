@@ -120,7 +120,7 @@ contains
     !    !call abort()
 
     ! end if
-    !calculate_hardsphere_functional_deriv = 0.0_dp
+    calculate_hardsphere_functional_deriv = 0.0_dp
     !calculate_hardsphere_functional_deriv = 0.5_dp * calculate_hardsphere_functional_deriv
     !print *, "bulk density n_s = ", get_bulk_density(n_s)
     !print *, "n_sbar = ", n_sbar
@@ -167,7 +167,7 @@ contains
 
     call setNonCalculatedRegionToZero(calculate_surface_dispersion_functional_deriv)
 
-    !calculate_surface_dispersion_functional_deriv = 0.0_dp
+    calculate_surface_dispersion_functional_deriv = 0.0_dp
 
   end function calculate_surface_dispersion_functional_deriv
            
@@ -179,7 +179,7 @@ contains
          2.0_dp * pi * integrate_z_cylindrical(n_s, van_der_waals_density_indept_integrand, "all_z")
 
     call setNonCalculatedRegionToZero(calculate_vanderWaals_functional_deriv)
-    calculate_vanderWaals_functional_deriv = 0.0_dp
+    !calculate_vanderWaals_functional_deriv = 0.0_dp
 
   end function calculate_vanderWaals_functional_deriv
 

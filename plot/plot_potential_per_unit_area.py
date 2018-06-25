@@ -48,7 +48,7 @@ y_neutral2 = y_neutral - y_neutral[-1]
 #label='_nolegend_'
 #plt.plot(x_plus,y_plus,'rx',label=r'$n_{+}$')
 plt.plot(x_neutral,y_neutral,'-bo',label=r'$\Omega - \Omega^{bulk.}$')
-plt.plot(x_neutral,y_neutral2,'-rs',label=r'$\Omega - \Omega^{bulk.} - \Omega(\infty)$')
+#plt.plot(x_neutral,y_neutral2,'-rs',label=r'$\Omega - \Omega^{bulk.} - \Omega(\infty)$')
 #plt.plot(x_minus,y_minus,'gs',label=r'$n_{b}\sigma = 0.04$')
 
 #Set the axis labels.  Labelpad option controls the spacing between actual axis and axis label.  The r option tells python to interpret as a raw string literal.
