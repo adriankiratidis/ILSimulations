@@ -159,6 +159,16 @@ contains
     else if(trim(ionic_liquid_name) == "C4MIM_BF4-") then
        call SetC4MIN_BF4BeadDensityFromBulkIonDensity()
 
+    else if(trim(ionic_liquid_name) == "PositiveMinusSpheres") then
+       call SetPositiveMinusBeadDensityFromBulkIonDensity()
+
+    else if(trim(ionic_liquid_name) == "PositiveNeutralDimerMinusSpheres") then
+       call SetPlusNeutralDimerMinusSpheresBeadDensityFromBulkIonDensity()
+
+    else if(trim(ionic_liquid_name) == "PositiveNeutralDoubleDimerMinusDimer") then
+       call SetDimerDoubleDimerBeadDensityFromBulkIonDensity()
+
+
     else
        print *, "parameters.f90: SetBeadDensityFromBulkIonDensity:"
        print *, "Unsupported 'ionic_liquid_name' value of ", trim(ionic_liquid_name)
@@ -202,6 +212,27 @@ contains
     bulk_density_neutral_beads = 5.0_dp * bulk_density
     bulk_density_negative_beads = 5.0_dp * bulk_density
   end subroutine SetC4MIN_BF4BeadDensityFromBulkIonDensity
+
+  subroutine SetPositiveMinusBeadDensityFromBulkIonDensity()
+    
+    bulk_density_positive_beads = bulk_density
+    bulk_density_neutral_beads = 0.0_dp
+    bulk_density_negative_beads = bulk_density
+  end subroutine SetPositiveMinusBeadDensityFromBulkIonDensity
+
+  subroutine SetPlusNeutralDimerMinusSpheresBeadDensityFromBulkIonDensity()
+    
+    bulk_density_positive_beads = bulk_density
+    bulk_density_neutral_beads = bulk_density
+    bulk_density_negative_beads = bulk_density
+  end subroutine SetPlusNeutralDimerMinusSpheresBeadDensityFromBulkIonDensity
+
+  subroutine SetDimerDoubleDimerBeadDensityFromBulkIonDensity()
+    
+    bulk_density_positive_beads = 2.0_dp * bulk_density
+    bulk_density_neutral_beads = 2.0_dp * bulk_density
+    bulk_density_negative_beads = 2.0_dp * bulk_density
+  end subroutine SetDimerDoubleDimerBeadDensityFromBulkIonDensity
 
   subroutine CheckValidityOfPlateSeparations()
 

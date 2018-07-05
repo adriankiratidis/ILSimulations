@@ -21,10 +21,11 @@ program runSingleSphere
   real(dp), dimension(:), allocatable :: grand_potential_per_unit_area, grand_potential_per_unit_area_in_bulk
   real(dp), dimension(:), allocatable :: normal_pressure_left_wall, normal_pressure_right_wall
   real(dp), dimension(:), allocatable :: negative_deriv_of_potential
+  real(dp), dimension(:), allocatable :: dispersion_particle_particle_adjust_to_contact_thm
 
 
   real(dp), dimension(100) :: testing_array
- 
+
   ! We use the standard notation of cj/aj to denote the contribution from bead j to the cation/anion
   ! as described in J. Phys. Chem C 2017, 121, 1742-1751. DOI: 10.1021/acs.jpcc.6b11491
   ! Here we use the notation c8c1 for example to denote the fact that due to symmetry c8 and c1
@@ -64,17 +65,8 @@ program runSingleSphere
 
   print *, "Initialisiong grand potential and variables for contact theorem check."
   call InitialisePotentialAndContactTheoremVariables(grand_potential_per_unit_area, grand_potential_per_unit_area_in_bulk, &
-       normal_pressure_left_wall, normal_pressure_right_wall, negative_deriv_of_potential)
+       normal_pressure_left_wall, normal_pressure_right_wall, negative_deriv_of_potential, dispersion_particle_particle_adjust_to_contact_thm)
 
-
-  !testing_array(:) = 10.0_dp
-  !testing_array(1:5) = 0.0_dp
-  !testing_array(96:100) = 0.0_dp
-  !print * , "testging_array = ", testing_array
-  !print *, "printed array = ", 0.5_dp * integrate_phi_spherical(testing_array)
-  !call abort()
-
-  
   do ith_separation = 1, size(plate_separations)
 
      print *, ""
@@ -164,11 +156,9 @@ program runSingleSphere
      print *, "Calculating normal pressure from the contact theorem"
      call SetToZero(zero_array1, zero_array2)
      call CalculateNormalPressureFromContactTheorem(zero_array1, n_neutral_updated, zero_array2, &
-          normal_pressure_left_wall(ith_separation), normal_pressure_right_wall(ith_separation))
+          normal_pressure_left_wall(ith_separation), normal_pressure_right_wall(ith_separation), &
+          dispersion_particle_particle_adjust_to_contact_thm(ith_separation))
 
-     !print *, "n_neutral_updated = ", n_neutral_updated
-     !print *, "normal_pressure_left_wall = ", normal_pressure_left_wall
-     !call abort()
   end do !end loop over plate separation
 
 
@@ -187,8 +177,10 @@ program runSingleSphere
   !    grand_potential_per_unit_area(ith_separation) = grand_potential_per_unit_area(ith_separation) - &
   !         ( grand_potential_per_unit_area(size(negative_deriv_of_potential)))
   ! end do
-  
-  call CalculateNegativeDerivOfPotentialPerUnitAreaWRTSeparation(grand_potential_per_unit_area, negative_deriv_of_potential)
+
+  call MakeContactTheoremAdjustmentFromParticleParticleDispersion(normal_pressure_left_wall, normal_pressure_right_wall, dispersion_particle_particle_adjust_to_contact_thm)  
+
+  negative_deriv_of_potential = CalculateNegativeDerivOfPotentialPerUnitAreaWRTSeparation(grand_potential_per_unit_area)
 
   do ith_separation = 1, size(plate_separations)
      grand_potential_per_unit_area(ith_separation) = grand_potential_per_unit_area(ith_separation) + &
@@ -201,13 +193,9 @@ program runSingleSphere
           ( grand_potential_per_unit_area(size(negative_deriv_of_potential)))
   end do
 
-
+  negative_deriv_of_potential = CalculateNegativeDerivOfPotentialPerUnitAreaWRTSeparation(grand_potential_per_unit_area)
   
   
-  call CalculateNegativeDerivOfPotentialPerUnitAreaWRTSeparation(grand_potential_per_unit_area, negative_deriv_of_potential)
-  
-
-
   call WriteOutputFormattedAsFunctionOfPlateSeparation(grand_potential_per_unit_area, &
        trim(file_stub), "potential-per-unit-area")
   call WriteOutputFormattedAsFunctionOfPlateSeparation(normal_pressure_left_wall, trim(file_stub), "normal-pressure-left-wall")
@@ -238,6 +226,7 @@ contains
     if(allocated(normal_pressure_left_wall)) deallocate(normal_pressure_left_wall)
     if(allocated(normal_pressure_right_wall)) deallocate(normal_pressure_right_wall)
     if(allocated(negative_deriv_of_potential)) deallocate(negative_deriv_of_potential)
+    if(allocated(dispersion_particle_particle_adjust_to_contact_thm)) deallocate(dispersion_particle_particle_adjust_to_contact_thm)
     if(allocated(zero_array1)) deallocate(zero_array1)
     if(allocated(zero_array2)) deallocate(zero_array2)
     if(allocated(dummy_array1)) deallocate(dummy_array1)

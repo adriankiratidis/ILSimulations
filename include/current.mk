@@ -5,8 +5,8 @@
 #F90FLAGS = -cpp  $(OPTS)
 
 F90C = gfortran
-#OPTS = -ffixed-line-length-256 -fcheck=all -fbounds-check
-OPTS = -g -Wall -Wextra -Wconversion -fimplicit-none -fbacktrace -ffree-line-length-0 -fcheck=all -ffpe-trap=zero,overflow,underflow -finit-real=nan
+OPTS = -O -Wall -fcheck=all -g -fbacktrace -ffree-line-length-0
+#OPTS = -g -Wall -Wextra -Wconversion -fimplicit-none -fbacktrace -ffree-line-length-0 -fcheck=all -ffpe-trap=zero,overflow,underflow -finit-real=nan
 F90FLAGS = -cpp  $(OPTS)
 LINK = -L../lib/ -lsrc
 INCLUDE =

@@ -95,7 +95,7 @@ contains
                 print *, "iteration.f90: converged: "
                 print *, "average squared difference between dneisty and updated_density == 0.0_dp"
                 print *, "would appear to be a coding bug...aborting..."
-                call abort()
+                !call abort()
              end if
 
              if(av_sq_diff <= iterative_tolerance*bulk_value) then

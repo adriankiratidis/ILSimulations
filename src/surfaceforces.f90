@@ -62,12 +62,12 @@ contains
     n_neutral_input(:) = n_neutral(:)
     n_minus_input(:) = n_minus(:)
 
-    !F_surface_disp = integrate_z_cylindrical(n_s * &
-    !     calculate_surface_dispersion_functional_deriv(ith_plate_separation, size(n_s)), unity_function)
+    F_surface_disp = integrate_z_cylindrical(n_s * &
+         calculate_surface_dispersion_functional_deriv(ith_plate_separation, size(n_s)), unity_function)
 
     F_ideal_chain = calculate_ideal_chain_term_per_unit_area(size(n_plus_input), n_plus_input, n_neutral_input, n_minus_input, ith_plate_separation)
 
-    !F_hard_sphere = calculate_hardsphere_term_per_unit_area(n_s, n_sbar)
+    F_hard_sphere = calculate_hardsphere_term_per_unit_area(n_s, n_sbar)
 
     F_van_der_waals = integrate_z_cylindrical(0.5_dp * n_s * calculate_vanderWaals_functional_deriv(n_s), unity_function)
 
@@ -101,7 +101,7 @@ contains
 
 
 
-    chemical_potential_term = calculate_chemical_potential_term(n_plus_input, n_neutral_input, n_minus_input, ith_plate_separation)
+    chemical_potential_term = calculate_chem_potential_term(n_plus_input, n_neutral_input, n_minus_input, ith_plate_separation)
 
     !F_van_der_waals = integrate_z_cylindrical(0.5_dp * n_s * calculate_vanderWaals_functional_deriv(n_s), unity_function)
     !F_surface_electro = calculate_surface_electrostatic_functional_deriv()
@@ -121,27 +121,32 @@ contains
   end subroutine CalculateGrandPotentialValuePerUnitArea
 
 
-  function calculate_chemical_potential_term(n_plus, n_neutral, n_minus, ith_plate_separation)
+  function calculate_chem_potential_term(n_plus, n_neutral, n_minus, ith_plate_separation)
     real(dp), dimension(:), intent(in) :: n_plus
     real(dp), dimension(:), intent(in) :: n_neutral
     real(dp), dimension(:), intent(in) :: n_minus
     integer, intent(in) :: ith_plate_separation
 
-    real(dp) :: calculate_chemical_potential_term
+    real(dp) :: calculate_chem_potential_term
 
     if(trim(ionic_liquid_name) == "SingleNeutralSpheres") then
-       calculate_chemical_potential_term = calculate_chemical_potential_term_neutral_spheres(n_plus, n_neutral, n_minus, ith_plate_separation)
+       calculate_chem_potential_term = calculate_chem_potential_term_neutral_spheres(n_plus, n_neutral, n_minus, ith_plate_separation)
     else if(trim(ionic_liquid_name) == "NeutralDimers") then
-       !calculate_chemical_potential_term = calculate_chemical_potential_term_neutral_spheres(n_plus, n_neutral, n_minus, ith_plate_separation)
-       calculate_chemical_potential_term = calculate_chemical_potential_term_neutral_dimers(n_plus, n_neutral, n_minus, ith_plate_separation)
+       calculate_chem_potential_term = calculate_chem_potential_term_neutral_dimers(n_plus, n_neutral, n_minus, ith_plate_separation)
+    else if(trim(ionic_liquid_name) == "C4MIM_BF4-") then
+       calculate_chem_potential_term = calculate_chem_potential_C4MIMBF4(n_plus, n_neutral, n_minus, ith_plate_separation)
+    else if(trim(ionic_liquid_name) == "PositiveMinusSpheres") then
+       calculate_chem_potential_term = calculate_chem_potential_PositiveMinusSpheres(n_plus, n_neutral, n_minus, ith_plate_separation)
+    else if(trim(ionic_liquid_name) == "PositiveNeutralDimerMinusSpheres") then
+       calculate_chem_potential_term = calculate_chem_potential_PositiveNeutralDimerMinusSpheres(n_plus, n_neutral, n_minus, ith_plate_separation)
+    else if(trim(ionic_liquid_name) == "PositiveNeutralDoubleDimerMinusDimer") then
+       calculate_chem_potential_term = calculate_chem_potential_PositiveNeutralDoubleDimerMinusDimer(n_plus, n_neutral, n_minus, ith_plate_separation)
     else
        print *, "surfaceforces.f90: CalculateChemicalPotentialTerm:"
        print *, "Unsupported 'ionic_liquid_name' of ", trim(ionic_liquid_name)
     end if
 
-
-  end function Calculate_Chemical_Potential_Term
-
+  end function Calculate_Chem_Potential_Term
 
 
   !Calculates the value of the ideal chain term per unit area.  Note that all the input arguments are optional.
@@ -193,8 +198,15 @@ contains
     if(trim(ionic_liquid_name) == "SingleNeutralSpheres") then
        calculate_ideal_chain_term_per_unit_area = calculate_single_neutral_sphere_ideal_chain_term(n_neutral_input)
     else if(trim(ionic_liquid_name) == "NeutralDimers") then
-       !calculate_ideal_chain_term_per_unit_area = calculate_single_neutral_sphere_ideal_chain_term(n_neutral_input)
-       calculate_ideal_chain_term_per_unit_area = calculate_neutral_dimers_ideal_chain_term(lambda_neutral)       
+       calculate_ideal_chain_term_per_unit_area = calculate_neutral_dimers_ideal_chain_term(lambda_neutral)
+    else if(trim(ionic_liquid_name) == "C4MIM_BF4-") then
+       calculate_ideal_chain_term_per_unit_area = calculate_C4MIMBF4_ideal_chain_term(lambda_plus, lambda_neutral, lambda_minus)
+    else if(trim(ionic_liquid_name) == "PositiveMinusSpheres") then
+       calculate_ideal_chain_term_per_unit_area = calculate_PositiveMinusSpheres_ideal_chain_term(n_plus_input, n_minus_input)
+    else if(trim(ionic_liquid_name) == "PositiveNeutralDimerMinusSpheres") then
+       calculate_ideal_chain_term_per_unit_area = calculate_PositiveNeutralDimerMinusSpheres_ideal_chain_term(lambda_plus, lambda_neutral, n_minus_input)
+    else if(trim(ionic_liquid_name) == "PositiveNeutralDoubleDimerMinusDimer") then
+       calculate_ideal_chain_term_per_unit_area = calculate_PositiveNeutralDoubleDimerMinusDimer_ideal_chain_term(lambda_plus, lambda_neutral, lambda_minus)
     else
        print *, "surfaceforces.f90: calculate_ideal_chain_term_per_unit_area:"
        print *, "Unsupported 'ionic_liquid_name' of ", trim(ionic_liquid_name)

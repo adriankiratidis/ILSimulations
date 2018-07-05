@@ -5,22 +5,25 @@ module contacttheorem
   use parameters
   use discretederivatives
   use integratezcylindrical
+  use functionalderivatives
   implicit none
   private
 
   public :: CalculateNormalPressureFromContactTheorem
   public :: InitialisePotentialAndContactTheoremVariables
   public :: CalculateNegativeDerivOfPotentialPerUnitAreaWRTSeparation
+  public :: MakeContactTheoremAdjustmentFromParticleParticleDispersion
 
 contains
 
   subroutine CalculateNormalPressureFromContactTheorem(n_plus, n_neutral, n_minus, &
-       normal_pressure_left_wall, normal_pressure_right_wall)
+       normal_pressure_left_wall, normal_pressure_right_wall, dispersion_particle_particle_adjust_to_contact_thm)
     real(dp), dimension(:), intent(in) :: n_plus
     real(dp), dimension(:), intent(in) :: n_neutral
     real(dp), dimension(:), intent(in) :: n_minus
     real(dp), intent(out) :: normal_pressure_left_wall
     real(dp), intent(out) :: normal_pressure_right_wall
+    real(dp), intent(out) :: dispersion_particle_particle_adjust_to_contact_thm
 
     real(dp), dimension(size(n_plus)) :: n_s
 
@@ -45,8 +48,10 @@ contains
 
     call CalculateDerivOfWallTerm(left_wall_dispersion_integrand, right_wall_dispersion_integrand)
 
-    left_wall_dispersion_integrand = 0.0_dp
-    right_wall_dispersion_integrand = 0.0_dp
+    call CalculateDispersionAdjustment(dispersion_particle_particle_adjust_to_contact_thm, n_s)
+
+    !left_wall_dispersion_integrand = 0.0_dp
+    !right_wall_dispersion_integrand = 0.0_dp
 
 
     !right_wall_dispersion_integrand = 0.0_dp
@@ -66,35 +71,37 @@ contains
   end subroutine CalculateNormalPressureFromContactTheorem
 
   subroutine InitialisePotentialAndContactTheoremVariables(grand_potential_per_unit_area, grand_potential_per_unit_area_in_bulk, &
-       normal_pressure_left_wall, normal_pressure_right_wall, negative_deriv_of_potential)
+       normal_pressure_left_wall, normal_pressure_right_wall, negative_deriv_of_potential, dispersion_particle_particle_adjust_to_contact_thm)
     real(dp), dimension(:), allocatable :: grand_potential_per_unit_area
     real(dp), dimension(:), allocatable :: grand_potential_per_unit_area_in_bulk
     real(dp), dimension(:), allocatable :: normal_pressure_left_wall
     real(dp), dimension(:), allocatable :: normal_pressure_right_wall
     real(dp), dimension(:), allocatable :: negative_deriv_of_potential
+    real(dp), dimension(:), allocatable :: dispersion_particle_particle_adjust_to_contact_thm
 
     allocate(grand_potential_per_unit_area(size(plate_separations)))
     allocate(grand_potential_per_unit_area_in_bulk(size(plate_separations)))
     allocate(normal_pressure_left_wall(size(plate_separations)))
     allocate(normal_pressure_right_wall(size(plate_separations)))
     allocate(negative_deriv_of_potential(size(plate_separations)))
+    allocate(dispersion_particle_particle_adjust_to_contact_thm(size(plate_separations)))
 
     grand_potential_per_unit_area(:) = 0.0_dp
     grand_potential_per_unit_area_in_bulk(:) = 0.0_dp
     normal_pressure_left_wall(:) = 0.0_dp
     normal_pressure_right_wall(:) = 0.0_dp
     negative_deriv_of_potential(:) = 0.0_dp
+    dispersion_particle_particle_adjust_to_contact_thm(:) = 0.0_dp
 
   end subroutine InitialisePotentialAndContactTheoremVariables
 
-  subroutine CalculateNegativeDerivOfPotentialPerUnitAreaWRTSeparation(grand_potential_per_unit_area, &
-       negative_deriv_of_potential)
+  function CalculateNegativeDerivOfPotentialPerUnitAreaWRTSeparation(grand_potential_per_unit_area)
     real(dp), dimension(:), intent(in) :: grand_potential_per_unit_area
-    real(dp), dimension(:), intent(out) :: negative_deriv_of_potential
+    real(dp), dimension(size(grand_potential_per_unit_area)) :: CalculateNegativeDerivOfPotentialPerUnitAreaWRTSeparation
 
-    negative_deriv_of_potential = -1.0_dp * calculate_central_difference(grand_potential_per_unit_area)
+    CalculateNegativeDerivOfPotentialPerUnitAreaWRTSeparation = -1.0_dp * calculate_central_difference(grand_potential_per_unit_area)
 
-  end subroutine CalculateNegativeDerivOfPotentialPerUnitAreaWRTSeparation
+  end function CalculateNegativeDerivOfPotentialPerUnitAreaWRTSeparation
 
   subroutine CalculateMaxwellStressTerm(maxwell_stress_term_left_wall, maxwell_stress_term_right_wall)
     real(dp), intent(out) :: maxwell_stress_term_left_wall
@@ -127,6 +134,28 @@ contains
 
   end subroutine CalculateDerivOfWallTerm
 
+  subroutine CalculateDispersionAdjustment(dispersion_particle_particle_adjust_to_contact_thm, n_s)
+    real(dp), intent(out) :: dispersion_particle_particle_adjust_to_contact_thm
+    real(dp), dimension(:), intent(in) :: n_s
 
+    dispersion_particle_particle_adjust_to_contact_thm = integrate_z_cylindrical(0.5_dp * n_s * calculate_vanderWaals_functional_deriv(n_s), unity_function)
+    
+  end subroutine CalculateDispersionAdjustment
+
+  subroutine MakeContactTheoremAdjustmentFromParticleParticleDispersion(normal_pressure_left_wall, normal_pressure_right_wall, dispersion_particle_particle_adjust_to_contact_thm)
+    real(dp), dimension(:) :: normal_pressure_left_wall
+    real(dp), dimension(:) :: normal_pressure_right_wall
+    real(dp), dimension(:) :: dispersion_particle_particle_adjust_to_contact_thm
+
+    integer :: ij
+
+    dispersion_particle_particle_adjust_to_contact_thm(:) = CalculateNegativeDerivOfPotentialPerUnitAreaWRTSeparation(dispersion_particle_particle_adjust_to_contact_thm)
+    
+    do ij = 1, size(normal_pressure_left_wall)
+       normal_pressure_left_wall(ij) =  normal_pressure_left_wall(ij) + dispersion_particle_particle_adjust_to_contact_thm(ij)
+       normal_pressure_right_wall(ij) =  normal_pressure_right_wall(ij) + dispersion_particle_particle_adjust_to_contact_thm(ij)
+    end do
+
+  end subroutine MakeContactTheoremAdjustmentFromParticleParticleDispersion
 
 end module contacttheorem

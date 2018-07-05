@@ -17,6 +17,8 @@ program runSingleSphere
   real(dp), dimension(:), allocatable :: normal_pressure_left_wall, normal_pressure_right_wall
   real(dp), dimension(:), allocatable :: negative_deriv_of_potential
 
+  real(dp), dimension(:), allocatable :: dispersion_particle_particle_adjust_to_contact_thm
+
   ! We use the standard notation of cj/aj to denote the contribution from bead j to the cation/anion
   ! as described in J. Phys. Chem C 2017, 121, 1742-1751. DOI: 10.1021/acs.jpcc.6b11491
   ! Here we use the notation c8c1 for example to denote the fact that due to symmetry c8 and c1
@@ -56,7 +58,7 @@ program runSingleSphere
 
   print *, "Initialisiong grand potential and variables for contact theorem check."
   call InitialisePotentialAndContactTheoremVariables(grand_potential_per_unit_area, grand_potential_per_unit_area_in_bulk, &
-       normal_pressure_left_wall, normal_pressure_right_wall, negative_deriv_of_potential)
+       normal_pressure_left_wall, normal_pressure_right_wall, negative_deriv_of_potential, dispersion_particle_particle_adjust_to_contact_thm)
 
   do ith_separation = 1, size(plate_separations)
 
@@ -79,26 +81,23 @@ program runSingleSphere
      do while (iteration < MAX_ITERATION_LIMIT)
         iteration = iteration + 1
 
-        !Calculate the lambdas from the densities.
-        !call SetToZero(zero_array1, zero_array2)
-
+        !n_plus = 0.0_dp
+        !n_neutral = 0.0_dp
+        !n_minus = 0.0_dp
         call CalculateLambdasDifference(lambda_plus, n_plus, lambda_neutral, n_neutral, lambda_minus, n_minus, ith_separation)
 
-        !print *, "lambda_neutral(1:50) = ",  lambda_neutral(1:50) 
-
+        !lambda_plus = 0.0_dp
+        !lambda_neutral = 0.0_dp
+        !lambda_minus = 0.0_dp
+        
         call UpdateDensities(lambda_plus, n_plus_updated, lambda_neutral, n_neutral_updated, lambda_minus, n_minus_updated)
 
-
-        ! if(iteration == 10) then
+        !print *, "n_plus_updated = ", n_plus_updated
         !print *, "n_neutral_updated = ", n_neutral_updated
-        !print *, "n_neutral = ", n_neutral
-        !    call abort()
-        ! end if
-
-
-
+        !call abort()
+        
         ! Now test convergence
-        if(converged(n_neutral_updated, n_neutral)) then
+        if(converged(n_plus_updated, n_plus, n_neutral_updated, n_neutral, n_minus_updated, n_minus)) then
 
            print *, ""
            print *, "************************************************************"
@@ -120,6 +119,10 @@ program runSingleSphere
                 "n_neutral_separation"//str(plate_separations(ith_separation)))
            call WriteOutputFormattedAsFunctionOfPosition(n_minus_updated, trim(file_stub), &
                 "n_minus_separation"//str(plate_separations(ith_separation)))
+
+           !Also print out the sum, n_s
+           call WriteOutputFormattedAsFunctionOfPosition(n_plus_updated + n_neutral_updated + n_minus_updated, trim(file_stub), &
+                "n_s_separation"//str(plate_separations(ith_separation)))
            exit
 
         else if(iteration == MAX_ITERATION_LIMIT) then
@@ -145,6 +148,9 @@ program runSingleSphere
            call WriteOutputFormattedAsFunctionOfPosition(n_minus_updated, trim(file_stub), &
                 "n_minus_separation"//trim(str(plate_separations(ith_separation)))//"iteration"//trim(str(iteration)))
 
+           call WriteOutputFormattedAsFunctionOfPosition(n_plus_updated + n_neutral_updated + n_minus_updated, trim(file_stub), &
+                "n_s_separation"//trim(str(plate_separations(ith_separation)))//"iteration"//trim(str(iteration)))
+
            n_plus = n_plus_updated
            n_neutral = n_neutral_updated
            n_minus = n_minus_updated
@@ -159,15 +165,34 @@ program runSingleSphere
 
      print *, "Calculating normal pressure from the contact theorem"
      call CalculateNormalPressureFromContactTheorem(n_plus_updated, n_neutral_updated, n_minus_updated, &
-          normal_pressure_left_wall(ith_separation), normal_pressure_right_wall(ith_separation))
+          normal_pressure_left_wall(ith_separation), normal_pressure_right_wall(ith_separation), &
+          dispersion_particle_particle_adjust_to_contact_thm(ith_separation))
 
-     !print *, "n_neutral_updated = ", n_neutral_updated
-     !print *, "normal_pressure_left_wall = ", normal_pressure_left_wall
-     !call abort()
+     print *, "integral_plus = ", integrate_z_cylindrical(n_plus_updated * (hs_diameter**2), unity_function)
+     print *, "integral_neutral = ", integrate_z_cylindrical(n_neutral_updated * (hs_diameter**2), unity_function)
+     print *, "integral_minus = ", integrate_z_cylindrical(n_minus_updated * (hs_diameter**2), unity_function)
+     
+
   end do !end loop over plate separation
 
-  call CalculateNegativeDerivOfPotentialPerUnitAreaWRTSeparation(grand_potential_per_unit_area, negative_deriv_of_potential)
+  call MakeContactTheoremAdjustmentFromParticleParticleDispersion(normal_pressure_left_wall, normal_pressure_right_wall, dispersion_particle_particle_adjust_to_contact_thm)  
 
+  negative_deriv_of_potential = CalculateNegativeDerivOfPotentialPerUnitAreaWRTSeparation(grand_potential_per_unit_area)
+
+  do ith_separation = 1, size(plate_separations)
+     grand_potential_per_unit_area(ith_separation) = grand_potential_per_unit_area(ith_separation) + &
+          (negative_deriv_of_potential(size(negative_deriv_of_potential)) * (plate_separations(ith_separation)) * &
+          (hs_diameter))
+  end do
+
+  do ith_separation = 1, size(plate_separations)
+     grand_potential_per_unit_area(ith_separation) = grand_potential_per_unit_area(ith_separation) - &
+          ( grand_potential_per_unit_area(size(negative_deriv_of_potential)))
+  end do
+
+  negative_deriv_of_potential = CalculateNegativeDerivOfPotentialPerUnitAreaWRTSeparation(grand_potential_per_unit_area)
+
+  
   call WriteOutputFormattedAsFunctionOfPlateSeparation(grand_potential_per_unit_area, trim(file_stub), "potential-per-unit-area")
   call WriteOutputFormattedAsFunctionOfPlateSeparation(normal_pressure_left_wall, trim(file_stub), "normal-pressure-left-wall")
   call WriteOutputFormattedAsFunctionOfPlateSeparation(normal_pressure_right_wall, trim(file_stub), "normal-pressure-right-wall")
@@ -203,6 +228,7 @@ contains
     if(allocated(normal_pressure_left_wall)) deallocate(normal_pressure_left_wall)
     if(allocated(normal_pressure_right_wall)) deallocate(normal_pressure_right_wall)
     if(allocated(negative_deriv_of_potential)) deallocate(negative_deriv_of_potential)
+    if(allocated(dispersion_particle_particle_adjust_to_contact_thm)) deallocate(dispersion_particle_particle_adjust_to_contact_thm)
 
   end subroutine DeAllocateLocalVariables
 
