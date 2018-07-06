@@ -82,12 +82,12 @@ program runSingleSphere
         iteration = iteration + 1
 
         !n_plus = 0.0_dp
-        !n_neutral = 0.0_dp
+        n_neutral = 0.0_dp
         !n_minus = 0.0_dp
         call CalculateLambdasDifference(lambda_plus, n_plus, lambda_neutral, n_neutral, lambda_minus, n_minus, ith_separation)
 
         !lambda_plus = 0.0_dp
-        !lambda_neutral = 0.0_dp
+        lambda_neutral = 0.0_dp
         !lambda_minus = 0.0_dp
         
         call UpdateDensities(lambda_plus, n_plus_updated, lambda_neutral, n_neutral_updated, lambda_minus, n_minus_updated)

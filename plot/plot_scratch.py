@@ -33,8 +33,8 @@ data_3 = np.loadtxt("../testing-n_" + charge + "_separation" + str(separation) +
 data_4 = np.loadtxt("../testing-n_" + charge + "_separation" + str(separation) + ".00000iteration4.txt")
 data_5 = np.loadtxt("../testing-n_" + charge + "_separation" + str(separation) + ".00000iteration5.txt")
 data_6 = np.loadtxt("../testing-n_" + charge + "_separation" + str(separation) + ".00000iteration6.txt")
-# data_7 = np.loadtxt("../testing-n_" + charge + "_separation" + str(separation) + ".00000iteration7.txt")
-# data_8 = np.loadtxt("../testing-n_" + charge + "_separation" + str(separation) + ".00000iteration8.txt")
+data_7 = np.loadtxt("../testing-n_" + charge + "_separation" + str(separation) + ".00000iteration7.txt")
+data_8 = np.loadtxt("../testing-n_" + charge + "_separation" + str(separation) + ".00000iteration8.txt")
 # data_9 = np.loadtxt("../testing-n_" + charge + "_separation" + str(separation) + ".00000iteration9.txt")
 
 #x_0 = data_0[:,0]
@@ -58,11 +58,11 @@ y_5 = data_5[:,1]
 x_6 = data_6[:,0]
 y_6 = data_6[:,1]
 
-# x_7 = data_7[:,0]
-# y_7 = data_7[:,1]
+x_7 = data_7[:,0]
+y_7 = data_7[:,1]
 
-# x_8 = data_8[:,0]
-# y_8 = data_8[:,1]
+x_8 = data_8[:,0]
+y_8 = data_8[:,1]
 
 # x_9 = data_9[:,0]
 # y_9 = data_9[:,1]
@@ -82,8 +82,8 @@ plt.plot(x_3,y_3,'rs',label='iteration 3')
 plt.plot(x_4,y_4,'ch',label='iteration 4')
 plt.plot(x_5,y_5,'m*',label='iteration 5')
 plt.plot(x_6,y_6,'y<',label='iteration 6')
-# plt.plot(x_7,y_7,'k>',label='iteration 7')
-# plt.plot(x_8,y_8,'w^',label='iteration 8')
+#plt.plot(x_7,y_7,'k>',label='iteration 7')
+#plt.plot(x_8,y_8,'w^',label='iteration 8')
 # plt.plot(x_9,y_9,'bD',label='iteration 9')
 
 #Set the axis labels.  Labelpad option controls the spacing between actual axis and axis label.  The r option tells python to interpret as a raw string literal.

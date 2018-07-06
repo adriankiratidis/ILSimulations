@@ -28,7 +28,8 @@ module parameters
   public :: plate_separations ! in multiples of hs_diameter
   public :: bulk_density
   public :: temperature
-  public :: bead_charge
+  public :: positive_bead_charge
+  public :: negative_bead_charge
   public :: string_length
   public :: iterative_tolerance
   public :: max_iteration_limit
@@ -53,7 +54,8 @@ module parameters
 
   real(dp) :: bulk_density
   real(dp) :: temperature
-  real(dp) :: bead_charge
+  real(dp) :: positive_bead_charge
+  real(dp) :: negative_bead_charge
   real(dp) :: string_length
   real(dp) :: iterative_tolerance
   integer  :: max_iteration_limit
@@ -86,7 +88,8 @@ contains
     read(file_unit, *) a_term_index
     read(file_unit, *) bulk_density !
     read(file_unit, *) temperature
-    read(file_unit, *) bead_charge
+    read(file_unit, *) positive_bead_charge
+    read(file_unit, *) negative_bead_charge
     read(file_unit, *) string_length
     read(file_unit, *) n_discretised_points_z
     read(file_unit, *) max_iteration_limit
@@ -118,7 +121,8 @@ contains
     print *,  "a_term_index = ", a_term_index
     print *,  "bulk_density = ", bulk_density
     print *,  "temperature = ", temperature
-    print *,  "bead_charge = ", bead_charge
+    print *,  "positive_bead_charge = ", positive_bead_charge
+    print *,  "negative_bead_charge = ", negative_bead_charge
     print *,  "string_length = ", string_length
     print *,  "n_discretised_points_z = ", n_discretised_points_z
     print *,  "max_iteration_limit = ", max_iteration_limit

@@ -14,11 +14,14 @@ module functionalderivatives
   public :: calculate_vanderWaals_functional_deriv
   public :: calculate_surface_dispersion_functional_deriv
   public :: calculate_hardsphere_functional_deriv
+  public :: calculate_surface_electrostatic_functional_deriv
 
-  !public :: calculate_surface_electrostatic_functional_deriv
-  !public :: calculate_electrostatic_like_term_functional_deriv
-  !public :: calculate_electrostatic_unlike_term_functional_deriv
+  public :: calculate_electrostatic_like_term_functional_deriv
+  public :: calculate_electrostatic_unlike_term_functional_deriv
+
   public :: calculate_n_sbar
+
+  real(dp) :: CURRENT_BULK_BEAD_DENSITY
 
 contains
 
@@ -53,10 +56,7 @@ contains
             (((4.0_dp * pi * (hs_diameter**3))/3.0_dp) * ((n_s(start_z_index:end_z_index)) * &
             GetAExDerivIntegrand(n_s(start_z_index:end_z_index), n_sbar(start_z_index:end_z_index), a_term_index))))
 
-       ! calculate_hardsphere_functional_deriv(start_z_index:end_z_index) = (1.0_dp/beta) * (&
-       !      GetAEx(n_s(start_z_index:end_z_index), n_sbar(start_z_index:end_z_index), a_term_index) + &
-       !      ((n_s(start_z_index:end_z_index) * &
-       !      GetAExDerivIntegrand(n_s(start_z_index:end_z_index), n_sbar(start_z_index:end_z_index), a_term_index))))
+
 
 
     else
@@ -70,13 +70,7 @@ contains
             GetAEx(n_mbar(start_z_index:end_z_index), n_sbar(start_z_index:end_z_index), a_term_index) + &
             (((4.0_dp * pi * (hs_diameter**3))/3.0_dp) * integral(start_z_index:end_z_index)))
 
-       ! calculate_hardsphere_functional_deriv(start_z_index:end_z_index) = (1.0_dp/beta) * (&
-       !      GetAEx(n_mbar(start_z_index:end_z_index), n_sbar(start_z_index:end_z_index), a_term_index) + &
-       !      ((n_s(start_z_index:end_z_index) * &
-       !      GetAExDerivIntegrand(n_mbar(start_z_index:end_z_index), n_sbar(start_z_index:end_z_index), a_term_index))))
 
-       !print *, "calculate_hardsphere_functional_deriv(:) = ", calculate_hardsphere_functional_deriv(:)
-       !call abort()
 
     end if
 
@@ -153,7 +147,7 @@ contains
        ! hs_d_divide_z = (real(n_discretised_points_z, dp) / real((iz - start_z_index), dp))
        ! hs_d_divide_h_minus_z = (1.0_dp/(real(plate_separations(ith_plate_separation),dp) - &
        !      ( real((iz - start_z_index),dp) / real((n_discretised_points_z),dp) )))
-       
+
        hs_d_divide_z = (real(n_discretised_points_z, dp) / real((iz - 1), dp))
        hs_d_divide_h_minus_z = (1.0_dp/(real(plate_separations(ith_plate_separation),dp) - &
             ( real((iz - 1),dp) / real((n_discretised_points_z),dp) )))
@@ -167,10 +161,10 @@ contains
 
     call setNonCalculatedRegionToZero(calculate_surface_dispersion_functional_deriv)
 
-   ! calculate_surface_dispersion_functional_deriv = 0.0_dp
+    ! calculate_surface_dispersion_functional_deriv = 0.0_dp
 
   end function calculate_surface_dispersion_functional_deriv
-           
+
   function calculate_vanderWaals_functional_deriv(n_s)
     real(dp), dimension(:), intent(in) :: n_s
     real(dp), dimension(size(n_s)) :: calculate_vanderWaals_functional_deriv
@@ -182,6 +176,101 @@ contains
     !calculate_vanderWaals_functional_deriv = 0.0_dp
 
   end function calculate_vanderWaals_functional_deriv
+
+  function calculate_surface_electrostatic_functional_deriv(size_array, charge)
+    integer, intent(in) :: size_array
+    real(dp), intent(in) :: charge
+
+    real(dp), dimension(size_array) :: calculate_surface_electrostatic_functional_deriv
+
+    integer :: ij
+
+    real(dp) :: d_to_left_wall
+    real(dp) :: d_to_right_wall
+
+    do ij = 1, size_array
+       d_to_left_wall = (ij-1) * hs_diameter / n_discretised_points_z
+       d_to_right_wall = (size_array-ij) * hs_diameter / n_discretised_points_z
+
+       calculate_surface_electrostatic_functional_deriv(ij) = (1.0_dp / (4.0_dp * pi * epsilon0 * epsilonr)) * (&
+            -2.0_dp * charge * pi * surface_charge_density_left_wall * d_to_left_wall &
+            -2.0_dp * charge * pi * surface_charge_density_right_wall * d_to_right_wall)
+    end do
+
+  end function calculate_surface_electrostatic_functional_deriv
+
+  function calculate_electrostatic_like_term_functional_deriv(n, charge)
+    real(dp), dimension(:), intent(in) :: n
+    real(dp), intent(in) :: charge
+    real(dp), dimension(size(n)) :: calculate_electrostatic_like_term_functional_deriv
+
+    if(charge > 0.0_dp) then
+       CURRENT_BULK_BEAD_DENSITY = bulk_density_positive_beads
+    else if(charge < 0.0_dp) then
+       CURRENT_BULK_BEAD_DENSITY = bulk_density_negative_beads
+    else if(charge < 0.0_dp) then
+       !Note this is a float comparison so should never happen.
+       !In any case if charge = 0.0_dp then we get an answer of zero anyway.
+       !But we want to set it to something, to protect against zero * {some unset variable},
+       !which I don't know what may happen.
+       CURRENT_BULK_BEAD_DENSITY = bulk_density_neutral_beads
+    end if
+
+    calculate_electrostatic_like_term_functional_deriv(:) = (-1.0_dp / (4.0_dp * pi * epsilon0 * epsilonr)) * pi * (charge**2) * &
+         integrate_z_cylindrical(n, electrostatic_like_integrand, "all_z")
+
+    calculate_electrostatic_like_term_functional_deriv = 0.0_dp
+
+  end function calculate_electrostatic_like_term_functional_deriv
+
+  function calculate_electrostatic_unlike_term_functional_deriv(n, charge1, charge2)
+    real(dp), dimension(:), intent(in) :: n
+    real(dp), intent(in) :: charge1
+    real(dp), intent(in) :: charge2
+    real(dp), dimension(size(n)) :: calculate_electrostatic_unlike_term_functional_deriv
+
+    calculate_electrostatic_unlike_term_functional_deriv(:) = (-1.0_dp / (4.0_dp * pi * epsilon0 * epsilonr)) * pi * charge1 * charge2 * &
+         integrate_z_cylindrical(n, electrostatic_unlike_integrand, "z_gteq_hs_diameter")
+
+    calculate_electrostatic_unlike_term_functional_deriv = 0.0_dp
+
+  end function calculate_electrostatic_unlike_term_functional_deriv
+
+  function electrostatic_unlike_integrand(z, xi)
+    integer, intent(in) :: z
+    integer, intent(in) :: xi
+    real(dp) :: electrostatic_unlike_integrand
+
+    integer :: xi_int
+    real(dp) :: xi_real
+
+    xi_int = xi - z ! centre xi on z
+    xi_real = real(xi_int,dp) * hs_diameter / real(n_discretised_points_z,dp)
+
+    if(abs(xi_int) >= n_discretised_points_z) then
+       electrostatic_unlike_integrand = abs(xi_real)
+    else
+       electrostatic_unlike_integrand = hs_diameter
+    end if
+
+  end function electrostatic_unlike_integrand
+
+
+  function electrostatic_like_integrand(z, xi)
+    integer, intent(in) :: z
+    integer, intent(in) :: xi
+    real(dp) :: electrostatic_like_integrand
+
+    real(dp) :: lambda
+    real(dp) :: s
+
+    s = (3.0_dp/(4.0_dp * pi * CURRENT_BULK_BEAD_DENSITY))**(1.0_dp/3.0_dp)
+    lambda = sqrt(2.0_dp)/s
+
+    electrostatic_like_integrand = ((abs(z - xi)*hs_diameter/real(n_discretised_points_z,dp)) + (1.0_dp/lambda))
+
+  end function electrostatic_like_integrand
+
 
   function van_der_waals_density_indept_integrand(z, xi_in)
     integer, intent(in) :: z
@@ -210,7 +299,7 @@ contains
     real(dp), dimension(size(array_to_integrate)) :: calculate_n_sbar
 
     calculate_n_sbar(:) = 0.0_dp
-    
+
     calculate_n_sbar(:) = (3.0_dp * ( integrate_z_cylindrical(array_to_integrate, n_sbar_integrand, "z_lteq_hs_diameter") ))&
          /(4.0_dp * pi * (hs_diameter**3.0_dp))
 
