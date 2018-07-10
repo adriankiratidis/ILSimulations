@@ -30,6 +30,9 @@ contains
     real(dp), dimension(size(n_plus)) :: left_wall_dispersion_integrand
     real(dp), dimension(size(n_plus)) :: right_wall_dispersion_integrand
 
+    real(dp) :: maxwell_stress_term_left_wall
+    real(dp) :: maxwell_stress_term_right_wall
+    
     integer :: start_z_index
     integer :: end_z_index
 
@@ -41,8 +44,12 @@ contains
        call abort()
     end if
 
-    !left_wall_dispersion_integrand = 0.0_dp
-    !right_wall_dispersion_integrand = 0.0_dp
+    left_wall_dispersion_integrand = 0.0_dp
+    right_wall_dispersion_integrand = 0.0_dp
+
+    maxwell_stress_term_left_wall = 0.0_dp
+    maxwell_stress_term_right_wall = 0.0_dp
+    
     n_s = n_plus + n_neutral + n_minus
     call get_allowed_z_values(start_z_index, end_z_index, size(n_s))
 
@@ -50,9 +57,10 @@ contains
 
     call CalculateDispersionAdjustment(dispersion_particle_particle_adjust_to_contact_thm, n_s)
 
-    !left_wall_dispersion_integrand = 0.0_dp
-    !right_wall_dispersion_integrand = 0.0_dp
-
+    call CalculateMaxwellStressTerm(maxwell_stress_term_left_wall, maxwell_stress_term_right_wall)
+    
+    left_wall_dispersion_integrand = 0.0_dp
+    right_wall_dispersion_integrand = 0.0_dp
 
     !right_wall_dispersion_integrand = 0.0_dp
     !left_wall_dispersion_integrand = 0.0_dp
@@ -65,8 +73,8 @@ contains
     ! print *, "n_s right = ", n_s * right_wall_dispersion_integrand
     ! call abort()
 
-    normal_pressure_left_wall =  (n_s(start_z_index) + integrate_z_cylindrical(n_s * left_wall_dispersion_integrand, unity_function)) / beta
-    normal_pressure_right_wall =  (n_s(end_z_index) + integrate_z_cylindrical(n_s * right_wall_dispersion_integrand, unity_function)) / beta
+    normal_pressure_left_wall =  (n_s(start_z_index) + integrate_z_cylindrical(n_s * left_wall_dispersion_integrand, unity_function) - maxwell_stress_term_left_wall) / beta
+    normal_pressure_right_wall =  (n_s(end_z_index) + integrate_z_cylindrical(n_s * right_wall_dispersion_integrand, unity_function) - maxwell_stress_term_right_wall) / beta
 
   end subroutine CalculateNormalPressureFromContactTheorem
 

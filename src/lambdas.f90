@@ -348,7 +348,7 @@ contains
        like_electrostatic_term = calculate_electrostatic_like_term_functional_deriv(n_minus, positive_bead_charge)
        unlike_electrostatic_term = calculate_electrostatic_unlike_term_functional_deriv(n_plus, positive_bead_charge, negative_bead_charge)
 
-       surface_electrostatic_term = calculate_surface_electrostatic_functional_deriv(size(n_minus), positive_bead_charge)
+       surface_electrostatic_term = calculate_surface_electrostatic_functional_deriv(size(n_minus), negative_bead_charge)
     end if
 
     CalculateLambdaMinusSpecificTerms = surface_electrostatic_term + like_electrostatic_term + unlike_electrostatic_term

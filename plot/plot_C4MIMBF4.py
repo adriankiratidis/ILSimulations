@@ -29,7 +29,7 @@ separation = 15
 data_1 = np.loadtxt("../testing-n_plus_separation" + str(separation) + ".00000.txt")
 data_2 = np.loadtxt("../testing-n_neutral_separation" + str(separation) + ".00000.txt")
 data_3 = np.loadtxt("../testing-n_minus_separation" + str(separation) + ".00000.txt")
-data_4 = np.loadtxt("../testing-n_s_separation" + str(separation) + ".00000.txt")
+#data_4 = np.loadtxt("../testing-n_s_separation" + str(separation) + ".00000.txt")
 
 x_1 = data_1[:,0]
 y_1 = data_1[:,1]
@@ -40,8 +40,8 @@ y_2 = data_2[:,1]
 x_3 = data_3[:,0]
 y_3 = data_3[:,1]
 
-x_4 = data_4[:,0]
-y_4 = data_4[:,1]
+# x_4 = data_4[:,0]
+# y_4 = data_4[:,1]
 
 
 
@@ -53,7 +53,7 @@ y_4 = data_4[:,1]
 #If you want to plot data but not show a key in the legend use
 #label='_nolegend_'
 #plt.plot(x_0,y_0,'rx',label='converged profile')
-plt.plot(x_1+0.05,y_1,'bx',label=r'$n_{+}$')
+plt.plot(x_1+0.02,y_1,'bx',label=r'$n_{+}$')
 plt.plot(x_2,y_2,'go',label=r'$n_{0}$')
 plt.plot(x_3,y_3,'rs',label=r'$n_{-}$')
 #plt.plot(x_4,y_4,'ch',label=r'$n_{s}$')

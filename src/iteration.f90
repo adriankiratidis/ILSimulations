@@ -457,8 +457,9 @@ contains
   subroutine InitialiseIntegrationAnsatzToConstant(array)
     real(dp), dimension(:) :: array
     
-    array(:) = bulk_density 
-
+    !array(:) = bulk_density 
+    array(:) = bulk_density_positive_beads
+    
   end subroutine InitialiseIntegrationAnsatzToConstant
 
 end module iteration

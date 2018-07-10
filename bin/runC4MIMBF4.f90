@@ -7,6 +7,7 @@ program runSingleSphere
   integer            :: iteration, ith_separation
 
   real(dp), dimension(:), allocatable :: n_plus, n_neutral, n_minus! bead densities
+  real(dp), dimension(:), allocatable :: n_plus_previous, n_neutral_previous, n_minus_previous! bead densities
   real(dp), dimension(:), allocatable :: n_plus_updated, n_neutral_updated, n_minus_updated ! bead densities
 
   !Here we define lambda_{i} = e^{l^{i}_{b} - l^{i}(r) where l^{i}(r) = dF/dn_{i} for example
@@ -73,7 +74,7 @@ program runSingleSphere
 
      print *, "Initialise/ReInitialise Discretisation for all the temperary variables we need."
      call InitialiseVariableDiscretisation(ith_separation, n_plus_updated, lambda_plus, &
-          n_neutral_updated, lambda_neutral, n_minus_updated, lambda_minus)
+          n_neutral_updated, lambda_neutral, n_minus_updated, lambda_minus, n_plus_previous, n_neutral_previous, n_minus_previous)
      call SetToZero(n_plus_updated, lambda_plus, n_neutral_updated, lambda_neutral, n_minus_updated, lambda_minus)
 
      print *, "Starting iteration.  Searching for convergence of density profiles."
@@ -82,18 +83,28 @@ program runSingleSphere
         iteration = iteration + 1
 
         !n_plus = 0.0_dp
-        n_neutral = 0.0_dp
+        !n_neutral = 0.0_dp
         !n_minus = 0.0_dp
+        
+        
+        n_plus = (alpha_mixing_for_update * n_plus) + (1.0_dp - alpha_mixing_for_update) * n_plus_previous
+        
         call CalculateLambdasDifference(lambda_plus, n_plus, lambda_neutral, n_neutral, lambda_minus, n_minus, ith_separation)
 
         !lambda_plus = 0.0_dp
-        lambda_neutral = 0.0_dp
+        !lambda_neutral = 0.0_dp
         !lambda_minus = 0.0_dp
+
+
+        !print * , "lambda_plus = ", lambda_plus
+        !print * , "lambda_neutral = ", lambda_neutral
+        !print * , "lambda_minus = ", lambda_minus
+        !call abort()
         
         call UpdateDensities(lambda_plus, n_plus_updated, lambda_neutral, n_neutral_updated, lambda_minus, n_minus_updated)
 
         !print *, "n_plus_updated = ", n_plus_updated
-        !print *, "n_neutral_updated = ", n_neutral_updated
+        !print *, "n_minus_updated = ", n_minus_updated
         !call abort()
         
         ! Now test convergence
@@ -151,6 +162,10 @@ program runSingleSphere
            call WriteOutputFormattedAsFunctionOfPosition(n_plus_updated + n_neutral_updated + n_minus_updated, trim(file_stub), &
                 "n_s_separation"//trim(str(plate_separations(ith_separation)))//"iteration"//trim(str(iteration)))
 
+           n_plus_previous = n_plus
+           n_neutral_previous = n_neutral
+           n_minus_previous = n_minus
+           
            n_plus = n_plus_updated
            n_neutral = n_neutral_updated
            n_minus = n_minus_updated
@@ -159,7 +174,7 @@ program runSingleSphere
 
      end do !end iteration loop
 
-     print *, "Calculating grand potential per unit area value."
+      print *, "Calculating grand potential per unit area value."
      call CalculateGrandPotentialValuePerUnitArea(ith_separation, grand_potential_per_unit_area(ith_separation), &
           size(n_neutral_updated), n_plus_updated, n_neutral_updated, n_minus_updated)
 
@@ -229,7 +244,10 @@ contains
     if(allocated(normal_pressure_right_wall)) deallocate(normal_pressure_right_wall)
     if(allocated(negative_deriv_of_potential)) deallocate(negative_deriv_of_potential)
     if(allocated(dispersion_particle_particle_adjust_to_contact_thm)) deallocate(dispersion_particle_particle_adjust_to_contact_thm)
-
+    if(allocated(n_plus_previous)) deallocate(n_plus_previous)
+    if(allocated(n_neutral_previous)) deallocate(n_neutral_previous)
+    if(allocated(n_minus_previous)) deallocate(n_minus_previous)
+    
   end subroutine DeAllocateLocalVariables
 
 end program runSingleSphere

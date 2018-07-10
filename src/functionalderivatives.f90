@@ -161,7 +161,7 @@ contains
 
     call setNonCalculatedRegionToZero(calculate_surface_dispersion_functional_deriv)
 
-    ! calculate_surface_dispersion_functional_deriv = 0.0_dp
+    !calculate_surface_dispersion_functional_deriv = 0.0_dp
 
   end function calculate_surface_dispersion_functional_deriv
 
@@ -192,11 +192,20 @@ contains
        d_to_left_wall = (ij-1) * hs_diameter / n_discretised_points_z
        d_to_right_wall = (size_array-ij) * hs_diameter / n_discretised_points_z
 
-       calculate_surface_electrostatic_functional_deriv(ij) = (1.0_dp / (4.0_dp * pi * epsilon0 * epsilonr)) * (&
-            -2.0_dp * charge * pi * surface_charge_density_left_wall * d_to_left_wall &
-            -2.0_dp * charge * pi * surface_charge_density_right_wall * d_to_right_wall)
-    end do
+       !print *, "charge = ", charge
+       !print *, "surface_charge_density_left_wall = ", surface_charge_density_left_wall
+       !print *, "surface_charge_density_rightt_wall = ", surface_charge_density_right_wall
 
+       !call abort()
+       !print *,  "d_to_left_wall, d_to_right_wall= ", d_to_left_wall, d_to_right_wall
+       !call abort()
+       calculate_surface_electrostatic_functional_deriv(ij) = (1.0_dp / (4.0_dp * epsilon0 * epsilonr)) * (&
+            -2.0_dp * charge * surface_charge_density_left_wall * d_to_left_wall &
+            -2.0_dp * charge * surface_charge_density_right_wall * d_to_right_wall) / beta
+    end do
+    !print *, "calculate_surface_electrostatic_functional_deriv = ", calculate_surface_electrostatic_functional_deriv
+    calculate_surface_electrostatic_functional_deriv = 0.0_dp
+    
   end function calculate_surface_electrostatic_functional_deriv
 
   function calculate_electrostatic_like_term_functional_deriv(n, charge)
@@ -216,8 +225,8 @@ contains
        CURRENT_BULK_BEAD_DENSITY = bulk_density_neutral_beads
     end if
 
-    calculate_electrostatic_like_term_functional_deriv(:) = (-1.0_dp / (4.0_dp * pi * epsilon0 * epsilonr)) * pi * (charge**2) * &
-         integrate_z_cylindrical(n, electrostatic_like_integrand, "all_z")
+    ! calculate_electrostatic_like_term_functional_deriv(:) = (-1.0_dp / (4.0_dp * pi * epsilon0 * epsilonr)) * pi * (charge**2) * &
+    !      integrate_z_cylindrical(n, electrostatic_like_integrand, "all_z")
 
     calculate_electrostatic_like_term_functional_deriv = 0.0_dp
 
@@ -229,8 +238,8 @@ contains
     real(dp), intent(in) :: charge2
     real(dp), dimension(size(n)) :: calculate_electrostatic_unlike_term_functional_deriv
 
-    calculate_electrostatic_unlike_term_functional_deriv(:) = (-1.0_dp / (4.0_dp * pi * epsilon0 * epsilonr)) * pi * charge1 * charge2 * &
-         integrate_z_cylindrical(n, electrostatic_unlike_integrand, "z_gteq_hs_diameter")
+    ! calculate_electrostatic_unlike_term_functional_deriv(:) = (-1.0_dp / (4.0_dp * pi * epsilon0 * epsilonr)) * pi * charge1 * charge2 * &
+    !      integrate_z_cylindrical(n, electrostatic_unlike_integrand, "z_gteq_hs_diameter")
 
     calculate_electrostatic_unlike_term_functional_deriv = 0.0_dp
 

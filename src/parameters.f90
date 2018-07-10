@@ -34,7 +34,10 @@ module parameters
   public :: iterative_tolerance
   public :: max_iteration_limit
   public :: beta
+  public :: alpha_mixing_for_update
+  public :: r
 
+  
   public :: bulk_density_positive_beads
   public :: bulk_density_neutral_beads
   public :: bulk_density_negative_beads
@@ -60,7 +63,10 @@ module parameters
   real(dp) :: iterative_tolerance
   integer  :: max_iteration_limit
   real(dp) :: beta
-
+  real(dp) :: alpha_mixing_for_update
+  
+  integer :: r
+  
   real(dp) :: bulk_density_positive_beads
   real(dp) :: bulk_density_neutral_beads
   real(dp) :: bulk_density_negative_beads
@@ -88,6 +94,7 @@ contains
     read(file_unit, *) a_term_index
     read(file_unit, *) bulk_density !
     read(file_unit, *) temperature
+    read(file_unit, *) alpha_mixing_for_update
     read(file_unit, *) positive_bead_charge
     read(file_unit, *) negative_bead_charge
     read(file_unit, *) string_length
@@ -121,6 +128,7 @@ contains
     print *,  "a_term_index = ", a_term_index
     print *,  "bulk_density = ", bulk_density
     print *,  "temperature = ", temperature
+    print *,  "alpha_mixing_for_update = ", alpha_mixing_for_update
     print *,  "positive_bead_charge = ", positive_bead_charge
     print *,  "negative_bead_charge = ", negative_bead_charge
     print *,  "string_length = ", string_length
@@ -229,6 +237,8 @@ contains
     bulk_density_positive_beads = bulk_density
     bulk_density_neutral_beads = bulk_density
     bulk_density_negative_beads = bulk_density
+
+    r = 3
   end subroutine SetPlusNeutralDimerMinusSpheresBeadDensityFromBulkIonDensity
 
   subroutine SetDimerDoubleDimerBeadDensityFromBulkIonDensity()
@@ -236,6 +246,8 @@ contains
     bulk_density_positive_beads = 2.0_dp * bulk_density
     bulk_density_neutral_beads = 2.0_dp * bulk_density
     bulk_density_negative_beads = 2.0_dp * bulk_density
+
+    r = 6
   end subroutine SetDimerDoubleDimerBeadDensityFromBulkIonDensity
 
   subroutine CheckValidityOfPlateSeparations()

@@ -62,15 +62,19 @@ contains
     n_neutral_input(:) = n_neutral(:)
     n_minus_input(:) = n_minus(:)
 
-    F_surface_disp = integrate_z_cylindrical(n_s * &
-         calculate_surface_dispersion_functional_deriv(ith_plate_separation, size(n_s)), unity_function)
+    !F_surface_disp = integrate_z_cylindrical(n_s * &
+    !     calculate_surface_dispersion_functional_deriv(ith_plate_separation, size(n_s)), unity_function)
 
     F_ideal_chain = calculate_ideal_chain_term_per_unit_area(size(n_plus_input), n_plus_input, n_neutral_input, n_minus_input, ith_plate_separation)
 
-    F_hard_sphere = calculate_hardsphere_term_per_unit_area(n_s, n_sbar)
+    !F_hard_sphere = calculate_hardsphere_term_per_unit_area(n_s, n_sbar)
 
-    F_van_der_waals = integrate_z_cylindrical(0.5_dp * n_s * calculate_vanderWaals_functional_deriv(n_s), unity_function)
+    !F_van_der_waals = integrate_z_cylindrical(0.5_dp * n_s * calculate_vanderWaals_functional_deriv(n_s), unity_function)
 
+    F_surface_electro = integrate_z_cylindrical(n_plus_input(:) * calculate_surface_electrostatic_functional_deriv(size(n_plus_input), positive_bead_charge), unity_function) +&
+         integrate_z_cylindrical(n_minus_input * calculate_surface_electrostatic_functional_deriv(size(n_minus_input), negative_bead_charge), unity_function)
+         
+    
     potential_per_unit_area_not_in_bulk = (F_ideal_chain + F_van_der_waals + F_surface_disp + F_hard_sphere + &
          F_surface_electro + F_electric_like + F_electric_unlike)
 
@@ -104,7 +108,7 @@ contains
     chemical_potential_term = calculate_chem_potential_term(n_plus_input, n_neutral_input, n_minus_input, ith_plate_separation)
 
     !F_van_der_waals = integrate_z_cylindrical(0.5_dp * n_s * calculate_vanderWaals_functional_deriv(n_s), unity_function)
-    !F_surface_electro = calculate_surface_electrostatic_functional_deriv()
+    
     !F_electric_like = calculate_electrostatic_like_term_functional_deriv()
     !F_electric_unlike = calculate_electrostatic_unlike_term_functional_deriv()
 
