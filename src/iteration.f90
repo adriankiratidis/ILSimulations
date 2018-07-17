@@ -458,7 +458,7 @@ contains
     real(dp), dimension(:) :: array
     
     !array(:) = bulk_density 
-    array(:) = bulk_density_positive_beads
+    array(:) = bulk_density_neutral_beads
     
   end subroutine InitialiseIntegrationAnsatzToConstant
 

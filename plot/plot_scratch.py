@@ -27,15 +27,15 @@ charge = "neutral"
 #then data[2,1] = 7.4 that is the 2+1 row and the 1+1 coloumn.
 #(Default python array indicies start at 0 unlike fortran which starts at 1.)
 #data_0 = np.loadtxt("../testing-n_" + charge + "_separation" + str(separation) + ".00000.txt")
-data_1 = np.loadtxt("../testing-n_" + charge + "_separation" + str(separation) + ".00000iteration101.txt")
-data_2 = np.loadtxt("../testing-n_" + charge + "_separation" + str(separation) + ".00000iteration102.txt")
-data_3 = np.loadtxt("../testing-n_" + charge + "_separation" + str(separation) + ".00000iteration103.txt")
-data_4 = np.loadtxt("../testing-n_" + charge + "_separation" + str(separation) + ".00000iteration104.txt")
-data_5 = np.loadtxt("../testing-n_" + charge + "_separation" + str(separation) + ".00000iteration105.txt")
-data_6 = np.loadtxt("../testing-n_" + charge + "_separation" + str(separation) + ".00000iteration106.txt")
-data_7 = np.loadtxt("../testing-n_" + charge + "_separation" + str(separation) + ".00000iteration107.txt")
-data_8 = np.loadtxt("../testing-n_" + charge + "_separation" + str(separation) + ".00000iteration108.txt")
-data_9 = np.loadtxt("../testing-n_" + charge + "_separation" + str(separation) + ".00000iteration109.txt")
+data_1 = np.loadtxt("../testing-n_" + charge + "_separation" + str(separation) + ".00000iteration1.txt")
+data_2 = np.loadtxt("../testing-n_" + charge + "_separation" + str(separation) + ".00000iteration2.txt")
+data_3 = np.loadtxt("../testing-n_" + charge + "_separation" + str(separation) + ".00000iteration3.txt")
+data_4 = np.loadtxt("../testing-n_" + charge + "_separation" + str(separation) + ".00000iteration4.txt")
+data_5 = np.loadtxt("../testing-n_" + charge + "_separation" + str(separation) + ".00000iteration5.txt")
+#data_6 = np.loadtxt("../testing-n_" + charge + "_separation" + str(separation) + ".00000iteration106.txt")
+#data_7 = np.loadtxt("../testing-n_" + charge + "_separation" + str(separation) + ".00000iteration107.txt")
+#data_8 = np.loadtxt("../testing-n_" + charge + "_separation" + str(separation) + ".00000iteration108.txt")
+#data_9 = np.loadtxt("../testing-n_" + charge + "_separation" + str(separation) + ".00000iteration109.txt")
 
 #x_0 = data_0[:,0]
 #y_0 = data_0[:,1]
@@ -55,17 +55,17 @@ y_4 = data_4[:,1]
 x_5 = data_5[:,0]
 y_5 = data_5[:,1]
 
-x_6 = data_6[:,0]
-y_6 = data_6[:,1]
+#x_6 = data_6[:,0]
+#y_6 = data_6[:,1]
 
-x_7 = data_7[:,0]
-y_7 = data_7[:,1]
+#x_7 = data_7[:,0]
+#y_7 = data_7[:,1]
 
-x_8 = data_8[:,0]
-y_8 = data_8[:,1]
+#x_8 = data_8[:,0]
+#y_8 = data_8[:,1]
 
-x_9 = data_9[:,0]
-y_9 = data_9[:,1]
+#x_9 = data_9[:,0]
+#y_9 = data_9[:,1]
 
 
 #A description of the available plotting characters and colours 
@@ -81,10 +81,10 @@ plt.plot(x_2,y_2,'go',label='iteration10 2')
 plt.plot(x_3,y_3,'rs',label='iteration10 3')
 plt.plot(x_4,y_4,'ch',label='iteration10 4')
 plt.plot(x_5,y_5,'m*',label='iteration10 5')
-plt.plot(x_6,y_6,'y<',label='iteration10 6')
-plt.plot(x_7,y_7,'k>',label='iteration10 7')
-plt.plot(x_8,y_8,'w^',label='iteration10 8')
-plt.plot(x_9,y_9,'bD',label='iteration10 9')
+#plt.plot(x_6,y_6,'y<',label='iteration10 6')
+#plt.plot(x_7,y_7,'k>',label='iteration10 7')
+#plt.plot(x_8,y_8,'w^',label='iteration10 8')
+#plt.plot(x_9,y_9,'bD',label='iteration10 9')
 
 #Set the axis labels.  Labelpad option controls the spacing between actual axis and axis label.  The r option tells python to interpret as a raw string literal.
 plt.xlabel(r"$z/\sigma$",labelpad=10)

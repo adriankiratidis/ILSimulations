@@ -6,9 +6,16 @@ program runSingleSphere
   character(len=256) :: file_stub
   integer            :: iteration, ith_separation
 
-  real(dp), dimension(:), allocatable :: n_plus, n_neutral, n_minus! bead densities
-  real(dp), dimension(:), allocatable :: n_plus_previous, n_neutral_previous, n_minus_previous! bead densities
-  real(dp), dimension(:), allocatable :: n_plus_updated, n_neutral_updated, n_minus_updated ! bead densities
+  real(dp), dimension(:), allocatable :: n_plus_total, n_neutral_total, n_minus_total! bead densities
+  real(dp), dimension(:), allocatable :: n_plus_total_previous, n_neutral_total_previous, n_minus_total_previous! bead densities
+  real(dp), dimension(:), allocatable :: n_plus_total_updated, n_neutral_total_updated, n_minus_total_updated ! bead densities
+
+  !We need to store the densities of the end monomers separately in order to calculate the hard sphere term.
+  !Although not strictly neccesarry, we choose to store the 'updated' values in variables with the postfix "_updated" for
+  !consistency with the total density variables for which a new variables is strictly neccesary to determine convergence.
+  real(dp), dimension(:), allocatable :: n_plus_end, n_neutral_end, n_minus_end ! bead densities of the end momomers only.
+  real(dp), dimension(:), allocatable :: n_plus_end_updated, n_neutral_end_updated, n_minus_end_updated ! bead densities of the end momomers only.
+
 
   !Here we define lambda_{i} = e^{l^{i}_{b} - l^{i}(r) where l^{i}(r) = dF/dn_{i} for example
   !and l^{i}_{b} is the value in the bulk.
@@ -70,26 +77,31 @@ program runSingleSphere
      print *, ""
      print *, "Initialising/ReInitialising Discretistion and setting integration ansatz."
      print *, "Doing this for the densities"
-     call InitialiseDensityDiscretisationAndSetIntegrationAnsatz(ith_separation, n_plus, n_neutral, n_minus)
+     call InitialiseDensityDiscretisationAndSetIntegrationAnsatz(ith_separation, n_plus_total, n_neutral_total, n_minus_total)
 
      print *, "Initialise/ReInitialise Discretisation for all the temperary variables we need."
-     call InitialiseVariableDiscretisation(ith_separation, n_plus_updated, lambda_plus, &
-          n_neutral_updated, lambda_neutral, n_minus_updated, lambda_minus, n_plus_previous, n_neutral_previous, n_minus_previous)
-     call SetToZero(n_plus_updated, lambda_plus, n_neutral_updated, lambda_neutral, n_minus_updated, lambda_minus)
+     call InitialiseVariableDiscretisation(ith_separation, n_plus_total_updated, lambda_plus, &
+          n_neutral_total_updated, lambda_neutral, n_minus_total_updated, lambda_minus, n_plus_total_previous, n_neutral_total_previous, n_minus_total_previous, &
+          n_plus_end, n_neutral_end, n_minus_end, n_plus_end_updated, n_neutral_end_updated, n_minus_end_updated)
+     call SetToZero(n_plus_total_updated, lambda_plus, n_neutral_total_updated, lambda_neutral, n_minus_total_updated, lambda_minus)
 
      print *, "Starting iteration.  Searching for convergence of density profiles."
      iteration = 0
      do while (iteration < MAX_ITERATION_LIMIT)
         iteration = iteration + 1
 
-        !n_plus = 0.0_dp
-        !n_neutral = 0.0_dp
-        !n_minus = 0.0_dp
+        !n_plus_total = 0.0_dp
+        !n_neutral_total = 0.0_dp
+        !n_minus_total = 0.0_dp
+
+        n_plus_total = (alpha_mixing_for_update * n_plus_total) + (1.0_dp - alpha_mixing_for_update) * n_plus_total_previous
+        n_neutral_total = (alpha_mixing_for_update * n_neutral_total) + (1.0_dp - alpha_mixing_for_update) * n_neutral_total_previous
+        n_minus_total = (alpha_mixing_for_update * n_minus_total) + (1.0_dp - alpha_mixing_for_update) * n_minus_total_previous
+
+        print *, "n_plus_total_updated = ", n_neutral_total
         
-        
-        n_plus = (alpha_mixing_for_update * n_plus) + (1.0_dp - alpha_mixing_for_update) * n_plus_previous
-        
-        call CalculateLambdasDifference(lambda_plus, n_plus, lambda_neutral, n_neutral, lambda_minus, n_minus, ith_separation)
+        call CalculateLambdasDifference(lambda_plus, n_plus_total, n_plus_end, lambda_neutral, n_neutral_total, n_neutral_end, &
+             lambda_minus, n_minus_total, n_minus_end, ith_separation)
 
         !lambda_plus = 0.0_dp
         !lambda_neutral = 0.0_dp
@@ -100,15 +112,16 @@ program runSingleSphere
         !print * , "lambda_neutral = ", lambda_neutral
         !print * , "lambda_minus = ", lambda_minus
         !call abort()
-        
-        call UpdateDensities(lambda_plus, n_plus_updated, lambda_neutral, n_neutral_updated, lambda_minus, n_minus_updated)
 
-        !print *, "n_plus_updated = ", n_plus_updated
-        !print *, "n_minus_updated = ", n_minus_updated
+        call UpdateDensities(lambda_plus, n_plus_total_updated, n_plus_end_updated, &
+             lambda_neutral, n_neutral_total_updated, n_neutral_end_updated, lambda_minus, n_minus_total_updated, n_minus_end_updated)
+
+        !print *, "n_plus_total_updated = ", n_plus_total_updated
+        !print *, "n_minus_total_updated = ", n_minus_total_updated
         !call abort()
-        
+
         ! Now test convergence
-        if(converged(n_plus_updated, n_plus, n_neutral_updated, n_neutral, n_minus_updated, n_minus)) then
+        if(converged(n_plus_total_updated, n_plus_total, n_neutral_total_updated, n_neutral_total, n_minus_total_updated, n_minus_total)) then
 
            print *, ""
            print *, "************************************************************"
@@ -120,19 +133,19 @@ program runSingleSphere
 
            !Perform this update if we get the solution in one iteration.
            !Possible in principle because we rescale the solution at the previous separation.
-           n_plus = n_plus_updated
-           n_neutral = n_neutral_updated
-           n_minus = n_minus_updated
+           n_plus_total = n_plus_total_updated
+           n_neutral_total = n_neutral_total_updated
+           n_minus_total = n_minus_total_updated
 
-           call WriteOutputFormattedAsFunctionOfPosition(n_plus_updated, trim(file_stub), &
+           call WriteOutputFormattedAsFunctionOfPosition(n_plus_total_updated, trim(file_stub), &
                 "n_plus_separation"//str(plate_separations(ith_separation)))
-           call WriteOutputFormattedAsFunctionOfPosition(n_neutral_updated, trim(file_stub), &
+           call WriteOutputFormattedAsFunctionOfPosition(n_neutral_total_updated, trim(file_stub), &
                 "n_neutral_separation"//str(plate_separations(ith_separation)))
-           call WriteOutputFormattedAsFunctionOfPosition(n_minus_updated, trim(file_stub), &
+           call WriteOutputFormattedAsFunctionOfPosition(n_minus_total_updated, trim(file_stub), &
                 "n_minus_separation"//str(plate_separations(ith_separation)))
 
            !Also print out the sum, n_s
-           call WriteOutputFormattedAsFunctionOfPosition(n_plus_updated + n_neutral_updated + n_minus_updated, trim(file_stub), &
+           call WriteOutputFormattedAsFunctionOfPosition(n_plus_total_updated + n_neutral_total_updated + n_minus_total_updated, trim(file_stub), &
                 "n_s_separation"//str(plate_separations(ith_separation)))
            exit
 
@@ -152,41 +165,46 @@ program runSingleSphere
 
         else !Update and proceed to the next iteration
 
-           call WriteOutputFormattedAsFunctionOfPosition(n_plus_updated, trim(file_stub), &
+           call WriteOutputFormattedAsFunctionOfPosition(n_plus_total_updated, trim(file_stub), &
                 "n_plus_separation"//trim(str(plate_separations(ith_separation)))//"iteration"//trim(str(iteration)))
-           call WriteOutputFormattedAsFunctionOfPosition(n_neutral_updated, trim(file_stub), &
+           call WriteOutputFormattedAsFunctionOfPosition(n_neutral_total_updated, trim(file_stub), &
                 "n_neutral_separation"//trim(str(plate_separations(ith_separation)))//"iteration"//trim(str(iteration)))
-           call WriteOutputFormattedAsFunctionOfPosition(n_minus_updated, trim(file_stub), &
+           call WriteOutputFormattedAsFunctionOfPosition(n_minus_total_updated, trim(file_stub), &
                 "n_minus_separation"//trim(str(plate_separations(ith_separation)))//"iteration"//trim(str(iteration)))
 
-           call WriteOutputFormattedAsFunctionOfPosition(n_plus_updated + n_neutral_updated + n_minus_updated, trim(file_stub), &
+           call WriteOutputFormattedAsFunctionOfPosition(n_plus_total_updated + n_neutral_total_updated + n_minus_total_updated, trim(file_stub), &
                 "n_s_separation"//trim(str(plate_separations(ith_separation)))//"iteration"//trim(str(iteration)))
 
-           n_plus_previous = n_plus
-           n_neutral_previous = n_neutral
-           n_minus_previous = n_minus
-           
-           n_plus = n_plus_updated
-           n_neutral = n_neutral_updated
-           n_minus = n_minus_updated
+           n_plus_total_previous = n_plus_total
+           n_neutral_total_previous = n_neutral_total
+           n_minus_total_previous = n_minus_total
+
+           n_plus_total = n_plus_total_updated
+           n_neutral_total = n_neutral_total_updated
+           n_minus_total = n_minus_total_updated
+
+           n_plus_end = n_plus_end_updated
+           n_neutral_end = n_neutral_end_updated
+           n_minus_end = n_minus_end_updated
 
         end if
 
      end do !end iteration loop
 
-      print *, "Calculating grand potential per unit area value."
+     print *, "Calculating grand potential per unit area value."
      call CalculateGrandPotentialValuePerUnitArea(ith_separation, grand_potential_per_unit_area(ith_separation), &
-          size(n_neutral_updated), n_plus_updated, n_neutral_updated, n_minus_updated)
+          size(n_neutral_total_updated), n_plus_total_updated, n_plus_end_updated, n_neutral_total_updated, n_neutral_end_updated, &
+          n_minus_total_updated, n_minus_end_updated)
 
      print *, "Calculating normal pressure from the contact theorem"
-     call CalculateNormalPressureFromContactTheorem(n_plus_updated, n_neutral_updated, n_minus_updated, &
+     call CalculateNormalPressureFromContactTheorem(n_plus_total_updated + n_neutral_total_updated + n_minus_total_updated, &
           normal_pressure_left_wall(ith_separation), normal_pressure_right_wall(ith_separation), &
           dispersion_particle_particle_adjust_to_contact_thm(ith_separation))
 
-     print *, "integral_plus = ", integrate_z_cylindrical(n_plus_updated * (hs_diameter**2), unity_function)
-     print *, "integral_neutral = ", integrate_z_cylindrical(n_neutral_updated * (hs_diameter**2), unity_function)
-     print *, "integral_minus = ", integrate_z_cylindrical(n_minus_updated * (hs_diameter**2), unity_function)
-     
+     print *, "integral_plus = ", integrate_z_cylindrical(n_plus_total_updated * (hs_diameter**2), unity_function)
+     print *, "integral_neutral = ", integrate_z_cylindrical(n_neutral_total_updated * (hs_diameter**2), unity_function)
+     print *, "integral_minus = ", integrate_z_cylindrical(n_minus_total_updated * (hs_diameter**2), unity_function)
+
 
   end do !end loop over plate separation
 
@@ -207,7 +225,7 @@ program runSingleSphere
 
   negative_deriv_of_potential = CalculateNegativeDerivOfPotentialPerUnitAreaWRTSeparation(grand_potential_per_unit_area)
 
-  
+
   call WriteOutputFormattedAsFunctionOfPlateSeparation(grand_potential_per_unit_area, trim(file_stub), "potential-per-unit-area")
   call WriteOutputFormattedAsFunctionOfPlateSeparation(normal_pressure_left_wall, trim(file_stub), "normal-pressure-left-wall")
   call WriteOutputFormattedAsFunctionOfPlateSeparation(normal_pressure_right_wall, trim(file_stub), "normal-pressure-right-wall")
@@ -229,12 +247,12 @@ contains
 
   subroutine DeAllocateLocalVariables()
 
-    if(allocated(n_plus)) deallocate(n_plus)
-    if(allocated(n_neutral)) deallocate(n_neutral)
-    if(allocated(n_minus)) deallocate(n_minus)
-    if(allocated(n_plus_updated)) deallocate(n_plus_updated)
-    if(allocated(n_neutral_updated)) deallocate(n_neutral_updated)
-    if(allocated(n_minus_updated)) deallocate(n_minus_updated)
+    if(allocated(n_plus_total)) deallocate(n_plus_total)
+    if(allocated(n_neutral_total)) deallocate(n_neutral_total)
+    if(allocated(n_minus_total)) deallocate(n_minus_total)
+    if(allocated(n_plus_total_updated)) deallocate(n_plus_total_updated)
+    if(allocated(n_neutral_total_updated)) deallocate(n_neutral_total_updated)
+    if(allocated(n_minus_total_updated)) deallocate(n_minus_total_updated)
     if(allocated(lambda_plus)) deallocate(lambda_plus)
     if(allocated(lambda_neutral)) deallocate(lambda_neutral)
     if(allocated(lambda_minus)) deallocate(lambda_minus)
@@ -244,10 +262,16 @@ contains
     if(allocated(normal_pressure_right_wall)) deallocate(normal_pressure_right_wall)
     if(allocated(negative_deriv_of_potential)) deallocate(negative_deriv_of_potential)
     if(allocated(dispersion_particle_particle_adjust_to_contact_thm)) deallocate(dispersion_particle_particle_adjust_to_contact_thm)
-    if(allocated(n_plus_previous)) deallocate(n_plus_previous)
-    if(allocated(n_neutral_previous)) deallocate(n_neutral_previous)
-    if(allocated(n_minus_previous)) deallocate(n_minus_previous)
-    
+    if(allocated(n_plus_total_previous)) deallocate(n_plus_total_previous)
+    if(allocated(n_neutral_total_previous)) deallocate(n_neutral_total_previous)
+    if(allocated(n_minus_total_previous)) deallocate(n_minus_total_previous)
+    if(allocated(n_plus_end)) deallocate(n_plus_end)
+    if(allocated(n_neutral_end)) deallocate(n_neutral_end)
+    if(allocated(n_minus_end)) deallocate(n_minus_end)
+    if(allocated(n_plus_end_updated)) deallocate(n_plus_end_updated)
+    if(allocated(n_neutral_end_updated)) deallocate(n_neutral_end_updated)
+    if(allocated(n_minus_end_updated)) deallocate(n_minus_end_updated)
+
   end subroutine DeAllocateLocalVariables
 
 end program runSingleSphere

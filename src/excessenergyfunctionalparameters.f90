@@ -11,6 +11,7 @@ module excessenergyfunctionalparameters
 
   public :: GetAEx
   public :: GetAExDerivIntegrand
+  public :: GetYMix
 
   real(dp) :: sigma_monomer
   real(dp) :: sigma_solvent
@@ -243,10 +244,11 @@ contains
 
   end function GetAExDerivIntegrand
 
-  function GetYMix(n_mbar, n_sbar, alpha)
+  function GetYMix(n_mbar, n_sbar, alpha, r)
     real(dp), dimension(:), intent(in) :: n_mbar
     real(dp), dimension(:), intent(in) :: n_sbar
     character(len=1), intent(in) :: alpha
+    integer, intent(in) :: r
     real(dp), dimension(size(n_mbar)) :: GetYMix
 
     real(dp), dimension(size(n_mbar)) :: phi_m
@@ -254,6 +256,11 @@ contains
     real(dp) :: q
     real(dp) :: sigma_alpha
 
+    real(dp) :: v_1_alpha
+    real(dp) :: v_2_alpha
+    real(dp) :: v_3_alpha
+    real(dp) :: v_r_alpha
+    
     call InitialiseHardSphereDiameters(sigma_monomer, sigma_solvent)
 
     if(trim(alpha) == 'm') then
@@ -269,7 +276,7 @@ contains
 
     q = sigma_solvent / sigma_monomer
 
-    phi_m(:) = n_mbar / (n_mbar + n_sbar*(q**3))
+    phi_m(:) = n_mbar(:) / (n_mbar(:) + n_sbar(:)*(q**3))
 
     v_1_alpha = pi * ((1.0_dp + (sigma_alpha/sigma_monomer))**3) / (6.0_dp * (sigma_monomer**3))
 
@@ -278,11 +285,25 @@ contains
 
     v_3_alpha = (1.57_dp + (4.75_dp*(sigma_alpha/sigma_monomer)) + 2.99_dp*((sigma_alpha/sigma_monomer)**2) + 0.52_dp*((sigma_alpha/sigma_monomer)**3)  ) / (sigma_monomer**3)
 
-    v_r_alpha = v_3_alpha + (r - 3.0_dp)*(v_3_alpha - v_2_alpha) - &
-         0.04915_dp*((r - 3.0_dp)**1.09_dp)*((sigma_alpha/sigma_monomer)**2.71_dp)*(sigma_monomer**3)
+    v_r_alpha = v_3_alpha + (r - 1.0_dp)*(v_3_alpha - v_2_alpha) !- &
+         !0.04915_dp*((r - 1.0_dp)**1.09)*((sigma_alpha/sigma_monomer)**2.71_dp)*(sigma_monomer**3)
 
-    GetYMix(:) = (v_r_alpha - v_2_alpha) / (v_2_alpha - v_1_alpha)
-
+    !print *, "sigma_alpha = ", sigma_alpha
+    !print *, "sigma_monomer = ", sigma_monomer
+    !print *, "v_2_alpha = ", v_2_alpha
+    !print *, "v_3_alpha = ", v_3_alpha
+    !print *, "v_r_alpha = ", v_r_alpha
+    !print *, "r = ", r
+    !print *, "(v_r_alpha - v_2_alpha) = ", (v_r_alpha - v_2_alpha)
+    !print *, "(v_2_alpha - v_1_alpha) = ", (v_2_alpha - v_1_alpha)
+    !call abort()
+    
+    GetYMix(:) = (phi_m(:) * (v_r_alpha - v_2_alpha) / (v_2_alpha - v_1_alpha))
+    
+    !If the solvent density was non-zero, then phi_m would not equal 1 and we would have to add
+    !the contribution below.
+    !+ (1.0_dp - phi_m(:))*(v_r_s - v_2_s) / (v_2_s - v_1_s))
+         
   end function GetYMix
 
   subroutine InitialiseHardSphereDiameters(sigma_monomer, sigma_solvent)
@@ -290,7 +311,7 @@ contains
     real(dp), intent(out) :: sigma_solvent
     
     sigma_monomer = hs_diameter
-    sigma_solvent = hs_diameter
+    sigma_solvent = 0.0_dp
     
   end subroutine InitialiseHardSphereDiameters
   
