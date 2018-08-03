@@ -73,7 +73,21 @@ contains
 
     F_surface_electro = integrate_z_cylindrical(n_plus_input(:) * calculate_surface_electrostatic_functional_deriv(size(n_plus_input), positive_bead_charge), unity_function) +&
          integrate_z_cylindrical(n_minus_input * calculate_surface_electrostatic_functional_deriv(size(n_minus_input), negative_bead_charge), unity_function)
-         
+
+
+    F_electric_like = 0.5_dp * (&
+         integrate_z_cylindrical(n_plus * calculate_electrostatic_like_term_functional_deriv(n_plus, positive_bead_charge, .false.), unity_function) +&
+         integrate_z_cylindrical(n_minus * calculate_electrostatic_like_term_functional_deriv(n_minus, negative_bead_charge, .false.), unity_function))
+
+    F_electric_unlike = 0.5_dp * (&
+         integrate_z_cylindrical(n_plus * calculate_electrostatic_unlike_term_functional_deriv(n_minus, positive_bead_charge, negative_bead_charge, .false.), unity_function) +&
+         integrate_z_cylindrical(n_minus * calculate_electrostatic_unlike_term_functional_deriv(n_plus, positive_bead_charge, negative_bead_charge, .false.), unity_function))
+
+
+    !print *, "F_surface_electro = ", F_surface_electro
+    !print *, "F_electric_like = ", F_electric_like
+    !print *, "F_electric_unlike = ", F_electric_unlike 
+    !call abort()
     
     potential_per_unit_area_not_in_bulk = (F_ideal_chain + F_van_der_waals + F_surface_disp + F_hard_sphere + &
          F_surface_electro + F_electric_like + F_electric_unlike)
@@ -108,9 +122,7 @@ contains
     chemical_potential_term = calculate_chem_potential_term(n_plus_input, n_neutral_input, n_minus_input, ith_plate_separation)
 
     !F_van_der_waals = integrate_z_cylindrical(0.5_dp * n_s * calculate_vanderWaals_functional_deriv(n_s), unity_function)
-    
-    !F_electric_like = calculate_electrostatic_like_term_functional_deriv()
-    !F_electric_unlike = calculate_electrostatic_unlike_term_functional_deriv()
+
 
     !grand_potential_per_unit_area = potential_per_unit_area_not_in_bulk - potential_per_unit_area_in_bulk
     grand_potential_per_unit_area = potential_per_unit_area_not_in_bulk - chemical_potential_term

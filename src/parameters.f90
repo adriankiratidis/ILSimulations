@@ -35,13 +35,14 @@ module parameters
   public :: max_iteration_limit
   public :: beta
   public :: alpha_mixing_for_update
-  public :: r
 
   
   public :: bulk_density_positive_beads
   public :: bulk_density_neutral_beads
   public :: bulk_density_negative_beads
 
+  public :: slope_for_initial_guess
+  
   character(len=256) :: ionic_liquid_name 
   real(dp) :: chi_parameter
   integer  :: n_discretised_points_z
@@ -65,12 +66,12 @@ module parameters
   real(dp) :: beta
   real(dp) :: alpha_mixing_for_update
   
-  integer :: r
-  
   real(dp) :: bulk_density_positive_beads
   real(dp) :: bulk_density_neutral_beads
   real(dp) :: bulk_density_negative_beads
 
+  real(dp) :: slope_for_initial_guess
+  
 contains
 
   !Subroutine that reads in all required params
@@ -95,6 +96,7 @@ contains
     read(file_unit, *) bulk_density !
     read(file_unit, *) temperature
     read(file_unit, *) alpha_mixing_for_update
+    read(file_unit, *) slope_for_initial_guess
     read(file_unit, *) positive_bead_charge
     read(file_unit, *) negative_bead_charge
     read(file_unit, *) string_length
@@ -112,10 +114,17 @@ contains
 
     ! Set derived parameters
     beta = 1.0_dp / (k_B * temperature)
-
+    
     ! Apply unit transformations
-    epsilon_LJ = epsilon_LJ !* k_B
+    epsilon_LJ = epsilon_LJ * k_B
     bulk_density = bulk_density / (hs_diameter**3.0_dp)
+    
+    positive_bead_charge = positive_bead_charge * electric_charge
+    negative_bead_charge = negative_bead_charge * electric_charge
+
+    surface_charge_density_left_wall = surface_charge_density_left_wall * electric_charge
+    surface_charge_density_right_wall = surface_charge_density_right_wall * electric_charge
+    
 
     print *,  "Succesfully set the following values"
     print *,  "ionic_liquid_name = ", ionic_liquid_name
@@ -129,6 +138,7 @@ contains
     print *,  "bulk_density = ", bulk_density
     print *,  "temperature = ", temperature
     print *,  "alpha_mixing_for_update = ", alpha_mixing_for_update
+    print *,  "slope_for_initial_guess = ", slope_for_initial_guess
     print *,  "positive_bead_charge = ", positive_bead_charge
     print *,  "negative_bead_charge = ", negative_bead_charge
     print *,  "string_length = ", string_length
@@ -238,7 +248,6 @@ contains
     bulk_density_neutral_beads = bulk_density
     bulk_density_negative_beads = bulk_density
 
-    r = 3
   end subroutine SetPlusNeutralDimerMinusSpheresBeadDensityFromBulkIonDensity
 
   subroutine SetDimerDoubleDimerBeadDensityFromBulkIonDensity()
@@ -247,7 +256,6 @@ contains
     bulk_density_neutral_beads = 2.0_dp * bulk_density
     bulk_density_negative_beads = 2.0_dp * bulk_density
 
-    r = 6
   end subroutine SetDimerDoubleDimerBeadDensityFromBulkIonDensity
 
   subroutine CheckValidityOfPlateSeparations()

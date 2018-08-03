@@ -12,7 +12,7 @@ import math
 plt.rc('text', usetex=True)
 plt.rc('font', family='serif')
 
-separation = 15
+separation = 20
 
 #Read in the data from "data.txt".  This will read in the whole file 
 #and if necessary arrange the data into a rank 2 array.
@@ -54,7 +54,7 @@ y_3 = data_3[:,1]
 #label='_nolegend_'
 #plt.plot(x_0,y_0,'rx',label='converged profile')
 plt.plot(x_1+0.02,y_1,'bx',label=r'$n_{+}$')
-plt.plot(x_2,y_2,'go',label=r'$n_{0}$')
+plt.plot(x_2+0.04,y_2,'go',label=r'$n_{0}$')
 plt.plot(x_3,y_3,'rs',label=r'$n_{-}$')
 #plt.plot(x_4,y_4,'ch',label=r'$n_{s}$')
 #plt.plot(x_5,y_5,'m*',label='iteration 5')

@@ -32,7 +32,7 @@ contains
 
     real(dp) :: maxwell_stress_term_left_wall
     real(dp) :: maxwell_stress_term_right_wall
-    
+
     integer :: start_z_index
     integer :: end_z_index
 
@@ -49,7 +49,7 @@ contains
 
     maxwell_stress_term_left_wall = 0.0_dp
     maxwell_stress_term_right_wall = 0.0_dp
-    
+
     n_s = n_plus + n_neutral + n_minus
     call get_allowed_z_values(start_z_index, end_z_index, size(n_s))
 
@@ -58,12 +58,12 @@ contains
     call CalculateDispersionAdjustment(dispersion_particle_particle_adjust_to_contact_thm, n_s)
 
     call CalculateMaxwellStressTerm(maxwell_stress_term_left_wall, maxwell_stress_term_right_wall)
-    
+
     left_wall_dispersion_integrand = 0.0_dp
     right_wall_dispersion_integrand = 0.0_dp
 
-    !right_wall_dispersion_integrand = 0.0_dp
-    !left_wall_dispersion_integrand = 0.0_dp
+    !maxwell_stress_term_left_wall = 0.0_dp
+    !maxwell_stress_term_right_wall = 0.0_dp
 
     ! print *, "n_s = ", n_s
     ! print *, "left_wall_dispersion_integrand = ", left_wall_dispersion_integrand
@@ -115,8 +115,8 @@ contains
     real(dp), intent(out) :: maxwell_stress_term_left_wall
     real(dp), intent(out) :: maxwell_stress_term_right_wall
 
-    maxwell_stress_term_left_wall = 2.0_dp * pi * (surface_charge_density_left_wall**2)/ (epsilonr * epsilon0)
-    maxwell_stress_term_right_wall = 2.0_dp * pi * (surface_charge_density_right_wall**2)/ (epsilonr * epsilon0)
+    maxwell_stress_term_left_wall = 2.0_dp * pi * (surface_charge_density_left_wall**2)/ (epsilonr * epsilon0) / beta
+    maxwell_stress_term_right_wall = 2.0_dp * pi * (surface_charge_density_right_wall**2)/ (epsilonr * epsilon0) / beta
 
   end subroutine CalculateMaxwellStressTerm
 
@@ -135,8 +135,8 @@ contains
 
        !print *, "number = ", distance_from_left_wall, distance_from_right_wall, distance_from_right_wall + distance_from_left_wall
        
-       left_wall_term(ij) = (2.0_dp * pi * epsilon_LJ * ((0.4_dp * (hs_diameter/distance_from_left_wall)**9) - (hs_diameter/distance_from_left_wall)**3))/distance_from_left_wall
-       right_wall_term(ij) = (2.0_dp * pi * epsilon_LJ * ((0.4_dp * (hs_diameter/distance_from_right_wall)**9) - (hs_diameter/distance_from_right_wall)**3))/distance_from_right_wall
+       left_wall_term(ij) = (beta) * (2.0_dp * pi * epsilon_LJ * ((0.4_dp * (hs_diameter/distance_from_left_wall)**9) - (hs_diameter/distance_from_left_wall)**3))/distance_from_left_wall
+       right_wall_term(ij) = (beta) * (2.0_dp * pi * epsilon_LJ * ((0.4_dp * (hs_diameter/distance_from_right_wall)**9) - (hs_diameter/distance_from_right_wall)**3))/distance_from_right_wall
     end do
 
 

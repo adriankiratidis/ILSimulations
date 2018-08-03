@@ -256,32 +256,32 @@ contains
 
     call InitialiseHardSphereDiameters(sigma_monomer, sigma_solvent)
 
-    if(trim(alpha) == 'm') then
-       sigma_alpha = sigma_monomer
-    else if(trim(alpha) == 's') then
-       sigma_alpha = sigma_solvent
-    else
-       print *, "excessenergyfunctionalparameters.f90: GetYMix:"
-       print *, "alpha input variable must be either 'm' or 's'"
-       print *, "instead, trim(alpha) = ", trim(alpha), "...aborting..."
-       call abort()
-    end if
+    ! if(trim(alpha) == 'm') then
+    !    sigma_alpha = sigma_monomer
+    ! else if(trim(alpha) == 's') then
+    !    sigma_alpha = sigma_solvent
+    ! else
+    !    print *, "excessenergyfunctionalparameters.f90: GetYMix:"
+    !    print *, "alpha input variable must be either 'm' or 's'"
+    !    print *, "instead, trim(alpha) = ", trim(alpha), "...aborting..."
+    !    call abort()
+    ! end if
 
-    q = sigma_solvent / sigma_monomer
+    ! q = sigma_solvent / sigma_monomer
 
-    phi_m(:) = n_mbar / (n_mbar + n_sbar*(q**3))
+    ! phi_m(:) = n_mbar / (n_mbar + n_sbar*(q**3))
 
-    v_1_alpha = pi * ((1.0_dp + (sigma_alpha/sigma_monomer))**3) / (6.0_dp * (sigma_monomer**3))
+    ! v_1_alpha = pi * ((1.0_dp + (sigma_alpha/sigma_monomer))**3) / (6.0_dp * (sigma_monomer**3))
 
-    v_2_alpha = (pi * (2.0_dp + (6.0_dp*(sigma_alpha/sigma_monomer)) + (4.5_dp*((sigma_alpha/sigma_monomer)**2)) + ((sigma_alpha/sigma_monomer)**3))) &
-         / (6.0_dp * (sigma_monomer**3))
+    ! v_2_alpha = (pi * (2.0_dp + (6.0_dp*(sigma_alpha/sigma_monomer)) + (4.5_dp*((sigma_alpha/sigma_monomer)**2)) + ((sigma_alpha/sigma_monomer)**3))) &
+    !      / (6.0_dp * (sigma_monomer**3))
 
-    v_3_alpha = (1.57_dp + (4.75_dp*(sigma_alpha/sigma_monomer)) + 2.99_dp*((sigma_alpha/sigma_monomer)**2) + 0.52_dp*((sigma_alpha/sigma_monomer)**3)  ) / (sigma_monomer**3)
+    ! v_3_alpha = (1.57_dp + (4.75_dp*(sigma_alpha/sigma_monomer)) + 2.99_dp*((sigma_alpha/sigma_monomer)**2) + 0.52_dp*((sigma_alpha/sigma_monomer)**3)  ) / (sigma_monomer**3)
 
-    v_r_alpha = v_3_alpha + (r - 3.0_dp)*(v_3_alpha - v_2_alpha) - &
-         0.04915_dp*((r - 3.0_dp)**1.09_dp)*((sigma_alpha/sigma_monomer)**2.71_dp)*(sigma_monomer**3)
+    ! v_r_alpha = v_3_alpha + (r - 3.0_dp)*(v_3_alpha - v_2_alpha) - &
+    !      0.04915_dp*((r - 3.0_dp)**1.09_dp)*((sigma_alpha/sigma_monomer)**2.71_dp)*(sigma_monomer**3)
 
-    GetYMix(:) = (v_r_alpha - v_2_alpha) / (v_2_alpha - v_1_alpha)
+    ! GetYMix(:) = (v_r_alpha - v_2_alpha) / (v_2_alpha - v_1_alpha)
 
   end function GetYMix
 

@@ -20,6 +20,8 @@ program runSingleSphere
 
   real(dp), dimension(:), allocatable :: dispersion_particle_particle_adjust_to_contact_thm
 
+  integer :: ij
+  
   ! We use the standard notation of cj/aj to denote the contribution from bead j to the cation/anion
   ! as described in J. Phys. Chem C 2017, 121, 1742-1751. DOI: 10.1021/acs.jpcc.6b11491
   ! Here we use the notation c8c1 for example to denote the fact that due to symmetry c8 and c1
@@ -85,11 +87,32 @@ program runSingleSphere
         !n_plus = 0.0_dp
         !n_neutral = 0.0_dp
         !n_minus = 0.0_dp
-        
-        
-        n_plus = (alpha_mixing_for_update * n_plus) + (1.0_dp - alpha_mixing_for_update) * n_plus_previous
-        
+
+        !print *, ""
+        !print *, "*****"
+        !print *, "iteration", iteration
+        !print *, "*****"
+        !print *, "n_neutral 0 ", n_neutral(100), n_neutral_previous(100)
+
+
+        !print *, "n_plus_previous(100) = ", n_plus_previous(100)
+        if(iteration > 1) then
+           n_plus = (alpha_mixing_for_update * n_plus) + (1.0_dp - alpha_mixing_for_update) * n_plus_previous
+           n_neutral = (alpha_mixing_for_update * n_neutral) + (1.0_dp - alpha_mixing_for_update) * n_neutral_previous
+           n_minus = (alpha_mixing_for_update * n_minus) + (1.0_dp - alpha_mixing_for_update) * n_minus_previous
+        end if
+
+        !print *, "n_neutral 0.5 ", n_neutral(100), n_neutral_previous(100)
+
+        !n_plus = 0.0_dp
+        n_neutral = 0.0_dp
+        !n_minus = 0.0_dp
+
+
         call CalculateLambdasDifference(lambda_plus, n_plus, lambda_neutral, n_neutral, lambda_minus, n_minus, ith_separation)
+
+        !print *, "lambda_plus = ", lambda_plus
+        !call abort()
 
         !lambda_plus = 0.0_dp
         !lambda_neutral = 0.0_dp
@@ -100,13 +123,25 @@ program runSingleSphere
         !print * , "lambda_neutral = ", lambda_neutral
         !print * , "lambda_minus = ", lambda_minus
         !call abort()
-        
+
+        print *, "n_plus = ", iteration,  n_plus
+        print *, "n_minus = ", n_minus
+        print *, "lambda_plus = ", lambda_plus
         call UpdateDensities(lambda_plus, n_plus_updated, lambda_neutral, n_neutral_updated, lambda_minus, n_minus_updated)
 
-        !print *, "n_plus_updated = ", n_plus_updated
-        !print *, "n_minus_updated = ", n_minus_updated
-        !call abort()
-        
+        print *, "n_plus_updated 1 = ", iteration,  n_plus_updated
+
+        call ReNormaliseToBulkDensity(n_plus_updated, "n+")
+        call ReNormaliseToBulkDensity(n_minus_updated, "n-")
+
+        print *, "n_plus_updated 2 = ", iteration,  n_plus_updated
+
+        do ij = 1, size(n_plus_updated)
+           if(isnan((n_plus_updated(ij)))) then
+              call abort()
+           end if
+        end do
+
         ! Now test convergence
         if(converged(n_plus_updated, n_plus, n_neutral_updated, n_neutral, n_minus_updated, n_minus)) then
 
@@ -162,19 +197,37 @@ program runSingleSphere
            call WriteOutputFormattedAsFunctionOfPosition(n_plus_updated + n_neutral_updated + n_minus_updated, trim(file_stub), &
                 "n_s_separation"//trim(str(plate_separations(ith_separation)))//"iteration"//trim(str(iteration)))
 
+
+           ! print *, "n_plus = ", n_plus
+           ! print *, "n_plus_updated = ", n_plus_updated
+
+
+           ! print *, "n_neutrals = ", n_neutral
+           ! print *, "n_neutral_updated = ", n_neutral_updated
+
+           ! print *, "n_minus = ", n_minus
+           ! print *, "n_minus_updated = ", n_minus_updated
+           ! call abort()
+
+
+
+
+
            n_plus_previous = n_plus
            n_neutral_previous = n_neutral
            n_minus_previous = n_minus
-           
+
            n_plus = n_plus_updated
            n_neutral = n_neutral_updated
            n_minus = n_minus_updated
+
+           !print *, "n_neutral = ", n_neutral(100), n_neutral_previous(100)
 
         end if
 
      end do !end iteration loop
 
-      print *, "Calculating grand potential per unit area value."
+     print *, "Calculating grand potential per unit area value."
      call CalculateGrandPotentialValuePerUnitArea(ith_separation, grand_potential_per_unit_area(ith_separation), &
           size(n_neutral_updated), n_plus_updated, n_neutral_updated, n_minus_updated)
 
@@ -186,7 +239,7 @@ program runSingleSphere
      print *, "integral_plus = ", integrate_z_cylindrical(n_plus_updated * (hs_diameter**2), unity_function)
      print *, "integral_neutral = ", integrate_z_cylindrical(n_neutral_updated * (hs_diameter**2), unity_function)
      print *, "integral_minus = ", integrate_z_cylindrical(n_minus_updated * (hs_diameter**2), unity_function)
-     
+
 
   end do !end loop over plate separation
 
@@ -207,7 +260,7 @@ program runSingleSphere
 
   negative_deriv_of_potential = CalculateNegativeDerivOfPotentialPerUnitAreaWRTSeparation(grand_potential_per_unit_area)
 
-  
+
   call WriteOutputFormattedAsFunctionOfPlateSeparation(grand_potential_per_unit_area, trim(file_stub), "potential-per-unit-area")
   call WriteOutputFormattedAsFunctionOfPlateSeparation(normal_pressure_left_wall, trim(file_stub), "normal-pressure-left-wall")
   call WriteOutputFormattedAsFunctionOfPlateSeparation(normal_pressure_right_wall, trim(file_stub), "normal-pressure-right-wall")
@@ -247,7 +300,7 @@ contains
     if(allocated(n_plus_previous)) deallocate(n_plus_previous)
     if(allocated(n_neutral_previous)) deallocate(n_neutral_previous)
     if(allocated(n_minus_previous)) deallocate(n_minus_previous)
-    
+
   end subroutine DeAllocateLocalVariables
 
 end program runSingleSphere
