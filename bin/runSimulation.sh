@@ -12,23 +12,24 @@ chi_parameter=1.0
 Epsilon_r=2.3
 Epsilon_LJ=100                         # ( = epsilon_LJ * k_{B})
 surface_charge_density_left_wall=0.003125
-surface_charge_density_right_wall=-0.003125
+surface_charge_density_right_wall=0.003125
 hs_diameter=2.4
 a_term_index=1
 bulk_density=0.2			# ( =n_{b} * [hs_diameter**3] )
 temp=294.0			        #Temperature in Kelvin
 alpha_mixing_for_update=1.0
-slope_for_initial_guess=0.00021
+slope_for_initial_guess=0.000
 #slope_for_initial_guess=0.0000
+n_charge_iterations=500
 positive_bead_charge=1.0
 negative_bead_charge=-1.0
 string_length=1.2			#
 n_points_per_hs_diameter=50			#number of discretised points
 max_iteration_limit=800
-iterative_tolerance=0.0000000001
+iterative_tolerance=0.00000001
 
-starting_plate_separation=5
-number_of_separations=50   #The number of plate separations we'll calculate.
+starting_plate_separation=10
+number_of_separations=1   #The number of plate separations we'll calculate.
 number_of_plate_separations_in_hs_diameter=50
 
 params_file=$test_file_stub.params
@@ -46,6 +47,7 @@ ${bulk_density}
 ${temp}
 ${alpha_mixing_for_update}
 ${slope_for_initial_guess}
+${n_charge_iterations}
 ${positive_bead_charge}
 ${negative_bead_charge}
 ${string_length}

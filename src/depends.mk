@@ -13,5 +13,6 @@ functionalderivatives.o: kinds.o universalconstants.o parameters.o helpers.o int
 constructoligomers.o: kinds.o integratephispherical.o parameters.o normalisation.o integratezcylindrical.o helpers.o lambdas.o
 contacttheorem.o: kinds.o helpers.o parameters.o discretederivatives.o functionalderivatives.o
 discretederivatives.o: kinds.o parameters.o
+chargeincrements.o: kinds.o parameters.o
 excessenergyfunctionalparameters.o: kinds.o universalconstants.o parameters.o
-ILsimulationssrclib.o: kinds.o universalconstants.o parameters.o integratephispherical.o integratezcylindrical.o iteration.o lambdas.o helpers.o io.o normalisation.o surfaceforces.o functionalderivatives.o constructoligomers.o contacttheorem.o discretederivatives.o excessenergyfunctionalparameters.o
+ILsimulationssrclib.o: kinds.o universalconstants.o parameters.o integratephispherical.o integratezcylindrical.o iteration.o lambdas.o helpers.o io.o normalisation.o surfaceforces.o functionalderivatives.o constructoligomers.o contacttheorem.o discretederivatives.o excessenergyfunctionalparameters.o chargeincrements.o

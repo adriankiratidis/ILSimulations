@@ -148,7 +148,7 @@ contains
     lambda_neutral(:) = lambda_neutral_bulk(:) - lambda_neutral(:)
     lambda_minus(:) = lambda_minus_bulk(:) - lambda_minus(:)
 
-    print *, "lambda_plus after= ", lambda_plus(26)
+    !print *, "lambda_plus after= ", lambda_plus(26)
     !print *, "lambda_minus after = ", lambda_minus(100)
     !call abort()
   end subroutine CalculateLambdasDifference
@@ -252,7 +252,7 @@ contains
        n_s(:) = bulk_density_positive_beads + bulk_density_neutral_beads + bulk_density_negative_beads
 
        hs_term = calculate_hardsphere_functional_deriv(n_s, .true.)
-       !van_der_waals_term = calculate_vanderWaals_functional_deriv(n_s)
+       van_der_waals_term = calculate_vanderWaals_functional_deriv(n_s)
 
     else
        n_s = n_plus + n_neutral + n_minus
@@ -262,7 +262,7 @@ contains
             ith_plate_separation, size(surface_fluid_dispersion_term))
 
        !print *, "surface_fluid_dispersion_term = ", surface_fluid_dispersion_term
-       !van_der_waals_term = calculate_vanderWaals_functional_deriv(n_s)
+       van_der_waals_term = calculate_vanderWaals_functional_deriv(n_s)
     end if
 
     !print *, "hs_term = ", hs_term(50)
@@ -316,13 +316,12 @@ contains
        surface_electrostatic_term = calculate_surface_electrostatic_functional_deriv(size(n_plus), positive_bead_charge)
 
 
-       !print *, "surface_electrostatic_term = ", surface_electrostatic_term(51)
        print *, "surface_electrostatic_term = ",  surface_electrostatic_term(26)
        print *, " like_electrostatic_term plus = ",  like_electrostatic_term(26)
        print *, "unlike_electrostatic_term plus = ", unlike_electrostatic_term(26)
        print *, "sum =",  (surface_electrostatic_term(26) + like_electrostatic_term(26) + &
             unlike_electrostatic_term(26)) * beta
-       
+
        !call abort()
 
     end if
@@ -395,11 +394,11 @@ contains
 
 
 
-    !print *, "minus terms"
-    !print *, "calculate_bulk = ", calculate_bulk
-    !print *, "surface_electrostatic_term(100) = ", surface_electrostatic_term(100)
-    !print *, "like_electrostatic_term(100) = ", like_electrostatic_term(100)
-    !print *, "unlike_electrostatic_term(100) = ", unlike_electrostatic_term(100)
+    ! print *, "minus terms"
+    ! print *, "calculate_bulk = ", calculate_bulk
+    ! print *, "surface_electrostatic_term(100) = ", surface_electrostatic_term(100)
+    ! print *, "like_electrostatic_term(100) = ", like_electrostatic_term(100)
+    ! print *, "unlike_electrostatic_term(100) = ", unlike_electrostatic_term(100)
     !call abort()
 
     CalculateLambdaMinusSpecificTerms = surface_electrostatic_term + like_electrostatic_term + unlike_electrostatic_term

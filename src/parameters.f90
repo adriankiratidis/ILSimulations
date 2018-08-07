@@ -42,6 +42,7 @@ module parameters
   public :: bulk_density_negative_beads
 
   public :: slope_for_initial_guess
+  public :: n_charge_iterations
   
   character(len=256) :: ionic_liquid_name 
   real(dp) :: chi_parameter
@@ -71,6 +72,7 @@ module parameters
   real(dp) :: bulk_density_negative_beads
 
   real(dp) :: slope_for_initial_guess
+  integer :: n_charge_iterations
   
 contains
 
@@ -97,6 +99,7 @@ contains
     read(file_unit, *) temperature
     read(file_unit, *) alpha_mixing_for_update
     read(file_unit, *) slope_for_initial_guess
+    read(file_unit, *) n_charge_iterations
     read(file_unit, *) positive_bead_charge
     read(file_unit, *) negative_bead_charge
     read(file_unit, *) string_length
@@ -139,6 +142,7 @@ contains
     print *,  "temperature = ", temperature
     print *,  "alpha_mixing_for_update = ", alpha_mixing_for_update
     print *,  "slope_for_initial_guess = ", slope_for_initial_guess
+    print *,  "n_charge_iterations = ", n_charge_iterations
     print *,  "positive_bead_charge = ", positive_bead_charge
     print *,  "negative_bead_charge = ", negative_bead_charge
     print *,  "string_length = ", string_length

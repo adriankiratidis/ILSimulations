@@ -21,6 +21,7 @@ program runSingleSphere
   real(dp), dimension(:), allocatable :: dispersion_particle_particle_adjust_to_contact_thm
 
   integer :: ij
+  integer :: icharge
   
   ! We use the standard notation of cj/aj to denote the contribution from bead j to the cation/anion
   ! as described in J. Phys. Chem C 2017, 121, 1742-1751. DOI: 10.1021/acs.jpcc.6b11491
@@ -79,153 +80,163 @@ program runSingleSphere
           n_neutral_updated, lambda_neutral, n_minus_updated, lambda_minus, n_plus_previous, n_neutral_previous, n_minus_previous)
      call SetToZero(n_plus_updated, lambda_plus, n_neutral_updated, lambda_neutral, n_minus_updated, lambda_minus)
 
-     print *, "Starting iteration.  Searching for convergence of density profiles."
-     iteration = 0
-     do while (iteration < MAX_ITERATION_LIMIT)
-        iteration = iteration + 1
-
-        !n_plus = 0.0_dp
-        !n_neutral = 0.0_dp
-        !n_minus = 0.0_dp
-
-        !print *, ""
-        !print *, "*****"
-        !print *, "iteration", iteration
-        !print *, "*****"
-        !print *, "n_neutral 0 ", n_neutral(100), n_neutral_previous(100)
+     call InitialiseChargeIncrement()
+     do icharge = 1, n_charge_iterations
+        call UpdateChargeIncrement()
 
 
-        !print *, "n_plus_previous(100) = ", n_plus_previous(100)
-        if(iteration > 1) then
-           n_plus = (alpha_mixing_for_update * n_plus) + (1.0_dp - alpha_mixing_for_update) * n_plus_previous
-           n_neutral = (alpha_mixing_for_update * n_neutral) + (1.0_dp - alpha_mixing_for_update) * n_neutral_previous
-           n_minus = (alpha_mixing_for_update * n_minus) + (1.0_dp - alpha_mixing_for_update) * n_minus_previous
-        end if
+        print *, "Starting iteration.  Searching for convergence of density profiles."
+        iteration = 0
+        do while (iteration < MAX_ITERATION_LIMIT)
+           iteration = iteration + 1
 
-        !print *, "n_neutral 0.5 ", n_neutral(100), n_neutral_previous(100)
+           !n_plus = 0.0_dp
+           !n_neutral = 0.0_dp
+           !n_minus = 0.0_dp
 
-        !n_plus = 0.0_dp
-        n_neutral = 0.0_dp
-        !n_minus = 0.0_dp
-
-
-        call CalculateLambdasDifference(lambda_plus, n_plus, lambda_neutral, n_neutral, lambda_minus, n_minus, ith_separation)
-
-        !print *, "lambda_plus = ", lambda_plus
-        !call abort()
-
-        !lambda_plus = 0.0_dp
-        !lambda_neutral = 0.0_dp
-        !lambda_minus = 0.0_dp
+           !print *, ""
+           !print *, "*****"
+           !print *, "iteration", iteration
+           !print *, "*****"
+           !print *, "n_neutral 0 ", n_neutral(100), n_neutral_previous(100)
 
 
-        !print * , "lambda_plus = ", lambda_plus
-        !print * , "lambda_neutral = ", lambda_neutral
-        !print * , "lambda_minus = ", lambda_minus
-        !call abort()
-
-        print *, "n_plus = ", iteration,  n_plus
-        print *, "n_minus = ", n_minus
-        print *, "lambda_plus = ", lambda_plus
-        call UpdateDensities(lambda_plus, n_plus_updated, lambda_neutral, n_neutral_updated, lambda_minus, n_minus_updated)
-
-        print *, "n_plus_updated 1 = ", iteration,  n_plus_updated
-
-        call ReNormaliseToBulkDensity(n_plus_updated, "n+")
-        call ReNormaliseToBulkDensity(n_minus_updated, "n-")
-
-        print *, "n_plus_updated 2 = ", iteration,  n_plus_updated
-
-        do ij = 1, size(n_plus_updated)
-           if(isnan((n_plus_updated(ij)))) then
-              call abort()
+           !print *, "n_plus_previous(100) = ", n_plus_previous(100)
+           if(iteration > 1) then
+              n_plus = (alpha_mixing_for_update * n_plus) + (1.0_dp - alpha_mixing_for_update) * n_plus_previous
+              n_neutral = (alpha_mixing_for_update * n_neutral) + (1.0_dp - alpha_mixing_for_update) * n_neutral_previous
+              n_minus = (alpha_mixing_for_update * n_minus) + (1.0_dp - alpha_mixing_for_update) * n_minus_previous
            end if
-        end do
 
-        ! Now test convergence
-        if(converged(n_plus_updated, n_plus, n_neutral_updated, n_neutral, n_minus_updated, n_minus)) then
+           !print *, "n_neutral 0.5 ", n_neutral(100), n_neutral_previous(100)
 
-           print *, ""
-           print *, "************************************************************"
-           print *, "runSingleSphere.x: Density calculations successfully converged."
-           print *, "took ", iteration, " iterations."
-           print *, "writing out density values to file"
-           print *, "************************************************************"
-           print *, ""
-
-           !Perform this update if we get the solution in one iteration.
-           !Possible in principle because we rescale the solution at the previous separation.
-           n_plus = n_plus_updated
-           n_neutral = n_neutral_updated
-           n_minus = n_minus_updated
-
-           call WriteOutputFormattedAsFunctionOfPosition(n_plus_updated, trim(file_stub), &
-                "n_plus_separation"//str(plate_separations(ith_separation)))
-           call WriteOutputFormattedAsFunctionOfPosition(n_neutral_updated, trim(file_stub), &
-                "n_neutral_separation"//str(plate_separations(ith_separation)))
-           call WriteOutputFormattedAsFunctionOfPosition(n_minus_updated, trim(file_stub), &
-                "n_minus_separation"//str(plate_separations(ith_separation)))
-
-           !Also print out the sum, n_s
-           call WriteOutputFormattedAsFunctionOfPosition(n_plus_updated + n_neutral_updated + n_minus_updated, trim(file_stub), &
-                "n_s_separation"//str(plate_separations(ith_separation)))
-           exit
-
-        else if(iteration == MAX_ITERATION_LIMIT) then
-
-           print *, "runSingleSphere.x: iteration == MAX_ITERATION_LIMIT"
-           print *, "Hit the iteration limit without converging"
-           print *, "Increase the iteration limit"
-           call abort()
-
-        else if(iteration > MAX_ITERATION_LIMIT) then
-
-           print *, "runSingleSphere.x: iteration > MAX_ITERATION_LIMIT"
-           print *, "This should never happen"
-           print *, "Coding error...aborting..."
-           call abort()
-
-        else !Update and proceed to the next iteration
-
-           call WriteOutputFormattedAsFunctionOfPosition(n_plus_updated, trim(file_stub), &
-                "n_plus_separation"//trim(str(plate_separations(ith_separation)))//"iteration"//trim(str(iteration)))
-           call WriteOutputFormattedAsFunctionOfPosition(n_neutral_updated, trim(file_stub), &
-                "n_neutral_separation"//trim(str(plate_separations(ith_separation)))//"iteration"//trim(str(iteration)))
-           call WriteOutputFormattedAsFunctionOfPosition(n_minus_updated, trim(file_stub), &
-                "n_minus_separation"//trim(str(plate_separations(ith_separation)))//"iteration"//trim(str(iteration)))
-
-           call WriteOutputFormattedAsFunctionOfPosition(n_plus_updated + n_neutral_updated + n_minus_updated, trim(file_stub), &
-                "n_s_separation"//trim(str(plate_separations(ith_separation)))//"iteration"//trim(str(iteration)))
+           !n_plus = 0.0_dp
+           n_neutral = 0.0_dp
+           !n_minus = 0.0_dp
 
 
-           ! print *, "n_plus = ", n_plus
-           ! print *, "n_plus_updated = ", n_plus_updated
+           call CalculateLambdasDifference(lambda_plus, n_plus, lambda_neutral, n_neutral, lambda_minus, n_minus, ith_separation)
+
+           !print *, "lambda_plus = ", lambda_plus
+           !call abort()
+
+           !lambda_plus = 0.0_dp
+           !lambda_neutral = 0.0_dp
+           !lambda_minus = 0.0_dp
 
 
-           ! print *, "n_neutrals = ", n_neutral
-           ! print *, "n_neutral_updated = ", n_neutral_updated
+           !print * , "lambda_plus = ", lambda_plus
+           !print * , "lambda_neutral = ", lambda_neutral
+           !print * , "lambda_minus = ", lambda_minus
+           !call abort()
 
-           ! print *, "n_minus = ", n_minus
-           ! print *, "n_minus_updated = ", n_minus_updated
-           ! call abort()
+           !print *, "n_plus = ", iteration,  n_plus
+           !print *, "n_minus = ", n_minus
+           !print *, "lambda_plus = ", lambda_plus
+           call UpdateDensities(lambda_plus, n_plus_updated, lambda_neutral, n_neutral_updated, lambda_minus, n_minus_updated)
+
+           !print *, "n_plus_updated 1 = ", iteration,  n_plus_updated
+
+           !call ReNormaliseToBulkDensity(n_plus_updated, "n+")
+           !call ReNormaliseToBulkDensity(n_minus_updated, "n-")
+
+           !print *, "n_plus_updated 2 = ", iteration,  n_plus_updated
+
+           do ij = 1, size(n_plus_updated)
+              if(isnan((n_plus_updated(ij)))) then
+                 print *, "DENSITY HAS A NAN......ABORTING..."
+                 call abort()
+              end if
+           end do
+
+           ! Now test convergence
+           if(converged(n_plus_updated, n_plus, n_neutral_updated, n_neutral, n_minus_updated, n_minus)) then
+
+              print *, ""
+              print *, "************************************************************"
+              print *, "runSingleSphere.x: Density calculations successfully converged."
+              print *, "took ", iteration, " iterations."
+              print *, "writing out density values to file"
+              print *, "************************************************************"
+              print *, ""
+              print *, "charge = ", positive_bead_charge, negative_bead_charge
+              
+              !Perform this update if we get the solution in one iteration.
+              !Possible in principle because we rescale the solution at the previous separation.
+              n_plus = n_plus_updated
+              n_neutral = n_neutral_updated
+              n_minus = n_minus_updated
+
+              call WriteOutputFormattedAsFunctionOfPosition(n_plus_updated, trim(file_stub), &
+                   "n_plus_separation"//trim(str(plate_separations(ith_separation)))//"charge"//trim(str(icharge)))
+              call WriteOutputFormattedAsFunctionOfPosition(n_neutral_updated, trim(file_stub), &
+                   "n_neutral_separation"//trim(str(plate_separations(ith_separation)))//"charge"//trim(str(icharge)))
+              call WriteOutputFormattedAsFunctionOfPosition(n_minus_updated, trim(file_stub), &
+                   "n_minus_separation"//trim(str(plate_separations(ith_separation)))//"charge"//trim(str(icharge)))
+
+              !Also print out the sum, n_s
+              call WriteOutputFormattedAsFunctionOfPosition(n_plus_updated + n_neutral_updated + n_minus_updated, trim(file_stub), &
+                   "n_s_separation"//str(plate_separations(ith_separation)))
+              exit
+
+           else if(iteration == MAX_ITERATION_LIMIT) then
+
+              print *, "runSingleSphere.x: iteration == MAX_ITERATION_LIMIT"
+              print *, "Hit the iteration limit without converging"
+              print *, "Increase the iteration limit"
+              call abort()
+
+           else if(iteration > MAX_ITERATION_LIMIT) then
+
+              print *, "runSingleSphere.x: iteration > MAX_ITERATION_LIMIT"
+              print *, "This should never happen"
+              print *, "Coding error...aborting..."
+              call abort()
+
+           else !Update and proceed to the next iteration
+
+              call WriteOutputFormattedAsFunctionOfPosition(n_plus_updated, trim(file_stub), &
+                   "n_plus_separation"//trim(str(plate_separations(ith_separation)))//"iteration"//trim(str(iteration)))
+              call WriteOutputFormattedAsFunctionOfPosition(n_neutral_updated, trim(file_stub), &
+                   "n_neutral_separation"//trim(str(plate_separations(ith_separation)))//"iteration"//trim(str(iteration)))
+              call WriteOutputFormattedAsFunctionOfPosition(n_minus_updated, trim(file_stub), &
+                   "n_minus_separation"//trim(str(plate_separations(ith_separation)))//"iteration"//trim(str(iteration)))
+
+              call WriteOutputFormattedAsFunctionOfPosition(n_plus_updated + n_neutral_updated + n_minus_updated, trim(file_stub), &
+                   "n_s_separation"//trim(str(plate_separations(ith_separation)))//"iteration"//trim(str(iteration)))
+
+
+              ! print *, "n_plus = ", n_plus
+              ! print *, "n_plus_updated = ", n_plus_updated
+
+
+              ! print *, "n_neutrals = ", n_neutral
+              ! print *, "n_neutral_updated = ", n_neutral_updated
+
+              ! print *, "n_minus = ", n_minus
+              ! print *, "n_minus_updated = ", n_minus_updated
+              ! call abort()
 
 
 
 
 
-           n_plus_previous = n_plus
-           n_neutral_previous = n_neutral
-           n_minus_previous = n_minus
+              n_plus_previous = n_plus
+              n_neutral_previous = n_neutral
+              n_minus_previous = n_minus
 
-           n_plus = n_plus_updated
-           n_neutral = n_neutral_updated
-           n_minus = n_minus_updated
+              n_plus = n_plus_updated
+              n_neutral = n_neutral_updated
+              n_minus = n_minus_updated
 
-           !print *, "n_neutral = ", n_neutral(100), n_neutral_previous(100)
+              !print *, "n_neutral = ", n_neutral(100), n_neutral_previous(100)
 
-        end if
+           end if
 
-     end do !end iteration loop
+        end do !end iteration loop
+
+     end do !end charge increment loop
+
 
      print *, "Calculating grand potential per unit area value."
      call CalculateGrandPotentialValuePerUnitArea(ith_separation, grand_potential_per_unit_area(ith_separation), &

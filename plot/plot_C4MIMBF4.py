@@ -12,7 +12,7 @@ import math
 plt.rc('text', usetex=True)
 plt.rc('font', family='serif')
 
-separation = 20
+separation = 10
 
 #Read in the data from "data.txt".  This will read in the whole file 
 #and if necessary arrange the data into a rank 2 array.

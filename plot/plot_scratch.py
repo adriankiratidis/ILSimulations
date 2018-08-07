@@ -12,7 +12,7 @@ import math
 plt.rc('text', usetex=True)
 plt.rc('font', family='serif')
 
-separation = 20
+separation = 10
 
 charge = "plus"
 
@@ -28,12 +28,12 @@ charge = "plus"
 #(Default python array indicies start at 0 unlike fortran which starts at 1.)
 #data_0 = np.loadtxt("../testing-n_" + charge + "_separation" + str(separation) + ".00000.txt")
 data_1 = np.loadtxt("../testing-n_" + charge + "_separation" + str(separation) + ".00000iteration1.txt")
-# data_2 = np.loadtxt("../testing-n_" + charge + "_separation" + str(separation) + ".00000iteration2.txt")
-# data_3 = np.loadtxt("../testing-n_" + charge + "_separation" + str(separation) + ".00000iteration3.txt")
-# data_4 = np.loadtxt("../testing-n_" + charge + "_separation" + str(separation) + ".00000iteration4.txt")
-# data_5 = np.loadtxt("../testing-n_" + charge + "_separation" + str(separation) + ".00000iteration5.txt")
-# data_6 = np.loadtxt("../testing-n_" + charge + "_separation" + str(separation) + ".00000iteration6.txt")
-# data_7 = np.loadtxt("../testing-n_" + charge + "_separation" + str(separation) + ".00000iteration7.txt")
+data_2 = np.loadtxt("../testing-n_" + charge + "_separation" + str(separation) + ".00000iteration2.txt")
+data_3 = np.loadtxt("../testing-n_" + charge + "_separation" + str(separation) + ".00000iteration3.txt")
+data_4 = np.loadtxt("../testing-n_" + charge + "_separation" + str(separation) + ".00000iteration4.txt")
+data_5 = np.loadtxt("../testing-n_" + charge + "_separation" + str(separation) + ".00000iteration5.txt")
+#data_6 = np.loadtxt("../testing-n_" + charge + "_separation" + str(separation) + ".00000iteration6.txt")
+#data_7 = np.loadtxt("../testing-n_" + charge + "_separation" + str(separation) + ".00000iteration7.txt")
 # data_8 = np.loadtxt("../testing-n_" + charge + "_separation" + str(separation) + ".00000iteration8.txt")
 # data_9 = np.loadtxt("../testing-n_" + charge + "_separation" + str(separation) + ".00000iteration9.txt")
 
@@ -43,17 +43,17 @@ data_1 = np.loadtxt("../testing-n_" + charge + "_separation" + str(separation) +
 x_1 = data_1[:,0]
 y_1 = data_1[:,1]
 
-# x_2 = data_2[:,0]
-# y_2 = data_2[:,1]
+x_2 = data_2[:,0]
+y_2 = data_2[:,1]
 
-# x_3 = data_3[:,0]
-# y_3 = data_3[:,1]
+x_3 = data_3[:,0]
+y_3 = data_3[:,1]
 
-# x_4 = data_4[:,0]
-# y_4 = data_4[:,1]
+x_4 = data_4[:,0]
+y_4 = data_4[:,1]
 
-# x_5 = data_5[:,0]
-# y_5 = data_5[:,1]
+x_5 = data_5[:,0]
+y_5 = data_5[:,1]
 
 # x_6 = data_6[:,0]
 # y_6 = data_6[:,1]
@@ -77,10 +77,10 @@ y_1 = data_1[:,1]
 #label='_nolegend_'
 #plt.plot(x_0,y_0,'rx',label='converged profile')
 plt.plot(x_1,y_1,'bx',label='iteration1')
-#plt.plot(x_2,y_2,'go',label='iteration2')
-#plt.plot(x_3,y_3,'rs',label='iteration3')
-#plt.plot(x_4,y_4,'ch',label='iteration4')
-#plt.plot(x_5,y_5,'m*',label='iteration5')
+plt.plot(x_2,y_2,'go',label='iteration2')
+plt.plot(x_3,y_3,'rs',label='iteration3')
+plt.plot(x_4,y_4,'ch',label='iteration4')
+plt.plot(x_5,y_5,'m*',label='iteration5')
 #plt.plot(x_6,y_6,'y<',label='iteration6')
 #plt.plot(x_7,y_7,'k>',label='iteration7')
 #plt.plot(x_8,y_8,'w^',label='iteration8')

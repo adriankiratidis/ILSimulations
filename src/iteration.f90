@@ -91,12 +91,12 @@ contains
                   size(n2(start_z_index:end_z_index))
              bulk_value = sum(n2(start_z_index:end_z_index))/size(n2(start_z_index:end_z_index))
 
-             if(av_sq_diff == 0.0_dp) then
-                print *, "iteration.f90: converged: "
-                print *, "average squared difference between dneisty and updated_density == 0.0_dp"
-                print *, "would appear to be a coding bug...aborting..."
-                !call abort()
-             end if
+             ! if(av_sq_diff == 0.0_dp) then
+             !    print *, "iteration.f90: converged: "
+             !    print *, "average squared difference between dneisty and updated_density == 0.0_dp"
+             !    print *, "would appear to be a coding bug...aborting..."
+             !    !call abort()
+             ! end if
 
              if(av_sq_diff <= iterative_tolerance*bulk_value) then
                 n2_converged = .true.
@@ -504,7 +504,7 @@ contains
     !print *, "printing charge and array" 
     !print *, charge, array(midpoint)*(hs_diameter**3), array*(hs_diameter**3)
     
-    !array(:) = bulk_density_positive_beads
+    array(:) = bulk_density_positive_beads
   end subroutine InitialiseIntegrationAnsatz
 
 end module iteration
