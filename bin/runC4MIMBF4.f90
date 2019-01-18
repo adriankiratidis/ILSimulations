@@ -13,6 +13,7 @@ program runSingleSphere
   !Here we define lambda_{i} = e^{l^{i}_{b} - l^{i}(r) where l^{i}(r) = dF/dn_{i} for example
   !and l^{i}_{b} is the value in the bulk.
   real(dp), dimension(:), allocatable :: lambda_plus, lambda_neutral, lambda_minus
+  real(dp), dimension(:), allocatable :: lambda_hs_end, lambda_hs_nonend
 
   real(dp), dimension(:), allocatable :: grand_potential_per_unit_area, grand_potential_per_unit_area_in_bulk
   real(dp), dimension(:), allocatable :: normal_pressure_left_wall, normal_pressure_right_wall
@@ -81,9 +82,9 @@ program runSingleSphere
 
      print *, "Initialise/ReInitialise Discretisation for all the temperary variables we need."
      call InitialiseVariableDiscretisation(ith_separation, n_plus_updated, lambda_plus, &
-          n_neutral_updated, lambda_neutral, n_minus_updated, lambda_minus, n_plus_previous, n_neutral_previous, n_minus_previous)
+          n_neutral_updated, lambda_neutral, n_minus_updated, lambda_minus, n_plus_previous, n_neutral_previous, n_minus_previous, lambda_hs_end, lambda_hs_nonend)
      call SetToZero(n_plus_updated, lambda_plus, n_neutral_updated, lambda_neutral, n_minus_updated, lambda_minus)
-
+     call SetToZero(lambda_hs_end, lambda_hs_nonend)     
      if(ith_separation == 1) then
         call ImposeChargeNeutrality(n_plus, n_neutral, n_minus, Donnan_potential, abort_now)
      end if
@@ -112,7 +113,7 @@ program runSingleSphere
            !print *, "n_neutral integral = ", n_neutral_updated
            !print *, "n_minus integral = ", integrate_z_cylindrical(negative_bead_charge*n_minus, "all_z")
 
-           call CalculateLambdasDifference(lambda_plus, n_plus, lambda_neutral, n_neutral, lambda_minus, n_minus, ith_separation)
+           call CalculateLambdasDifference(lambda_plus, n_plus, lambda_neutral, n_neutral, lambda_minus, n_minus, ith_separation, lambda_hs_end, lambda_hs_nonend)
 
            !print *, "lambda_plus = ", lambda_plus
            !call abort()
@@ -344,6 +345,8 @@ contains
     if(allocated(lambda_plus)) deallocate(lambda_plus)
     if(allocated(lambda_neutral)) deallocate(lambda_neutral)
     if(allocated(lambda_minus)) deallocate(lambda_minus)
+    if(allocated(lambda_hs_end)) deallocate(lambda_hs_end)
+    if(allocated(lambda_hs_nonend)) deallocate(lambda_hs_nonend)
     if(allocated(grand_potential_per_unit_area)) deallocate(grand_potential_per_unit_area)
     if(allocated(grand_potential_per_unit_area_in_bulk)) deallocate(grand_potential_per_unit_area_in_bulk)
     if(allocated(normal_pressure_left_wall)) deallocate(normal_pressure_left_wall)

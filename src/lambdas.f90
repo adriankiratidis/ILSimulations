@@ -107,7 +107,7 @@ contains
 
   end subroutine CalculateLambdasBulk
 
-  subroutine CalculateLambdasDifference(lambda_plus, n_plus, lambda_neutral, n_neutral, lambda_minus, n_minus, ith_plate_separation)
+  subroutine CalculateLambdasDifference(lambda_plus, n_plus, lambda_neutral, n_neutral, lambda_minus, n_minus, ith_plate_separation, lambda_hs_end, lambda_hs_nonend)
     real(dp), dimension(:), intent(out) :: lambda_plus
     real(dp), dimension(:), intent(in)  :: n_plus
 
@@ -118,6 +118,10 @@ contains
     real(dp), dimension(:), intent(in)  :: n_minus
     integer, intent(in)                 :: ith_plate_separation
 
+    !Variables for hs calculation.  End and non-end monomer density needed.
+    real(dp), dimension(:), intent(out) :: lambda_hs_end
+    real(dp), dimension(:), intent(out) :: lambda_hs_nonend
+    
     real(dp), dimension(size(lambda_plus)) :: lambda_plus_bulk
     real(dp), dimension(size(lambda_plus)) :: lambda_neutral_bulk
     real(dp), dimension(size(lambda_plus)) :: lambda_minus_bulk

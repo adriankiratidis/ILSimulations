@@ -4728,6 +4728,9 @@ contains
     real(dp), dimension(:), intent(in) :: n_minus
     integer, intent(in) :: ith_plate_separation
 
+    !real(dp), dimension(size(n_plus)) :: lambda_hs_end
+    !real(dp), dimension(size(n_plus)) :: lambda_hs_nonend
+
     real(dp) :: calculate_chem_potential_term_neutral_dimers
 
     real(dp), dimension(size(n_plus)) :: lambda_plus
@@ -4753,7 +4756,7 @@ contains
        call abort()
     end if
 
-    call CalculateLambdasDifference(lambda_plus, n_plus, lambda_neutral, n_neutral, lambda_minus, n_minus, ith_plate_separation)
+    !call CalculateLambdasDifference(lambda_plus, n_plus, lambda_neutral, n_neutral, lambda_minus, n_minus, ith_plate_separation, lambda_hs_end, lambda_hs_nonend)
 
     ! calculate_chem_potential_term_neutral_dimers = (1.0_dp/beta) * (log(bulk_density) + (2.0_dp * lambda)) * bulk_density * &
     !      integrate_z_cylindrical(integrate_phi_spherical(exp(lambda_neutral)) * exp(lambda_neutral), unity_function)
@@ -4881,8 +4884,10 @@ contains
     real(dp), dimension(:), intent(in) :: n_neutral
     real(dp), dimension(:), intent(in) :: n_minus
     integer, intent(in) :: ith_plate_separation
-
     real(dp), intent(in) :: Donnan_potential
+
+    !real(dp), dimension(size(n_plus)) :: lambda_hs_end
+    !real(dp), dimension(size(n_plus)) :: lambda_hs_nonend
 
     real(dp) :: calculate_chem_potential_PositiveNeutralDimerMinusSpheres
 
@@ -4939,7 +4944,7 @@ contains
     !      integrate_z_cylindrical(n_minus, unity_function))
 
 
-    call CalculateLambdasDifference(lambda_plus, n_plus, lambda_neutral, n_neutral, lambda_minus, n_minus, ith_plate_separation)
+    !call CalculateLambdasDifference(lambda_plus, n_plus, lambda_neutral, n_neutral, lambda_minus, n_minus, ith_plate_separation, lambda_hs_end, lambda_hs_nonend)
 
 
     !integrand(:) = integrate_phi_spherical(exp(lambda_neutral))
@@ -5033,7 +5038,7 @@ contains
        call abort()
     end if
 
-    !call CalculateLambdasDifference(lambda_plus, n_plus, lambda_neutral, n_neutral, lambda_minus, n_minus, ith_plate_separation)
+    !call CalculateLambdasDifference(lambda_plus, n_plus, lambda_neutral, n_neutral, lambda_minus, n_minus, ith_plate_separation, lambda_hs_end, lambda_hs_nonend)
 
     ! calculate_chem_potential_PositiveNeutralDoubleDimerMinusDimer = (1.0_dp/beta) * (&
     !      (log(bulk_density) + ((2.0_dp * lambda_plus_bulk) + (2.0_dp * lambda_neutral_bulk))) * &
@@ -5114,7 +5119,7 @@ contains
        call abort()
     end if
 
-    !call CalculateLambdasDifference(lambda_plus, n_plus, lambda_neutral, n_neutral, lambda_minus, n_minus, ith_plate_separation)
+    !call CalculateLambdasDifference(lambda_plus, n_plus, lambda_neutral, n_neutral, lambda_minus, n_minus, ith_plate_separation, lambda_hs_end, lambda_hs_nonend)
 
     !calculate_chem_potential_C4MIMBF4 = 0.0_dp
 
@@ -5175,8 +5180,10 @@ contains
     integer, intent(in) :: ith_plate_separation
     real(dp), intent(in) :: Donnan_potential
 
+    !real(dp), dimension(size(n_plus)) :: lambda_hs_end
+    !real(dp), dimension(size(n_plus)) :: lambda_hs_nonend
+    
     real(dp) :: calculate_chem_potential_C4MIMTFSI_model1
-
 
     real(dp), dimension(size(n_plus)) :: lambda_plus
     real(dp), dimension(size(n_neutral)) :: lambda_neutral
@@ -5221,7 +5228,7 @@ contains
        call abort()
     end if
 
-    call CalculateLambdasDifference(lambda_plus, n_plus, lambda_neutral, n_neutral, lambda_minus, n_minus, ith_plate_separation)
+    !call CalculateLambdasDifference(lambda_plus, n_plus, lambda_neutral, n_neutral, lambda_minus, n_minus, ith_plate_separation, lambda_hs_end, lambda_hs_nonend)
 
     !calculate_chem_potential_C4MIMBF4 = 0.0_dp
 
@@ -5251,6 +5258,9 @@ contains
     integer, intent(in) :: ith_plate_separation
     real(dp), intent(in) :: Donnan_potential
 
+    !real(dp), dimension(size(n_plus)) :: lambda_hs_end
+    !real(dp), dimension(size(n_plus)) :: lambda_hs_nonend
+    
     real(dp) :: calculate_chem_potential_C4MIMTFSI_model2
 
 
@@ -5297,7 +5307,7 @@ contains
        call abort()
     end if
 
-    call CalculateLambdasDifference(lambda_plus, n_plus, lambda_neutral, n_neutral, lambda_minus, n_minus, ith_plate_separation)
+    !call CalculateLambdasDifference(lambda_plus, n_plus, lambda_neutral, n_neutral, lambda_minus, n_minus, ith_plate_separation, lambda_hs_end, lambda_hs_nonend)
 
     !calculate_chem_potential_C4MIMBF4 = 0.0_dp
 
