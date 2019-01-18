@@ -16,15 +16,19 @@ module contacttheorem
 
 contains
 
-  subroutine CalculateNormalPressureFromContactTheorem(n_s, &
+  subroutine CalculateNormalPressureFromContactTheorem(n_plus, n_neutral, n_minus, &
        normal_pressure_left_wall, normal_pressure_right_wall, dispersion_particle_particle_adjust_to_contact_thm)
-    real(dp), dimension(:), intent(in) :: n_s
+    real(dp), dimension(:), intent(in) :: n_plus
+    real(dp), dimension(:), intent(in) :: n_neutral
+    real(dp), dimension(:), intent(in) :: n_minus
     real(dp), intent(out) :: normal_pressure_left_wall
     real(dp), intent(out) :: normal_pressure_right_wall
     real(dp), intent(out) :: dispersion_particle_particle_adjust_to_contact_thm
 
-    real(dp), dimension(size(n_s)) :: left_wall_dispersion_integrand
-    real(dp), dimension(size(n_s)) :: right_wall_dispersion_integrand
+    real(dp), dimension(size(n_plus)) :: n_s
+
+    real(dp), dimension(size(n_plus)) :: left_wall_dispersion_integrand
+    real(dp), dimension(size(n_plus)) :: right_wall_dispersion_integrand
 
     real(dp) :: maxwell_stress_term_left_wall
     real(dp) :: maxwell_stress_term_right_wall
@@ -32,13 +36,13 @@ contains
     integer :: start_z_index
     integer :: end_z_index
 
-    ! !First check the sizes are the same
-    ! if( (size(n_plus) /= size(n_neutral)) .or. (size(n_plus) /= size(n_minus)) ) then
-    !    print *, "contacttheorem.f90:CalculateNormalPressureFromContactTheorem: "
-    !    print *, "(size(n_plus) /= size(n_neutral)) .or. (size(n_plus) /= size(n_minus))"
-    !    print *, "Density array size mismatch...aborting..."
-    !   call abort()
-    ! end if
+    !First check the sizes are the same
+    if( (size(n_plus) /= size(n_neutral)) .or. (size(n_plus) /= size(n_minus)) ) then
+       print *, "contacttheorem.f90:CalculateNormalPressureFromContactTheorem: "
+       print *, "(size(n_plus) /= size(n_neutral)) .or. (size(n_plus) /= size(n_minus))"
+       print *, "Density array size mismatch...aborting..."
+       call abort()
+    end if
 
     left_wall_dispersion_integrand = 0.0_dp
     right_wall_dispersion_integrand = 0.0_dp

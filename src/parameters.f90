@@ -5,11 +5,8 @@ module parameters
   implicit none
   public
 
-  !Public Subroutines
   public :: InitialiseModelParameters
-  public :: SetBulkDensityOfEndMonomers
 
-  !Public Variables
   public :: ionic_liquid_name 
 
   ! 'd' = chi_parameter * hs_diameter provides the only adjusted
@@ -78,6 +75,7 @@ module parameters
   integer  :: max_iteration_limit
   real(dp) :: beta
   real(dp) :: alpha_mixing_for_update
+
   real(dp) :: bulk_density_positive_beads
   real(dp) :: bulk_density_neutral_beads
   real(dp) :: bulk_density_negative_beads
@@ -528,65 +526,6 @@ contains
     negative_oligomer_charge = 2.0_dp * negative_bead_charge
 
   end subroutine SetDimerDoubleDimerBeadDensityFromBulkIonDensity
-
-  subroutine SetBulkDensityOfEndMonomers(n_plus_total, n_plus_end, n_neutral_total, n_neutral_end, n_minus_total, n_minus_end)
-    real(dp), dimension(:), intent(in) :: n_plus_total
-    real(dp), dimension(:), intent(out) :: n_plus_end
-    real(dp), dimension(:), intent(in) :: n_neutral_total
-    real(dp), dimension(:), intent(out) :: n_neutral_end
-    real(dp), dimension(:), intent(in) :: n_minus_total
-    real(dp), dimension(:), intent(out) :: n_minus_end
-
-    if(trim(ionic_liquid_name) == "SingleNeutralSpheres") then
-       n_plus_end = n_plus_total
-       n_neutral_end = n_neutral_total
-       n_minus_end = n_minus_total
-
-    else if(trim(ionic_liquid_name) == "SinglePositiveSpheres") then
-       n_plus_end = n_plus_total
-       n_neutral_end = n_neutral_total
-       n_minus_end = n_minus_total
-
-    else if(trim(ionic_liquid_name) == "SingleNegativeSpheres") then
-       n_plus_end = n_plus_total
-       n_neutral_end = n_neutral_total
-       n_minus_end = n_minus_total
-
-    else if(trim(ionic_liquid_name) == "NeutralDimers") then
-       n_plus_end = n_plus_total
-       n_neutral_end = n_neutral_total
-       n_minus_end = n_minus_total
-
-    else if(trim(ionic_liquid_name) == "C4MIM_BF4-") then
-       n_plus_end = 0.4_dp * n_plus_total
-       n_neutral_end = 0.4_dp * n_neutral_total
-       n_minus_end = 0.8_dp * n_minus_total
-
-    else if(trim(ionic_liquid_name) == "PositiveMinusSpheres") then
-       n_plus_end = n_plus_total
-       n_neutral_end = n_neutral_total
-       n_minus_end = n_minus_total
-
-    else if(trim(ionic_liquid_name) == "PositiveNeutralDimerMinusSpheres") then
-       n_plus_end = n_plus_total
-       n_neutral_end = n_neutral_total
-       n_minus_end = n_minus_total
-
-    else if(trim(ionic_liquid_name) == "PositiveNeutralDoubleDimerMinusDimer") then
-       n_plus_end = 0.5_dp * n_plus_total
-       n_neutral_end = 0.5_dp * n_neutral_total
-       n_minus_end = n_minus_total
-
-    else
-       print *, "parameters.f90: SetBeadDensityFromBulkIonDensity:"
-       print *, "Unsupported 'ionic_liquid_name' value of ", trim(ionic_liquid_name)
-       print *, "...aborting..."
-       call abort()
-    end if
-
-  end subroutine SetBulkDensityOfEndMonomers
-
-
 
   subroutine CheckValidityOfPlateSeparations()
 

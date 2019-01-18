@@ -11,7 +11,6 @@ module excessenergyfunctionalparameters
 
   public :: GetAEx
   public :: GetAExDerivIntegrand
-  public :: GetYMix
 
   real(dp) :: sigma_monomer
   real(dp) :: sigma_solvent
@@ -244,11 +243,10 @@ contains
 
   end function GetAExDerivIntegrand
 
-  function GetYMix(n_mbar, n_sbar, alpha, r)
+  function GetYMix(n_mbar, n_sbar, alpha)
     real(dp), dimension(:), intent(in) :: n_mbar
     real(dp), dimension(:), intent(in) :: n_sbar
     character(len=1), intent(in) :: alpha
-    integer, intent(in) :: r
     real(dp), dimension(size(n_mbar)) :: GetYMix
 
     real(dp), dimension(size(n_mbar)) :: phi_m
@@ -256,11 +254,6 @@ contains
     real(dp) :: q
     real(dp) :: sigma_alpha
 
-    real(dp) :: v_1_alpha
-    real(dp) :: v_2_alpha
-    real(dp) :: v_3_alpha
-    real(dp) :: v_r_alpha
-    
     call InitialiseHardSphereDiameters(sigma_monomer, sigma_solvent)
 
     ! if(trim(alpha) == 'm') then
@@ -297,7 +290,7 @@ contains
     real(dp), intent(out) :: sigma_solvent
     
     sigma_monomer = hs_diameter
-    sigma_solvent = 0.0_dp
+    sigma_solvent = hs_diameter
     
   end subroutine InitialiseHardSphereDiameters
   

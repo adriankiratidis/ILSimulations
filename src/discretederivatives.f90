@@ -14,9 +14,8 @@ contains
   !Calculate the central difference, unless we are at the beginning
   !or end of the walls in which case we take the appropriate forward
   !or backward difference.
-  function calculate_central_difference(input_array, wrt)
+  function calculate_central_difference(input_array)
     real(dp), dimension(:), intent(in) :: input_array
-    character(len=*), intent(in), optional :: wrt
     real(dp), dimension(size(input_array)) :: calculate_central_difference
 
     integer :: ij
@@ -42,61 +41,29 @@ contains
        return
     end if
 
-    if(present(wrt) .and. trim(wrt) == 'z')then
-       
-       !Calculate the central difference whenever we can
-       do ij = 2, size(input_array) - 1
-          calculate_central_difference(ij) = ( input_array(ij+1) - input_array(ij-1) ) / &
-               ( 2.0_dp * hs_diameter / n_discretised_points_z)
-       end do
+    !Calculate the central difference whenever we can
+    do ij = 2, size(input_array) - 1
+       calculate_central_difference(ij) = ( input_array(ij+1) - input_array(ij-1) ) / &
+            ( abs(plate_separations(ij+1) - plate_separations(ij-1)) * hs_diameter)
+    end do
 
-       !If we are at the first array point, we can't do a central difference,
-       !therefore, we calculate the forward difference.
-       calculate_central_difference(1) = ( input_array(2) - input_array(1) ) / &
-            ( hs_diameter / n_discretised_points_z )
+    !If we are at the first array point, we can't do a central difference,
+    !therefore, we calculate the forward difference.
+    calculate_central_difference(1) = ( input_array(2) - input_array(1) ) / &
+         ( abs(plate_separations(2) - plate_separations(1)) * hs_diameter)
 
-       !If we are at the last array point, we can't do a central difference,
-       !therefore, we calculate the backward difference.
-       calculate_central_difference(size(input_array)) = &
-            ( input_array(size(input_array)) - input_array(size(input_array) - 1) ) / &
-            ( hs_diameter / n_discretised_points_z )
-
-    else !calculate derivative wrt plate_separations h
-
-       !Check input_array is the correct size
-       if(size(input_array) /= size(plate_separations)) then
-          print *, "discretederivatives.f90: calculate_central_difference: "
-          print *, "size(input_array) /= size(plate_separations)"
-          print *, "size mismatch....likely coding error...aborting..."
-          call abort()
-       end if
-
-       !Calculate the central difference whenever we can
-       do ij = 2, size(input_array) - 1
-          calculate_central_difference(ij) = ( input_array(ij+1) - input_array(ij-1) ) / &
-               ( abs(plate_separations(ij+1) - plate_separations(ij-1)) * hs_diameter)
-       end do
-
-       !If we are at the first array point, we can't do a central difference,
-       !therefore, we calculate the forward difference.
-       calculate_central_difference(1) = ( input_array(2) - input_array(1) ) / &
-            ( abs(plate_separations(2) - plate_separations(1)) * hs_diameter)
-
-       !If we are at the last array point, we can't do a central difference,
-       !therefore, we calculate the backward difference.
-       calculate_central_difference(size(input_array)) = &
-            ( input_array(size(input_array)) - input_array(size(input_array) - 1) ) / &
-            ( abs(plate_separations(size(input_array)) - plate_separations(size(input_array) - 1)) * hs_diameter)
-
-    end if
+    !If we are at the last array point, we can't do a central difference,
+    !therefore, we calculate the backward difference.
+    calculate_central_difference(size(input_array)) = &
+         ( input_array(size(input_array)) - input_array(size(input_array) - 1) ) / &
+         ( abs(plate_separations(size(input_array)) - plate_separations(size(input_array) - 1)) * hs_diameter)
 
   end function calculate_central_difference
 
   !Calculate the backward difference unless we are at the start point in
   !which case we calculate the forward difference.
-  function calculate_backward_difference(input_array, wrt)
+  function calculate_backward_difference(input_array)
     real(dp), dimension(:), intent(in) :: input_array
-    character(len=*), intent(in), optional :: wrt
     real(dp), dimension(size(input_array)) :: calculate_backward_difference
 
     integer :: ij
@@ -112,7 +79,7 @@ contains
     !If the input_array size is one we can't calculate any derivatives
     !but we may still want the density profile. So print a warning and set the derivative to 0.
     if(size(input_array) == 1) then
-       print *, "discretederivatives.f90: calculate_backward_difference: "
+       print *, "discretederivatives.f90: calculate_central_difference: "
        print *, "trying to calculate a discrete derivative with only one point"
        print *, "not possible.  Setting the derivative to 0 and returning as we"
        print *, "may want the density profile."
@@ -120,47 +87,24 @@ contains
        return
     end if
 
-    if(present(wrt) .and. trim(wrt) == 'z') then
+    calculate_backward_difference = 0.0_dp
 
-       !Calculate the backward difference whenever we can.
-       do ij = 2, size(input_array)
-          calculate_backward_difference(ij) = ( input_array(ij) - input_array(ij-1) ) / &
-               ( hs_diameter / n_discretised_points_z )
-       end do
+    !Calculat the backward difference whenever we can.
+    do ij = 2, size(input_array)
+       calculate_backward_difference(ij) = ( input_array(ij) - input_array(ij-1) ) / &
+            ( abs(plate_separations(ij) - plate_separations(ij-1)) * hs_diameter)
+    end do
 
-       !On the first point, we can't calculate the backward difference so calculate the forward difference.
-       calculate_backward_difference(1) = ( input_array(2) - input_array(1) ) / &
-            ( hs_diameter / n_discretised_points_z )
-
-    else !calculate derivative wrt plate_separations h
-
-       !Check input_array is the correct size
-       if(size(input_array) /= size(plate_separations)) then
-          print *, "discretederivatives.f90: calculate_backward_difference: "
-          print *, "size(input_array) /= size(plate_separations)"
-          print *, "size mismatch....likely coding error...aborting..."
-          call abort()
-       end if
-
-       !Calculat the backward difference whenever we can.
-       do ij = 2, size(input_array)
-          calculate_backward_difference(ij) = ( input_array(ij) - input_array(ij-1) ) / &
-               ( abs(plate_separations(ij) - plate_separations(ij-1)) * hs_diameter)
-       end do
-
-       !On the first point, we can't calculate the backward difference so calculate the forward difference.
-       calculate_backward_difference(1) = ( input_array(2) - input_array(1) ) / &
-            ( abs(plate_separations(2) - plate_separations(1)) * hs_diameter)
-
-    end if
+    !On the first point, we can't calculate the backward difference so calculate the forward difference.
+    calculate_backward_difference(1) = ( input_array(2) - input_array(1) ) / &
+         ( abs(plate_separations(2) - plate_separations(1)) * hs_diameter)
 
   end function calculate_backward_difference
 
   !Calculate the forward difference unless we are at the endpoint
   !in which case we calculate the backward difference.
-  function calculate_forward_difference(input_array, wrt)
+  function calculate_forward_difference(input_array)
     real(dp), dimension(:), intent(in) :: input_array
-    character(len=*), intent(in), optional :: wrt
     real(dp), dimension(size(input_array)) :: calculate_forward_difference
 
     integer :: ij
@@ -176,7 +120,7 @@ contains
     !If the input_array size is one we can't calculate any derivatives
     !but we may still want the density profile. So print a warning and set the derivative to 0.
     if(size(input_array) == 1) then
-       print *, "discretederivatives.f90: calculate_forward_difference: "
+       print *, "discretederivatives.f90: calculate_central_difference: "
        print *, "trying to calculate a discrete derivative with only one point"
        print *, "not possible.  Setting the derivative to 0 and returning as we"
        print *, "may want the density profile."
@@ -184,41 +128,19 @@ contains
        return
     end if
 
-    if(present(wrt) .and. trim(wrt) == 'z') then
+    calculate_forward_difference = 0.0_dp
 
-       !Calculate the forward difference whenever we can
-       do ij = 1, size(input_array) - 1
-          calculate_forward_difference(ij) = ( input_array(ij + 1) - input_array(ij) ) / &
-               ( hs_diameter / n_discretised_points_z )
-       end do
+    !Calculate the forward difference whenever we can
+    do ij = 1, size(input_array) - 1
+       calculate_forward_difference(ij) = ( input_array(ij + 1) - input_array(ij) ) / &
+            ( abs(plate_separations(ij+1) - plate_separations(ij)) * hs_diameter)
+    end do
 
-       !On the end point, we can't do the forward difference, therefore do the backward difference.
-       calculate_forward_difference(size(input_array)) = &
-            ( input_array(size(input_array)) - input_array(size(input_array) - 1) ) / &
-            ( hs_diameter / n_discretised_points_z )
+    !On the end point, we can't do the forward difference, therefore do the backward difference.
+    calculate_forward_difference(size(input_array)) = &
+         ( input_array(size(input_array)) - input_array(size(input_array) - 1) ) / &
+         ( abs(plate_separations(size(input_array)) - plate_separations(size(input_array) - 1)) * hs_diameter)
 
-    else !calculate derivative wrt plate_separations h
-
-       !Check input_array is the correct size
-       if(size(input_array) /= size(plate_separations)) then
-          print *, "discretederivatives.f90: calculate_forward_difference: "
-          print *, "size(input_array) /= size(plate_separations)"
-          print *, "size mismatch....likely coding error...aborting..."
-          call abort()
-       end if
-
-       !Calculate the forward difference whenever we can
-       do ij = 1, size(input_array) - 1
-          calculate_forward_difference(ij) = ( input_array(ij + 1) - input_array(ij) ) / &
-               ( abs(plate_separations(ij+1) - plate_separations(ij)) * hs_diameter)
-       end do
-
-       !On the end point, we can't do the forward difference, therefore do the backward difference.
-       calculate_forward_difference(size(input_array)) = &
-            ( input_array(size(input_array)) - input_array(size(input_array) - 1) ) / &
-            ( abs(plate_separations(size(input_array)) - plate_separations(size(input_array) - 1)) * hs_diameter)
-
-    end if
   end function calculate_forward_difference
 
 end module discretederivatives

@@ -8,7 +8,6 @@ module functionalderivatives
   use integratezcylindrical
   use io
   use excessenergyfunctionalparameters
-  use discretederivatives
   implicit none
   private
 
@@ -26,12 +25,9 @@ module functionalderivatives
 
 contains
 
-  function calculate_hardsphere_functional_deriv(n_i_total, n_i_end, n_s, calculate_bulk, r)
-    real(dp), dimension(:), intent(in) :: n_i_total
-    real(dp), dimension(:), intent(in) :: n_i_end
+  function calculate_hardsphere_functional_deriv(n_s, calculate_bulk)
     real(dp), dimension(:), intent(in) :: n_s
     logical, intent(in)                :: calculate_bulk
-    integer, intent(in) :: r
     real(dp), dimension(size(n_s)) :: calculate_hardsphere_functional_deriv
 
     real(dp), dimension(size(n_s)) :: n_mbar, n_sbar
@@ -52,112 +48,72 @@ contains
     !Ensure that we only integrate from hs_diameter/2 up to h - hs_diameter/2
     call get_allowed_z_values(start_z_index, end_z_index, size(n_s))
 
-    ! if(calculate_bulk) then !n_s input parameter is the bulk value so
-
-    !    calculate_hardsphere_functional_deriv(start_z_index:end_z_index) = (0.5_dp / beta) * (&
-    !         GetAEx(n_s(start_z_index:end_z_index), n_sbar(start_z_index:end_z_index), a_term_index) + &
-    !         (((4.0_dp * pi * (hs_diameter**3))/3.0_dp) * ((n_s(start_z_index:end_z_index)) * &
-    !         GetAExDerivIntegrand(n_s(start_z_index:end_z_index), n_sbar(start_z_index:end_z_index), a_term_index))))
-
-    ! else
-
-    !    integrand(start_z_index:end_z_index) = n_s(start_z_index:end_z_index) * &
-    !         GetAExDerivIntegrand(n_mbar(start_z_index:end_z_index), n_sbar(start_z_index:end_z_index), a_term_index)
-
-    !    integral(:) = calculate_n_sbar(integrand(:))
-
-    !    calculate_hardsphere_functional_deriv(start_z_index:end_z_index) = (0.5_dp / beta) * (&
-    !         GetAEx(n_mbar(start_z_index:end_z_index), n_sbar(start_z_index:end_z_index), a_term_index) + &
-    !         (((4.0_dp * pi * (hs_diameter**3))/3.0_dp) * integral(start_z_index:end_z_index)))
-
-    ! end if
-
-
-
-
     if(calculate_bulk) then !n_s input parameter is the bulk value so
 
-       !First do term 1
-       integrand(start_z_index:end_z_index) = (n_i_total(start_z_index:end_z_index) - n_i_end(start_z_index:end_z_index)) * &
-            GetAExDerivIntegrand(n_mbar(start_z_index:end_z_index), n_sbar(start_z_index:end_z_index), 1)
 
-       calculate_hardsphere_functional_deriv(start_z_index:end_z_index) = (-1.0_dp * GetYMix(n_mbar(start_z_index:end_z_index), n_sbar(start_z_index:end_z_index), 'm', r) / beta) * (&
-            derivative_of_f1_wrt_f2(n_i_total(start_z_index:end_z_index) - n_i_end(start_z_index:end_z_index), n_i_total(start_z_index:end_z_index)) *&
-            GetAEx(n_mbar(start_z_index:end_z_index), n_sbar(start_z_index:end_z_index), 1) + &
-            (((4.0_dp * pi * (hs_diameter**3))/3.0_dp) * integrand(start_z_index:end_z_index)))
+       calculate_hardsphere_functional_deriv(start_z_index:end_z_index) = (0.5_dp / beta) * (&
+            GetAEx(n_s(start_z_index:end_z_index), n_sbar(start_z_index:end_z_index), a_term_index) + &
+            (((4.0_dp * pi * (hs_diameter**3))/3.0_dp) * ((n_s(start_z_index:end_z_index)) * &
+            GetAExDerivIntegrand(n_s(start_z_index:end_z_index), n_sbar(start_z_index:end_z_index), a_term_index))))
 
-       !print *, "n_sbar(start_z_index:end_z_index) = ", n_sbar(start_z_index:end_z_index)
-       !print *, "n_mbar(start_z_index:end_z_index) = ", n_mbar(start_z_index:end_z_index)
-       
-       !print *, "GetYMix(n_mbar(start_z_index:end_z_index) = ", GetYMix(n_mbar(start_z_index:end_z_index), n_sbar(start_z_index:end_z_index), 'm', r)
-       !print *, "derivative_of_f1_wrt_f2(n_i_total(start_z_index:end_z_index) - n_i_end(start_z_index:end_z_index), n_i_total(start_z_index:end_z_index)) = ", derivative_of_f1_wrt_f2(n_i_total(start_z_index:end_z_index) - n_i_end(start_z_index:end_z_index), n_i_total(start_z_index:end_z_index))
-       
-       !print *, "GetAEx(n_mbar(start_z_index:end_z_index), n_sbar(start_z_index:end_z_index), 1) = ", GetAEx(n_mbar(start_z_index:end_z_index), n_sbar(start_z_index:end_z_index), 1)
-       !print *, "integrand(start_z_index:end_z_index) = ", integrand(start_z_index:end_z_index)
-       
-       !print *, "calculate_hardsphere_functional_deriv(start_z_index:end_z_index) = ", calculate_hardsphere_functional_deriv(start_z_index:end_z_index)
 
-       !print *, "n_i_total = ", n_i_total
-       !print *, "n_i_end = ", n_i_end
-       
-       !call abort()
-       
-       ! !Now add term 2
-       ! integrand(start_z_index:end_z_index) = (n_i_total(start_z_index:end_z_index) - n_i_end(start_z_index:end_z_index)) * &
-       !      GetAExDerivIntegrand(n_mbar(start_z_index:end_z_index), n_sbar(start_z_index:end_z_index), 2)
 
-       ! calculate_hardsphere_functional_deriv(start_z_index:end_z_index) = calculate_hardsphere_functional_deriv(start_z_index:end_z_index) + &
-       !      (GetYMix(n_mbar(start_z_index:end_z_index), n_sbar(start_z_index:end_z_index), 'm', r) / beta) * (&
-       !      derivative_of_f1_wrt_f2(n_i_total(start_z_index:end_z_index) - n_i_end(start_z_index:end_z_index), n_i_total(start_z_index:end_z_index)) *&
-       !      GetAEx(n_mbar(start_z_index:end_z_index), n_sbar(start_z_index:end_z_index), 2) + &
-       !      (((4.0_dp * pi * (hs_diameter**3))/3.0_dp) * integrand(start_z_index:end_z_index)))
-
-       ! !Now add term 3
-       ! integrand(start_z_index:end_z_index) = n_i_end(start_z_index:end_z_index) * &
-       !      GetAExDerivIntegrand(n_mbar(start_z_index:end_z_index), n_sbar(start_z_index:end_z_index), 2)
-
-       ! calculate_hardsphere_functional_deriv(start_z_index:end_z_index) = calculate_hardsphere_functional_deriv(start_z_index:end_z_index) + ((0.5_dp / beta) * (&
-       !      derivative_of_f1_wrt_f2(n_i_end(start_z_index:end_z_index), n_i_total(start_z_index:end_z_index)) *&
-       !      GetAEx(n_mbar(start_z_index:end_z_index), n_sbar(start_z_index:end_z_index), 2) + &
-       !      (((4.0_dp * pi * (hs_diameter**3))/3.0_dp) * integrand(start_z_index:end_z_index))))
 
     else
 
-       !First do term 1
-       ! integrand(start_z_index:end_z_index) = (n_i_total(start_z_index:end_z_index) - n_i_end(start_z_index:end_z_index)) * &
-       !      GetAExDerivIntegrand(n_mbar(start_z_index:end_z_index), n_sbar(start_z_index:end_z_index), 1)
-       ! integral(:) = calculate_n_sbar(integrand(:))
+       integrand(start_z_index:end_z_index) = n_s(start_z_index:end_z_index) * &
+            GetAExDerivIntegrand(n_mbar(start_z_index:end_z_index), n_sbar(start_z_index:end_z_index), a_term_index)
 
-       ! calculate_hardsphere_functional_deriv(start_z_index:end_z_index) = &
-       !      (-1.0_dp * GetYMix(n_mbar(start_z_index:end_z_index), n_sbar(start_z_index:end_z_index), 'm', r) / beta) * (&
-       !      derivative_of_f1_wrt_f2(n_i_total(start_z_index:end_z_index) - n_i_end(start_z_index:end_z_index), n_i_total(start_z_index:end_z_index)) *&
-       !      GetAEx(n_mbar(start_z_index:end_z_index), n_sbar(start_z_index:end_z_index), 1) + &
-       !      (((4.0_dp * pi * (hs_diameter**3))/3.0_dp) * integral(start_z_index:end_z_index)))
-
-       ! !Now add term 2
-       ! integrand(start_z_index:end_z_index) = (n_i_total(start_z_index:end_z_index) - n_i_end(start_z_index:end_z_index)) * &
-       !      GetAExDerivIntegrand(n_mbar(start_z_index:end_z_index), n_sbar(start_z_index:end_z_index), 2)
-       ! integral(:) = calculate_n_sbar(integrand(:))
-
-       ! calculate_hardsphere_functional_deriv(start_z_index:end_z_index) = calculate_hardsphere_functional_deriv(start_z_index:end_z_index) + &
-       !      (GetYMix(n_mbar(start_z_index:end_z_index), n_sbar(start_z_index:end_z_index), 'm', r) / beta) * (&
-       !      derivative_of_f1_wrt_f2(n_i_total(start_z_index:end_z_index) - n_i_end(start_z_index:end_z_index), n_i_total(start_z_index:end_z_index)) *&
-       !      GetAEx(n_mbar(start_z_index:end_z_index), n_sbar(start_z_index:end_z_index), 2) + &
-       !      (((4.0_dp * pi * (hs_diameter**3))/3.0_dp) * integral(start_z_index:end_z_index)))
-
-       ! !Now add term 3
-       integrand(start_z_index:end_z_index) = n_i_end(start_z_index:end_z_index) * &
-            GetAExDerivIntegrand(n_mbar(start_z_index:end_z_index), n_sbar(start_z_index:end_z_index), 2)
        integral(:) = calculate_n_sbar(integrand(:))
 
-       calculate_hardsphere_functional_deriv(start_z_index:end_z_index) = calculate_hardsphere_functional_deriv(start_z_index:end_z_index) + ((0.5_dp / beta) * (&
-            derivative_of_f1_wrt_f2(n_i_end(start_z_index:end_z_index), n_i_total(start_z_index:end_z_index)) *&
-            GetAEx(n_mbar(start_z_index:end_z_index), n_sbar(start_z_index:end_z_index), 2) + &
-            (((4.0_dp * pi * (hs_diameter**3))/3.0_dp) * integral(start_z_index:end_z_index))))
+       calculate_hardsphere_functional_deriv(start_z_index:end_z_index) = (0.5_dp / beta) * (&
+            GetAEx(n_mbar(start_z_index:end_z_index), n_sbar(start_z_index:end_z_index), a_term_index) + &
+            (((4.0_dp * pi * (hs_diameter**3))/3.0_dp) * integral(start_z_index:end_z_index)))
+
+
 
     end if
 
 
+    ! if(calculate_bulk) then !n_s input parameter is the bulk value so, 
+
+    !    ! calculate_hardsphere_functional_deriv(start_z_index:end_z_index) = (1.0_dp / beta) * (&
+    !    !      log(n_s(start_z_index:end_z_index) / (1.0_dp - ((hs_diameter**3)*n_s(start_z_index:end_z_index)))) + &
+    !    !      ((n_s(start_z_index:end_z_index) * (hs_diameter**3))/(1.0_dp - ((hs_diameter**3)*n_s(start_z_index:end_z_index)))) + &
+    !    !      1.0_dp )
+
+    !    extra_integral_contribution2(:) = 0.0_dp
+    !    extra_integral_contribution2(start_z_index:end_z_index) = (hs_diameter**3)/(1.0_dp - (hs_diameter**3)*n_s(start_z_index:end_z_index))
+    !    extra_integral_contribution2 = calculate_n_sbar(extra_integral_contribution2)
+
+    !    calculate_hardsphere_functional_deriv(start_z_index:end_z_index) = (1.0_dp / beta) * (&
+    !         log(n_s(start_z_index:end_z_index) / (1.0_dp - ((hs_diameter**3)*n_s(start_z_index:end_z_index)))) + &
+    !         extra_integral_contribution2(start_z_index:end_z_index) + &
+    !         1.0_dp )
+
+
+    ! else
+    !    n_sbar = calculate_n_sbar(n_s)
+
+    !    extra_integral_contribution(:) = 0.0_dp
+    !    extra_integral_contribution(start_z_index:end_z_index) = n_s(start_z_index:end_z_index)/n_sbar(start_z_index:end_z_index)
+    !    extra_integral_contribution = calculate_n_sbar(extra_integral_contribution)
+
+    !    extra_integral_contribution2(:) = 0.0_dp
+    !    extra_integral_contribution2(start_z_index:end_z_index) = (hs_diameter**3)/(1.0_dp - (hs_diameter**3)*n_sbar(start_z_index:end_z_index))
+    !    extra_integral_contribution2 = calculate_n_sbar(extra_integral_contribution2)
+
+    !    calculate_hardsphere_functional_deriv(start_z_index:end_z_index) = (1.0_dp / beta) * (&
+    !         log(n_sbar(start_z_index:end_z_index) / (1.0_dp - ((hs_diameter**3)*n_sbar(start_z_index:end_z_index)))) + &
+    !         extra_integral_contribution2(start_z_index:end_z_index) + &
+    !         extra_integral_contribution(start_z_index:end_z_index) )
+
+
+
+    !    ! end if
+    !    !call abort()
+
+    ! end if
     !calculate_hardsphere_functional_deriv = 0.0_dp
     !print *,  calculate_hardsphere_functional_deriv
     !call abort()
@@ -473,34 +429,5 @@ contains
     n_sbar_integrand = 2.0_dp * pi * (hs_diameter**2.0_dp - ((z - xi)*hs_diameter/real(n_discretised_points_z,dp))**2.0_dp) / 2.0_dp
 
   end function n_sbar_integrand
-
-  !Calculates the derivative of function 'f1' w.r.t. function 'f2'.
-  function derivative_of_f1_wrt_f2(f1, f2)
-    real(dp), dimension(:), intent(in) :: f1
-    real(dp), dimension(:), intent(in) :: f2
-    real(dp), dimension(size(f1)) :: derivative_of_f1_wrt_f2
-
-    real(dp), dimension(size(f1)) :: f1_deriv
-    real(dp), dimension(size(f2)) :: f2_deriv
-
-    integer :: ij
-
-    !Check the sizes of the functions are equal
-    if(size(f1) /= size(f2)) then
-       print *, "functionalderivates.f90: derivative_of_f1_wrt_f2:"
-       print *, "size(f1) /= size(f2).  Size mismatch...aborting..."
-       call abort()
-    end if
-
-    f1_deriv(:) = calculate_central_difference(f1(:), 'z')
-    f2_deriv(:) = calculate_central_difference(f2(:), 'z')
-
-    derivative_of_f1_wrt_f2(:) = f1_deriv(:) / f2_deriv(:)
-
-    do ij = 1, size(derivative_of_f1_wrt_f2)
-       if(isnan(derivative_of_f1_wrt_f2(ij))) derivative_of_f1_wrt_f2(ij) = 1.0_dp
-    end do
-
-  end function derivative_of_f1_wrt_f2
 
 end module functionalderivatives
