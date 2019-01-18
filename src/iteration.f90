@@ -52,9 +52,9 @@ contains
        call abort()
     else
 
-       av_sq_diff = sum((n1_updated(start_z_index:end_z_index) - n1(start_z_index:end_z_index))**2)&
+       av_sq_diff = sum((n1_updated(start_z_index:end_z_index)*(hs_diameter**3) - n1(start_z_index:end_z_index)*(hs_diameter**3))**2)&
             /real(size(n1(start_z_index:end_z_index)),dp)
-       bulk_value = sum(n1(start_z_index:end_z_index))/real(size(n1(start_z_index:end_z_index)),dp)
+       bulk_value = sum(n1(start_z_index:end_z_index)*(hs_diameter**3))/real(size(n1(start_z_index:end_z_index)),dp)
 
        ! if(av_sq_diff == 0.0_dp) then
        !    print *, "iteration.f90: converged: "
@@ -62,6 +62,8 @@ contains
        !    print *, "would appear to be a coding bug...aborting..."
        !    call abort()
        ! end if
+       !print *, "n1 = ", n1
+       !print *, "n1 = ", n1_updated
 
        if(av_sq_diff <= iterative_tolerance*bulk_value) then
           n1_converged = .true.
@@ -87,16 +89,20 @@ contains
              call abort()
           else
 
-             av_sq_diff = sum((n2_updated(start_z_index:end_z_index) - n2(start_z_index:end_z_index))**2)/&
+             av_sq_diff = sum((n2_updated(start_z_index:end_z_index)*(hs_diameter**3) - n2(start_z_index:end_z_index)*(hs_diameter**3))**2)/&
                   size(n2(start_z_index:end_z_index))
-             bulk_value = sum(n2(start_z_index:end_z_index))/size(n2(start_z_index:end_z_index))
+             bulk_value = sum(n2(start_z_index:end_z_index)*(hs_diameter**3))/size(n2(start_z_index:end_z_index))
 
-             if(av_sq_diff == 0.0_dp) then
-                print *, "iteration.f90: converged: "
-                print *, "average squared difference between dneisty and updated_density == 0.0_dp"
-                print *, "would appear to be a coding bug...aborting..."
-                !call abort()
-             end if
+             ! if(av_sq_diff == 0.0_dp) then
+             !    print *, "iteration.f90: converged: "
+             !    print *, "average squared difference between dneisty and updated_density == 0.0_dp"
+             !    print *, "would appear to be a coding bug...aborting..."
+             !    !call abort()
+             ! end if
+
+
+             !print *, "n1 = ", n2
+             !print *, "n1 = ", n2_updated
 
              if(av_sq_diff <= iterative_tolerance*bulk_value) then
                 n2_converged = .true.
@@ -127,9 +133,9 @@ contains
              call abort()
           else
 
-             av_sq_diff = sum((n3_updated(start_z_index:end_z_index) - n3(start_z_index:end_z_index))**2)/ &
+             av_sq_diff = sum((n3_updated(start_z_index:end_z_index)*(hs_diameter**3) - n3(start_z_index:end_z_index)*(hs_diameter**3))**2)/ &
                   size(n3(start_z_index:end_z_index))
-             bulk_value = sum(n3(start_z_index:end_z_index))/size(n3(start_z_index:end_z_index))
+             bulk_value = sum(n3(start_z_index:end_z_index)*(hs_diameter**3))/size(n3(start_z_index:end_z_index))
 
              if(av_sq_diff <= iterative_tolerance*bulk_value) then
                 n3_converged = .true.
@@ -149,6 +155,7 @@ contains
        print *, "iteration.f90: converged: Iterative scheme successfully converged."
        converged = .true.
     else
+       !print *, "convergence = ", n1_converged, n2_converged, n3_converged
        converged = .false.
     end if
 
@@ -166,13 +173,13 @@ contains
     real(dp), dimension(:), allocatable, optional, intent(inout) :: n3
 
     integer :: new_array_size
-
+    
     !Note we add on one to include values at both endpoints/the walls.
     new_array_size = nint(plate_separations(ith_plate_separation) *  n_discretised_points_z) + 1
 
-    call UpdateArraySize(n1, new_array_size, rescale=allocated(n1))
-    if(present(n2)) call UpdateArraySize(n2, new_array_size, rescale=allocated(n2))
-    if(present(n3)) call UpdateArraySize(n3, new_array_size, rescale=allocated(n3))
+    call UpdateArraySize(n1, new_array_size, rescale=allocated(n1), charge='+')
+    if(present(n2)) call UpdateArraySize(n2, new_array_size, rescale=allocated(n2), charge='0')
+    if(present(n3)) call UpdateArraySize(n3, new_array_size, rescale=allocated(n3), charge='-')
 
     !We don't calculate with hs_diameter/2 of the wall.  Therefore set it zero.
     !This aids with plotting ease.
@@ -343,10 +350,11 @@ contains
 
   !Routine that either resizes or rescales the array, based on the presence and value
   !of the optional parameter 'rescale'.  Also, initialises the array values.
-  subroutine UpdateArraySize(array, new_size, rescale)
+  subroutine UpdateArraySize(array, new_size, rescale, charge)
     real(dp), dimension(:), allocatable, intent(inout) :: array
     integer                                            :: new_size
     logical, intent(in), optional                      :: rescale
+    character(len=1), intent(in), optional             :: charge
 
     if(allocated(array)) then
 
@@ -367,13 +375,19 @@ contains
              end if
 
           else
-             call ReSizeArray(array, new_size)
+             !call ReSizeArray(array, new_size)
+             call ReScaleArray(array, new_size)
           end if
 
        end if
 
     else
        if(present(rescale)) then
+          if(.not. present(charge)) then
+             print *, "iteration.f90: UpdateArraySize:"
+             print *, "If present(rescale) then charge must also be present...aborting..."
+             call abort()
+          end if
           if(rescale) then
              print *, "iteration.f90: UpdateArraySize:"
              print *, "Can't rescale an array that has not yet been allocated"
@@ -382,7 +396,12 @@ contains
        end if
 
        allocate(array(new_size)) !size = M x N
-       call InitialiseIntegrationAnsatzToConstant(array)
+       if(.not. present(charge)) then
+          array(:) = 0.0_dp
+       else
+          call InitialiseIntegrationAnsatz(array, charge)
+       end if
+       
     end if
 
   end subroutine UpdateArraySize
@@ -430,7 +449,7 @@ contains
        print *, "as opposed to an error with the input parms"
        call abort()
     end if
-    
+
     !Store the values of the array to be deallocated
     old_array_values = array
 
@@ -450,16 +469,49 @@ contains
             / real(end_z_index_new - start_z_index_new + 1, dp) ) )
        array(ith_component) = old_array_values(old_value_index)
     end do
-
+    !array(:) = bulk_density_positive_beads
   end subroutine ReScaleArray
 
   !Routine to initialise our ansatz for our integrative scheme to an arbitrary constant.
-  subroutine InitialiseIntegrationAnsatzToConstant(array)
+  subroutine InitialiseIntegrationAnsatz(array, charge)
     real(dp), dimension(:) :: array
+    character(len=1), intent(in) :: charge
+
+    integer :: midpoint
+    integer :: ij
+
+    !print *, "charge = ", charge
+    !print *, "size(array) = ", size(array), size(array)/2
     
-    !array(:) = bulk_density 
-    array(:) = bulk_density_neutral_beads
     
-  end subroutine InitialiseIntegrationAnsatzToConstant
+    if(charge == '+') then
+
+       midpoint = size(array)/2
+
+       do ij = 1, size(array)
+          array(ij) = bulk_density_positive_beads + ((ij - midpoint)*hs_diameter/real(n_discretised_points_z,dp))*slope_for_initial_guess
+       end do
+
+    else if(charge == '0') then
+       array(:) = bulk_density_neutral_beads
+
+    else if(charge == '-') then
+
+       midpoint = size(array)/2
+
+       do ij = 1, size(array)
+          array(ij) = bulk_density_negative_beads - ((ij - midpoint)*hs_diameter/real(n_discretised_points_z, dp))*slope_for_initial_guess
+       end do
+       
+    else
+       print *, "iteration.f90: InitialiseIntegrationAnsatz"
+       print *, "charge has an illegal value of ", charge, "...aborting..."
+       call abort()
+    end if
+    !print *, "printing charge and array" 
+    !print *, charge, array(midpoint)*(hs_diameter**3), array*(hs_diameter**3)
+    
+    array(:) = bulk_density_positive_beads
+  end subroutine InitialiseIntegrationAnsatz
 
 end module iteration

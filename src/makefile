@@ -19,7 +19,8 @@ OBJS =   \
 	constructoligomers.o \
 	contacttheorem.o \
 	discretederivatives.o \
-	excessenergyfunctionalparameters.o
+	excessenergyfunctionalparameters.o \
+	charge.o
 
 all:
 	make ILsimulationssrclib.o

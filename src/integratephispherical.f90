@@ -138,7 +138,7 @@ contains
     if(z_index < 3*(n_discretised_points_z)/2 + 1) then
 
        lower_z_limit = lowest_z_calculated
-       upper_z_limit = z_index + n_discretised_points_z
+       upper_z_limit = min(z_index + n_discretised_points_z, highest_z_calculated)
        relative_z_index = z_index - lowest_z_calculated + 1
 
        ! lower_z_limit = 1
@@ -157,7 +157,7 @@ contains
        
     else if((h - z_index) < 3*(n_discretised_points_z)/2) then
 
-       lower_z_limit = z_index - n_discretised_points_z
+       lower_z_limit = max(z_index - n_discretised_points_z, lowest_z_calculated)
        upper_z_limit = highest_z_calculated
        relative_z_index = n_discretised_points_z + 1
 

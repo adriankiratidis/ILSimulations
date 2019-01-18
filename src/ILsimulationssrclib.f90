@@ -16,5 +16,7 @@ module ILsimulationssrclib
   use contacttheorem
   use discretederivatives
   use excessenergyfunctionalparameters
+  use charge
+  use functionalderivatives
   implicit none
 end module ILsimulationssrclib

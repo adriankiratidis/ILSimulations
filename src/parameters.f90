@@ -23,7 +23,9 @@ module parameters
   public :: n_discretised_points_z
 
   public :: epsilonr
-  public :: epsilon_LJ
+  public :: epsilon_LJ_particle_particle
+  public :: epsilon_LJ_particle_wall
+  public :: mica_density
   public :: surface_charge_density_left_wall
   public :: surface_charge_density_right_wall
   public :: hs_diameter
@@ -33,25 +35,30 @@ module parameters
   public :: temperature
   public :: positive_bead_charge
   public :: negative_bead_charge
+  public :: positive_oligomer_charge
+  public :: negative_oligomer_charge
   public :: string_length
   public :: iterative_tolerance
   public :: max_iteration_limit
   public :: beta
   public :: alpha_mixing_for_update
-  
+
+
   public :: bulk_density_positive_beads
   public :: bulk_density_neutral_beads
   public :: bulk_density_negative_beads
-  
-  public :: r_plus
-  public :: r_neutral
-  public :: r_minus
-  
+
+  public :: slope_for_initial_guess
+  public :: n_charge_iterations
+  public :: Donnan_potential
+
   character(len=256) :: ionic_liquid_name 
   real(dp) :: chi_parameter
   integer  :: n_discretised_points_z
   real(dp) :: epsilonr
-  real(dp) :: epsilon_LJ
+  real(dp) :: epsilon_LJ_particle_particle
+  real(dp) :: epsilon_LJ_particle_wall
+  real(dp) :: mica_density
   real(dp) :: surface_charge_density_left_wall
   real(dp) :: surface_charge_density_right_wall
   real(dp) :: hs_diameter
@@ -64,19 +71,21 @@ module parameters
   real(dp) :: temperature
   real(dp) :: positive_bead_charge
   real(dp) :: negative_bead_charge
+  real(dp) :: positive_oligomer_charge
+  real(dp) :: negative_oligomer_charge
   real(dp) :: string_length
   real(dp) :: iterative_tolerance
   integer  :: max_iteration_limit
   real(dp) :: beta
   real(dp) :: alpha_mixing_for_update
-  
-  integer :: r_plus
-  integer :: r_neutral
-  integer :: r_minus
-  
   real(dp) :: bulk_density_positive_beads
   real(dp) :: bulk_density_neutral_beads
   real(dp) :: bulk_density_negative_beads
+
+  real(dp) :: slope_for_initial_guess
+  integer :: n_charge_iterations
+
+  real(dp) :: Donnan_potential
 
 contains
 
@@ -94,7 +103,9 @@ contains
     read(file_unit, *) ionic_liquid_name
     read(file_unit, *) chi_parameter
     read(file_unit, *) epsilonr
-    read(file_unit, *) epsilon_LJ !
+    read(file_unit, *) epsilon_LJ_particle_particle !
+    read(file_unit, *) epsilon_LJ_particle_wall !
+    read(file_unit, *) mica_density
     read(file_unit, *) surface_charge_density_left_wall
     read(file_unit, *) surface_charge_density_right_wall
     read(file_unit, *) hs_diameter
@@ -102,8 +113,11 @@ contains
     read(file_unit, *) bulk_density !
     read(file_unit, *) temperature
     read(file_unit, *) alpha_mixing_for_update
+    read(file_unit, *) slope_for_initial_guess
+    read(file_unit, *) n_charge_iterations
     read(file_unit, *) positive_bead_charge
     read(file_unit, *) negative_bead_charge
+    read(file_unit, *) Donnan_potential !Initial Guess for the Donnan potential
     read(file_unit, *) string_length
     read(file_unit, *) n_discretised_points_z
     read(file_unit, *) max_iteration_limit
@@ -121,14 +135,25 @@ contains
     beta = 1.0_dp / (k_B * temperature)
 
     ! Apply unit transformations
-    epsilon_LJ = epsilon_LJ !* k_B
+    epsilon_LJ_particle_particle = (epsilon_LJ_particle_particle * k_B) !/ ((hs_diameter**3)*mica_density)
+    epsilon_LJ_particle_wall = epsilon_LJ_particle_wall * k_B * ((hs_diameter**3)*mica_density)
+
     bulk_density = bulk_density / (hs_diameter**3.0_dp)
+
+    positive_bead_charge = positive_bead_charge * electric_charge
+    negative_bead_charge = negative_bead_charge * electric_charge
+
+    surface_charge_density_left_wall = surface_charge_density_left_wall * electric_charge
+    surface_charge_density_right_wall = surface_charge_density_right_wall * electric_charge
+
 
     print *,  "Succesfully set the following values"
     print *,  "ionic_liquid_name = ", ionic_liquid_name
     print *,  "chi_parameter = ", chi_parameter
     print *,  "epsilonr = ", epsilonr
-    print *,  "epsilon_LJ = ", epsilon_LJ
+    print *,  "epsilon_LJ particle_particle interaction = ", epsilon_LJ_particle_particle
+    print *,  "epsilon_LJ particle_wall interaction = ", epsilon_LJ_particle_wall
+    print *,  "mica density = ", mica_density
     print *,  "surface_charge_density_left_wall = ", surface_charge_density_left_wall
     print *,  "surface_charge_density_right_wall = ", surface_charge_density_right_wall
     print *,  "hs_diameter = ", hs_diameter
@@ -136,8 +161,11 @@ contains
     print *,  "bulk_density = ", bulk_density
     print *,  "temperature = ", temperature
     print *,  "alpha_mixing_for_update = ", alpha_mixing_for_update
+    print *,  "slope_for_initial_guess = ", slope_for_initial_guess
+    print *,  "n_charge_iterations = ", n_charge_iterations
     print *,  "positive_bead_charge = ", positive_bead_charge
     print *,  "negative_bead_charge = ", negative_bead_charge
+    print *,  "Initial Guess for the Donnan potential = ", Donnan_potential
     print *,  "string_length = ", string_length
     print *,  "n_discretised_points_z = ", n_discretised_points_z
     print *,  "max_iteration_limit = ", max_iteration_limit
@@ -178,8 +206,53 @@ contains
     else if(trim(ionic_liquid_name) == "C4MIM_BF4-") then
        call SetC4MIN_BF4BeadDensityFromBulkIonDensity()
 
+    else if(trim(ionic_liquid_name) == "C2MIM_BF4-") then
+       call SetC2MIN_BF4BeadDensityFromBulkIonDensity()
+
+    else if(trim(ionic_liquid_name) == "C6MIM_BF4-") then
+       call SetC6MIN_BF4BeadDensityFromBulkIonDensity()
+
+    else if(trim(ionic_liquid_name) == "C8MIM_BF4-") then
+       call SetC8MIN_BF4BeadDensityFromBulkIonDensity()
+
+    else if(trim(ionic_liquid_name) == "C10MIM_BF4-") then
+       call SetC10MIN_BF4BeadDensityFromBulkIonDensity()
+
+    else if(trim(ionic_liquid_name) == "C4MIM+_TFSI-_model1") then
+       call SetC4MIN_TFSIBeadDensityFromBulkIonDensity()
+
+    else if(trim(ionic_liquid_name) == "C2MIM+_TFSI-_model1") then
+       call SetC2MIN_TFSIBeadDensityFromBulkIonDensity()
+
+    else if(trim(ionic_liquid_name) == "C6MIM+_TFSI-_model1") then
+       call SetC6MIN_TFSIBeadDensityFromBulkIonDensity()
+
+    else if(trim(ionic_liquid_name) == "C8MIM+_TFSI-_model1") then
+       call SetC8MIN_TFSIBeadDensityFromBulkIonDensity()
+
+    else if(trim(ionic_liquid_name) == "C10MIM+_TFSI-_model1") then
+       call SetC10MIN_TFSIBeadDensityFromBulkIonDensity()
+
+    else if(trim(ionic_liquid_name) == "C4MIM+_TFSI-_model2") then
+       call SetC4MIN_TFSIBeadDensityFromBulkIonDensity2()
+       
+    else if(trim(ionic_liquid_name) == "C2MIM+_TFSI-_model2") then
+       call SetC2MIN_TFSIBeadDensityFromBulkIonDensity2()
+       
+    else if(trim(ionic_liquid_name) == "C6MIM+_TFSI-_model2") then
+       call SetC6MIN_TFSIBeadDensityFromBulkIonDensity2()
+       
+    else if(trim(ionic_liquid_name) == "C8MIM+_TFSI-_model2") then
+       call SetC8MIN_TFSIBeadDensityFromBulkIonDensity2()
+       
+    else if(trim(ionic_liquid_name) == "C10MIM+_TFSI-_model2") then
+       call SetC10MIN_TFSIBeadDensityFromBulkIonDensity2()
+       
     else if(trim(ionic_liquid_name) == "PositiveMinusSpheres") then
        call SetPositiveMinusBeadDensityFromBulkIonDensity()
+
+    else if(trim(ionic_liquid_name) == "PositiveNeutralMinusSpheres") then
+       call SetPositiveNeutralMinusBeadDensityFromBulkIonDensity()
 
     else if(trim(ionic_liquid_name) == "PositiveNeutralDimerMinusSpheres") then
        call SetPlusNeutralDimerMinusSpheresBeadDensityFromBulkIonDensity()
@@ -203,9 +276,8 @@ contains
     bulk_density_neutral_beads = bulk_density
     bulk_density_negative_beads = 0.0_dp
 
-    r_plus = 0
-    r_neutral = 0
-    r_minus = 0
+    positive_oligomer_charge = 0.0_dp
+    negative_oligomer_charge = 0.0_dp
 
   end subroutine SetSingleNeutralSphereBeadDensityFromBulkIonDensity
 
@@ -214,6 +286,10 @@ contains
     bulk_density_positive_beads = bulk_density
     bulk_density_neutral_beads = 0.0_dp
     bulk_density_negative_beads = 0.0_dp
+
+    positive_oligomer_charge = positive_bead_charge
+    negative_oligomer_charge = 0.0_dp
+
   end subroutine SetSinglePositiveSphereBeadDensityFromBulkIonDensity
 
   subroutine SetSingleNegativeSphereBeadDensityFromBulkIonDensity()
@@ -221,6 +297,10 @@ contains
     bulk_density_positive_beads = 0.0_dp
     bulk_density_neutral_beads = 0.0_dp
     bulk_density_negative_beads = bulk_density
+
+    positive_oligomer_charge = 0.0_dp
+    negative_oligomer_charge = negative_bead_charge
+
   end subroutine SetSingleNegativeSphereBeadDensityFromBulkIonDensity
 
   subroutine SetNeutralDimerDensityFromBulkIonDensity()
@@ -228,6 +308,10 @@ contains
     bulk_density_positive_beads = 0.0_dp
     bulk_density_neutral_beads = 2.0_dp * bulk_density
     bulk_density_negative_beads = 0.0_dp
+
+    positive_oligomer_charge = 0.0_dp
+    negative_oligomer_charge = 0.0_dp
+
   end subroutine SetNeutralDimerDensityFromBulkIonDensity
 
   subroutine SetC4MIN_BF4BeadDensityFromBulkIonDensity()
@@ -236,36 +320,213 @@ contains
     bulk_density_neutral_beads = 5.0_dp * bulk_density
     bulk_density_negative_beads = 5.0_dp * bulk_density
 
-    r_plus = 3
-    r_neutral = 3
-    r_minus = 1
+    positive_oligomer_charge = 5.0_dp * positive_bead_charge
+    negative_oligomer_charge = 5.0_dp * negative_bead_charge
 
   end subroutine SetC4MIN_BF4BeadDensityFromBulkIonDensity
 
+  subroutine SetC2MIN_BF4BeadDensityFromBulkIonDensity()
+
+    bulk_density_positive_beads = 5.0_dp * bulk_density
+    bulk_density_neutral_beads = 3.0_dp * bulk_density
+    bulk_density_negative_beads = 5.0_dp * bulk_density
+
+    positive_oligomer_charge = 5.0_dp * positive_bead_charge
+    negative_oligomer_charge = 5.0_dp * negative_bead_charge
+
+  end subroutine SetC2MIN_BF4BeadDensityFromBulkIonDensity
+
+  subroutine SetC6MIN_BF4BeadDensityFromBulkIonDensity()
+
+    bulk_density_positive_beads = 5.0_dp * bulk_density
+    bulk_density_neutral_beads = 7.0_dp * bulk_density
+    bulk_density_negative_beads = 5.0_dp * bulk_density
+
+    positive_oligomer_charge = 5.0_dp * positive_bead_charge
+    negative_oligomer_charge = 5.0_dp * negative_bead_charge
+
+  end subroutine SetC6MIN_BF4BeadDensityFromBulkIonDensity
+
+  subroutine SetC8MIN_BF4BeadDensityFromBulkIonDensity()
+
+    bulk_density_positive_beads = 5.0_dp * bulk_density
+    bulk_density_neutral_beads = 9.0_dp * bulk_density
+    bulk_density_negative_beads = 5.0_dp * bulk_density
+
+    positive_oligomer_charge = 5.0_dp * positive_bead_charge
+    negative_oligomer_charge = 5.0_dp * negative_bead_charge
+
+  end subroutine SetC8MIN_BF4BeadDensityFromBulkIonDensity
+
+  subroutine SetC10MIN_BF4BeadDensityFromBulkIonDensity()
+
+    bulk_density_positive_beads = 5.0_dp * bulk_density
+    bulk_density_neutral_beads = 11.0_dp * bulk_density
+    bulk_density_negative_beads = 5.0_dp * bulk_density
+
+    positive_oligomer_charge = 5.0_dp * positive_bead_charge
+    negative_oligomer_charge = 5.0_dp * negative_bead_charge
+
+  end subroutine SetC10MIN_BF4BeadDensityFromBulkIonDensity
+
+  subroutine SetC4MIN_TFSIBeadDensityFromBulkIonDensity()
+
+    bulk_density_positive_beads = 5.0_dp * bulk_density
+    bulk_density_neutral_beads = 19.0_dp * bulk_density
+    bulk_density_negative_beads = 1.0_dp * bulk_density
+
+    positive_oligomer_charge = 5.0_dp * positive_bead_charge
+    negative_oligomer_charge = negative_bead_charge
+
+  end subroutine SetC4MIN_TFSIBeadDensityFromBulkIonDensity
+
+  subroutine SetC2MIN_TFSIBeadDensityFromBulkIonDensity()
+
+    bulk_density_positive_beads = 5.0_dp * bulk_density
+    bulk_density_neutral_beads = 17.0_dp * bulk_density
+    bulk_density_negative_beads = 1.0_dp * bulk_density
+
+    positive_oligomer_charge = 5.0_dp * positive_bead_charge
+    negative_oligomer_charge = negative_bead_charge
+
+  end subroutine SetC2MIN_TFSIBeadDensityFromBulkIonDensity
+
+  subroutine SetC6MIN_TFSIBeadDensityFromBulkIonDensity()
+
+    bulk_density_positive_beads = 5.0_dp * bulk_density
+    bulk_density_neutral_beads = 21.0_dp * bulk_density
+    bulk_density_negative_beads = 1.0_dp * bulk_density
+
+    positive_oligomer_charge = 5.0_dp * positive_bead_charge
+    negative_oligomer_charge = negative_bead_charge
+
+  end subroutine SetC6MIN_TFSIBeadDensityFromBulkIonDensity
+
+  subroutine SetC8MIN_TFSIBeadDensityFromBulkIonDensity()
+
+    bulk_density_positive_beads = 5.0_dp * bulk_density
+    bulk_density_neutral_beads = 23.0_dp * bulk_density
+    bulk_density_negative_beads = 1.0_dp * bulk_density
+
+    positive_oligomer_charge = 5.0_dp * positive_bead_charge
+    negative_oligomer_charge = negative_bead_charge
+
+  end subroutine SetC8MIN_TFSIBeadDensityFromBulkIonDensity
+
+  subroutine SetC10MIN_TFSIBeadDensityFromBulkIonDensity()
+
+    bulk_density_positive_beads = 5.0_dp * bulk_density
+    bulk_density_neutral_beads = 25.0_dp * bulk_density
+    bulk_density_negative_beads = 1.0_dp * bulk_density
+
+    positive_oligomer_charge = 5.0_dp * positive_bead_charge
+    negative_oligomer_charge = negative_bead_charge
+
+  end subroutine SetC10MIN_TFSIBeadDensityFromBulkIonDensity
+
+
+  subroutine SetC4MIN_TFSIBeadDensityFromBulkIonDensity2()
+
+    bulk_density_positive_beads = 5.0_dp * bulk_density
+    bulk_density_neutral_beads = 16.0_dp * bulk_density
+    bulk_density_negative_beads = 4.0_dp * bulk_density
+
+    positive_oligomer_charge = 5.0_dp * positive_bead_charge
+    negative_oligomer_charge = 4.0_dp * negative_bead_charge
+
+  end subroutine SetC4MIN_TFSIBeadDensityFromBulkIonDensity2
+
+  
+  subroutine SetC2MIN_TFSIBeadDensityFromBulkIonDensity2()
+
+    bulk_density_positive_beads = 5.0_dp * bulk_density
+    bulk_density_neutral_beads = 14.0_dp * bulk_density
+    bulk_density_negative_beads = 4.0_dp * bulk_density
+
+    positive_oligomer_charge = 5.0_dp * positive_bead_charge
+    negative_oligomer_charge = 4.0_dp * negative_bead_charge
+
+  end subroutine SetC2MIN_TFSIBeadDensityFromBulkIonDensity2
+
+  
+  subroutine SetC6MIN_TFSIBeadDensityFromBulkIonDensity2()
+
+    bulk_density_positive_beads = 5.0_dp * bulk_density
+    bulk_density_neutral_beads = 18.0_dp * bulk_density
+    bulk_density_negative_beads = 4.0_dp * bulk_density
+
+    positive_oligomer_charge = 5.0_dp * positive_bead_charge
+    negative_oligomer_charge = 4.0_dp * negative_bead_charge
+
+  end subroutine SetC6MIN_TFSIBeadDensityFromBulkIonDensity2
+
+  
+  subroutine SetC8MIN_TFSIBeadDensityFromBulkIonDensity2()
+
+    bulk_density_positive_beads = 5.0_dp * bulk_density
+    bulk_density_neutral_beads = 20.0_dp * bulk_density
+    bulk_density_negative_beads = 4.0_dp * bulk_density
+
+    positive_oligomer_charge = 5.0_dp * positive_bead_charge
+    negative_oligomer_charge = 4.0_dp * negative_bead_charge
+
+  end subroutine SetC8MIN_TFSIBeadDensityFromBulkIonDensity2
+
+  
+  subroutine SetC10MIN_TFSIBeadDensityFromBulkIonDensity2()
+
+    bulk_density_positive_beads = 5.0_dp * bulk_density
+    bulk_density_neutral_beads = 22.0_dp * bulk_density
+    bulk_density_negative_beads = 4.0_dp * bulk_density
+
+    positive_oligomer_charge = 5.0_dp * positive_bead_charge
+    negative_oligomer_charge = 4.0_dp * negative_bead_charge
+
+  end subroutine SetC10MIN_TFSIBeadDensityFromBulkIonDensity2
+
   subroutine SetPositiveMinusBeadDensityFromBulkIonDensity()
-    
+
     bulk_density_positive_beads = bulk_density
     bulk_density_neutral_beads = 0.0_dp
     bulk_density_negative_beads = bulk_density
+
+    positive_oligomer_charge = positive_bead_charge
+    negative_oligomer_charge = negative_bead_charge
+
   end subroutine SetPositiveMinusBeadDensityFromBulkIonDensity
 
-  subroutine SetPlusNeutralDimerMinusSpheresBeadDensityFromBulkIonDensity()
-    
+  subroutine SetPositiveNeutralMinusBeadDensityFromBulkIonDensity()
+
     bulk_density_positive_beads = bulk_density
     bulk_density_neutral_beads = bulk_density
     bulk_density_negative_beads = bulk_density
 
+    positive_oligomer_charge = positive_bead_charge
+    negative_oligomer_charge = negative_bead_charge
+
+  end subroutine SetPositiveNeutralMinusBeadDensityFromBulkIonDensity
+
+
+  subroutine SetPlusNeutralDimerMinusSpheresBeadDensityFromBulkIonDensity()
+
+    bulk_density_positive_beads = bulk_density
+    bulk_density_neutral_beads = bulk_density
+    bulk_density_negative_beads = bulk_density
+
+    positive_oligomer_charge = positive_bead_charge
+    negative_oligomer_charge = negative_bead_charge
+
   end subroutine SetPlusNeutralDimerMinusSpheresBeadDensityFromBulkIonDensity
 
   subroutine SetDimerDoubleDimerBeadDensityFromBulkIonDensity()
-    
+
     bulk_density_positive_beads = 2.0_dp * bulk_density
     bulk_density_neutral_beads = 2.0_dp * bulk_density
     bulk_density_negative_beads = 2.0_dp * bulk_density
 
-    r_plus = 1
-    r_neutral = 1
-    r_minus = 0
+    positive_oligomer_charge = 2.0_dp * positive_bead_charge
+    negative_oligomer_charge = 2.0_dp * negative_bead_charge
+
   end subroutine SetDimerDoubleDimerBeadDensityFromBulkIonDensity
 
   subroutine SetBulkDensityOfEndMonomers(n_plus_total, n_plus_end, n_neutral_total, n_neutral_end, n_minus_total, n_minus_end)

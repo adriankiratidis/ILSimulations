@@ -56,13 +56,15 @@ contains
     lambda_common_terms = CalculateLambdaCommonTerms(n_plus_total, n_plus_end, n_neutral_total, n_neutral_end, n_minus_total, n_minus_end, ith_plate_separation, .false.)
 
     ! Now calculate our lambdas(r)
-    lambda_plus = beta * (lambda_common_terms + &
-         CalculateLambdaPlusSpecificTerms(n_plus_total, n_plus_end, n_minus_total, n_plus_total + n_neutral_total + n_minus_total, .false.))
-    lambda_neutral = beta * (lambda_common_terms + &
-         CalculateLambaNeutralSpecificTerms(n_neutral_total, n_neutral_end, n_plus_total + n_neutral_total + n_minus_total, .false.))
-    lambda_minus = beta * (lambda_common_terms + &
-         CalculateLambdaMinusSpecificTerms(n_minus_total, n_minus_end, n_plus_total, n_plus_total + n_neutral_total + n_minus_total, .false.))
+    lambda_plus = beta * (lambda_common_terms + CalculateLambdaPlusSpecificTerms(n_plus, n_minus, .false.))
+    lambda_neutral = beta * (lambda_common_terms + CalculateLambaNeutralSpecificTerms(n_plus, n_neutral, n_minus, .false.))
+    lambda_minus = beta * (lambda_common_terms + CalculateLambdaMinusSpecificTerms(n_plus, n_minus, .false.))
 
+    !print *, "lambda_plus = ", lambda_plus
+    !print *, "lambda_neutral = ", lambda_neutral
+    !print *, "lambda_minus = ", lambda_minus
+    !call abort()
+    
   end subroutine CalculateLambdas
 
   subroutine CalculateLambdasBulk(lambda_plus_bulk, n_plus_total, lambda_neutral_bulk, n_neutral_total, lambda_minus_bulk, &
@@ -153,15 +155,22 @@ contains
        call abort()
     end if
 
-    call CalculateLambdasBulk(lambda_plus_bulk, n_plus_total, lambda_neutral_bulk, n_neutral_total, lambda_minus_bulk, &
-         n_minus_total, ith_plate_separation)
-    call CalculateLambdas(lambda_plus, n_plus_total, n_plus_end, lambda_neutral, n_neutral_total, n_neutral_end, lambda_minus, n_minus_total, &
-         n_minus_end, ith_plate_separation)
+    call CalculateLambdasBulk(lambda_plus_bulk, n_plus, lambda_neutral_bulk, n_neutral, lambda_minus_bulk, n_minus, ith_plate_separation)
+    call CalculateLambdas(lambda_plus, n_plus, lambda_neutral, n_neutral, lambda_minus, n_minus, ith_plate_separation)
+
+    !print *, "lambda_plus_bulk = ", lambda_plus_bulk
+    !print *, "lambda_minus_bulk = ", lambda_minus_bulk(100)
+    !print *, "lambda_plus = ", lambda_plus
+    !print *, "lambda_minus = ", lambda_minus()
+    !call abort()
 
     lambda_plus(:) = lambda_plus_bulk(:) - lambda_plus(:)
     lambda_neutral(:) = lambda_neutral_bulk(:) - lambda_neutral(:)
     lambda_minus(:) = lambda_minus_bulk(:) - lambda_minus(:)
 
+    !print *, "lambda_plus after= ", lambda_plus
+    !print *, "lambda_minus after = ", lambda_minus(100)
+    !call abort()
   end subroutine CalculateLambdasDifference
 
 
@@ -251,6 +260,8 @@ contains
     real(dp), dimension(size(n_plus_total)) :: n_s
     real(dp), dimension(size(n_plus_total)) :: n_s_end
 
+    real(dp) :: allowed_distance_between_plates
+
     hs_term = 0.0_dp
     van_der_waals_term = 0.0_dp
     surface_fluid_dispersion_term = 0.0_dp
@@ -258,28 +269,50 @@ contains
     if(calculate_bulk) then
        n_s(:) = bulk_density_positive_beads + bulk_density_neutral_beads + bulk_density_negative_beads
 
-       !hs_term = calculate_hardsphere_functional_deriv(n_s, .true.)
+       allowed_distance_between_plates = (((size(n_s) - 1)*hs_diameter/n_discretised_points_z) + ((hs_diameter)*1.0_dp))/2.0_dp
+       !print *, "allowed_distance_between_plates = ", allowed_distance_between_plates
+       !call abort()
+       
+       hs_term = 1.0_dp * calculate_hardsphere_functional_deriv(n_s, .true.)
        !van_der_waals_term = calculate_vanderWaals_functional_deriv(n_s)
 
+       van_der_waals_term = (-8.0_dp * epsilon_LJ_particle_particle * (hs_diameter**6) * pi * n_s(:)) * ( &
+            (2.0_dp/(3.0_dp*(hs_diameter**3))))
+
+
+       ! van_der_waals_term = (-2.0_dp * epsilon_LJ_particle_particle * (hs_diameter**6) * pi * n_s(:)) * ( &
+       !      (-1.0_dp / (3.0_dp * ((allowed_distance_between_plates)**3))) + (2.0_dp/(hs_diameter**3))) !+ &
+
+
+       call setNonCalculatedRegionToZero(n_s)
+
+       !print *, "van_der_waals_term = ", van_der_waals_term
+
     else
-       n_s = n_plus_total + n_neutral_total + n_minus_total
-       !n_s_end = n_plus_end + n_neutral_end + n_minus_end
-       !hs_term = calculate_hardsphere_functional_deriv(n_s, n_s_end, .false.)
+       n_s = n_plus + n_neutral + n_minus
+       hs_term = 1.0_dp * calculate_hardsphere_functional_deriv(n_s, .false.)
 
        surface_fluid_dispersion_term = calculate_surface_dispersion_functional_deriv(&
             ith_plate_separation, size(surface_fluid_dispersion_term))
 
-       !van_der_waals_term = calculate_vanderWaals_functional_deriv(n_s)
+       !print *, "hs_term(41) NON BULK =", hs_term(41)
+
+       !print *, "surface_fluid_dispersion_term = ", surface_fluid_dispersion_term(41)
+       van_der_waals_term = calculate_vanderWaals_functional_deriv(n_s)
     end if
 
-    !print *, "hs_term = ", hs_term
-    !print *, "surface_fluid_dispersion_term = ", surface_fluid_dispersion_term
-    !print *, "van_der_waals_term = ", van_der_waals_term
+    !print *, "hs_term = ", hs_term(26), hs_term(size(hs_term) - 25), hs_term(size(hs_term) - 25) - hs_term(26)
+    !print *, "surface_fluid_dispersion_term = ", surface_fluid_dispersion_term(26), surface_fluid_dispersion_term(size(surface_fluid_dispersion_term) - 25),&
+    !     surface_fluid_dispersion_term(size(surface_fluid_dispersion_term) - 25) - surface_fluid_dispersion_term(26)
+
+    !print *, "van_der_waals_term = ", van_der_waals_term(26), van_der_waals_term(size(van_der_waals_term) - 26), van_der_waals_term(size(van_der_waals_term) - 26) - van_der_waals_term(26)
+    !print *, ""
     !call abort()
 
     CalculateLambdaCommonTerms = hs_term + surface_fluid_dispersion_term + van_der_waals_term
 
     !print *, "common terms = ", CalculateLambdaCommonTerms
+    !call abort()
 
   end function CalculateLambdaCommonTerms
 
@@ -309,33 +342,58 @@ contains
     
     if(calculate_bulk) then
 
-       n_plus_total_in(:) = bulk_density_positive_beads
-       n_minus_total_in(:) = bulk_density_negative_beads
-       
-       like_electrostatic_term = calculate_electrostatic_like_term_functional_deriv(n_plus_total_in, positive_bead_charge)
-       unlike_electrostatic_term = calculate_electrostatic_unlike_term_functional_deriv(n_minus_total_in, positive_bead_charge, negative_bead_charge)
+       n_plus_in(:) = bulk_density_positive_beads
+       n_minus_in(:) = bulk_density_negative_beads
 
-       hard_sphere_term = calculate_hardsphere_functional_deriv(n_plus_total, n_plus_end, n_s, calculate_bulk, r_plus)
-       
+       !print *, "n_plus_in = ", n_plus_in
+       !print *, "n_minus_in = ", n_minus_in
+
+       like_electrostatic_term = calculate_electrostatic_like_term_functional_deriv(n_plus_in, positive_bead_charge, .true.)
+       unlike_electrostatic_term = calculate_electrostatic_unlike_term_functional_deriv(n_minus_in, positive_bead_charge, negative_bead_charge, .true.)
+
+       !print *, "like_electrostatic_term = ", like_electrostatic_term
+       !print *, "unlike_electrostatic_term = ", unlike_electrostatic_term
+       !call abort()
     else
-       like_electrostatic_term = calculate_electrostatic_like_term_functional_deriv(n_plus_total, positive_bead_charge)
-       unlike_electrostatic_term = calculate_electrostatic_unlike_term_functional_deriv(n_minus_total, positive_bead_charge, negative_bead_charge)
+       like_electrostatic_term = calculate_electrostatic_like_term_functional_deriv(n_plus, positive_bead_charge, .false.)
+       unlike_electrostatic_term = calculate_electrostatic_unlike_term_functional_deriv(n_minus, positive_bead_charge, negative_bead_charge, .false.)
 
-       surface_electrostatic_term = calculate_surface_electrostatic_functional_deriv(size(n_plus_total), positive_bead_charge)
+       surface_electrostatic_term = calculate_surface_electrostatic_functional_deriv(size(n_plus), positive_bead_charge)
 
-       hard_sphere_term = calculate_hardsphere_functional_deriv(n_plus_total, n_plus_end, n_s, calculate_bulk, r_plus)
-       
+
+       !print *, "surface_electrostatic_term = ",  surface_electrostatic_term(51), surface_electrostatic_term(size(surface_electrostatic_term) - 50), &
+       !     surface_electrostatic_term(size(surface_electrostatic_term) - 50) - surface_electrostatic_term(51)
+       !print *, "like_electrostatic_term plus = ",  like_electrostatic_term(51), like_electrostatic_term(size(like_electrostatic_term) - 50), &
+       !     like_electrostatic_term(size(like_electrostatic_term) - 50) - like_electrostatic_term(51)
+       !print *, "unlike_electrostatic_term plus = ", unlike_electrostatic_term(51), unlike_electrostatic_term(size(unlike_electrostatic_term) - 50), &
+       !     unlike_electrostatic_term(size(unlike_electrostatic_term) - 50) - unlike_electrostatic_term(51)
+
+
+       !print *, ""
+       !print *, "sum =",  (surface_electrostatic_term(26) + like_electrostatic_term(26) + &
+       !     unlike_electrostatic_term(26)) * beta
+       !print *, "surface_electrostatic_term = ", surface_electrostatic_term
+       !call abort()
+
     end if
 
+
     CalculateLambdaPlusSpecificTerms = hard_sphere_term !surface_electrostatic_term + like_electrostatic_term + unlike_electrostatic_term + hard_sphere_term
+
+    CalculateLambdaPlusSpecificTerms = surface_electrostatic_term + like_electrostatic_term + unlike_electrostatic_term
+    !if(calculate_bulk .eqv. .false.) then
+    !   print *, "CalculateLambdaPlusSpecificTerms = ", CalculateLambdaPlusSpecificTerms
+    !   call abort()
+    !end if
 
   end function CalculateLambdaPlusSpecificTerms
 
 
-  function CalculateLambaNeutralSpecificTerms(n_neutral_total, n_neutral_end, n_s, calculate_bulk)
-    real(dp), dimension(:), intent(in)  :: n_neutral_total
-    real(dp), dimension(:), intent(in)  :: n_neutral_end
-    real(dp), dimension(:), intent(in)  :: n_s
+  function CalculateLambaNeutralSpecificTerms(n_plus, n_neutral, n_minus, calculate_bulk)
+    real(dp), dimension(:), intent(in)  :: n_plus
+    real(dp), dimension(:), intent(in)  :: n_neutral
+    
+    real(dp), dimension(:), intent(in)  :: n_minus
     logical, intent(in) :: calculate_bulk
 
     real(dp), dimension(size(n_neutral_total)) :: CalculateLambaNeutralSpecificTerms
@@ -386,22 +444,42 @@ contains
        n_plus_total_in(:) = bulk_density_positive_beads
        n_minus_total_in(:) = bulk_density_negative_beads
 
-       like_electrostatic_term = calculate_electrostatic_like_term_functional_deriv(n_minus_total_in, positive_bead_charge)
-       unlike_electrostatic_term = calculate_electrostatic_unlike_term_functional_deriv(n_plus_total_in, positive_bead_charge, negative_bead_charge)
+       like_electrostatic_term = calculate_electrostatic_like_term_functional_deriv(n_minus_in, negative_bead_charge, .true.)
+       unlike_electrostatic_term = calculate_electrostatic_unlike_term_functional_deriv(n_plus_in, positive_bead_charge, negative_bead_charge, .true.)
 
        hard_sphere_term = calculate_hardsphere_functional_deriv(n_minus_total, n_minus_end, n_s, calculate_bulk, r_plus)
        
     else
-       like_electrostatic_term = calculate_electrostatic_like_term_functional_deriv(n_minus_total, positive_bead_charge)
-       unlike_electrostatic_term = calculate_electrostatic_unlike_term_functional_deriv(n_plus_total, positive_bead_charge, negative_bead_charge)
 
-       surface_electrostatic_term = calculate_surface_electrostatic_functional_deriv(size(n_minus_total), negative_bead_charge)
+       like_electrostatic_term = calculate_electrostatic_like_term_functional_deriv(n_minus, negative_bead_charge, .false.)
+       unlike_electrostatic_term = calculate_electrostatic_unlike_term_functional_deriv(n_plus, positive_bead_charge, negative_bead_charge, .false.)
 
-       hard_sphere_term = calculate_hardsphere_functional_deriv(n_minus_total, n_minus_end, n_s, calculate_bulk, r_plus)
+       surface_electrostatic_term = calculate_surface_electrostatic_functional_deriv(size(n_minus), negative_bead_charge)
+
+       !print *, "surface_electrostatic_term = ",  surface_electrostatic_term(26), surface_electrostatic_term(size(surface_electrostatic_term) - 25), &
+       !     surface_electrostatic_term(size(surface_electrostatic_term) - 25) - surface_electrostatic_term(26)
+       !print *, "like_electrostatic_term minus = ",  like_electrostatic_term(26), like_electrostatic_term(size(like_electrostatic_term) - 25), &
+       !     like_electrostatic_term(size(like_electrostatic_term) - 25) - like_electrostatic_term(26)
+       !print *, "unlike_electrostatic_term minus = ", unlike_electrostatic_term(26), unlike_electrostatic_term(size(unlike_electrostatic_term) - 25), &
+       !     unlike_electrostatic_term(size(unlike_electrostatic_term) - 25) - unlike_electrostatic_term(26)
+       !print *, "sum = ", (surface_electrostatic_term(26) + like_electrostatic_term(26) + unlike_electrostatic_term(26))*beta
+       !print *, ""
        
+       !call abort()
+
+
     end if
 
-    CalculateLambdaMinusSpecificTerms = hard_sphere_term !surface_electrostatic_term + like_electrostatic_term + unlike_electrostatic_term
+
+
+    ! print *, "minus terms"
+    ! print *, "calculate_bulk = ", calculate_bulk
+    ! print *, "surface_electrostatic_term(100) = ", surface_electrostatic_term(100)
+    ! print *, "like_electrostatic_term(100) = ", like_electrostatic_term(100)
+    ! print *, "unlike_electrostatic_term(100) = ", unlike_electrostatic_term(100)
+    !call abort()
+
+    CalculateLambdaMinusSpecificTerms = surface_electrostatic_term + like_electrostatic_term + unlike_electrostatic_term
 
   end function CalculateLambdaMinusSpecificTerms
 

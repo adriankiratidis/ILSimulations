@@ -46,19 +46,20 @@ contains
     maxwell_stress_term_left_wall = 0.0_dp
     maxwell_stress_term_right_wall = 0.0_dp
 
+    n_s = n_plus + n_neutral + n_minus
     call get_allowed_z_values(start_z_index, end_z_index, size(n_s))
 
     call CalculateDerivOfWallTerm(left_wall_dispersion_integrand, right_wall_dispersion_integrand)
 
     call CalculateDispersionAdjustment(dispersion_particle_particle_adjust_to_contact_thm, n_s)
 
-    !call CalculateMaxwellStressTerm(maxwell_stress_term_left_wall, maxwell_stress_term_right_wall)
+    call CalculateMaxwellStressTerm(maxwell_stress_term_left_wall, maxwell_stress_term_right_wall)
 
     !left_wall_dispersion_integrand = 0.0_dp
     !right_wall_dispersion_integrand = 0.0_dp
 
-    !right_wall_dispersion_integrand = 0.0_dp
-    !left_wall_dispersion_integrand = 0.0_dp
+    !maxwell_stress_term_left_wall = 0.0_dp
+    !maxwell_stress_term_right_wall = 0.0_dp
 
     ! print *, "n_s = ", n_s
     ! print *, "left_wall_dispersion_integrand = ", left_wall_dispersion_integrand
@@ -68,8 +69,13 @@ contains
     ! print *, "n_s right = ", n_s * right_wall_dispersion_integrand
     ! call abort()
 
-    normal_pressure_left_wall =  (n_s(start_z_index) + integrate_z_cylindrical(n_s * left_wall_dispersion_integrand, unity_function) - maxwell_stress_term_left_wall) / beta
-    normal_pressure_right_wall =  (n_s(end_z_index) + integrate_z_cylindrical(n_s * right_wall_dispersion_integrand, unity_function) - maxwell_stress_term_right_wall) / beta
+    !print *, "1", n_s(start_z_index)/beta
+    !print *, integrate_z_cylindrical(n_s * left_wall_dispersion_integrand, unity_function)
+    !print *, maxwell_stress_term_left_wall
+    !call abort()
+    
+    normal_pressure_left_wall =  (n_s(start_z_index)/beta + integrate_z_cylindrical(n_s * left_wall_dispersion_integrand, unity_function) - maxwell_stress_term_left_wall)
+    normal_pressure_right_wall =  (n_s(end_z_index)/beta + integrate_z_cylindrical(n_s * right_wall_dispersion_integrand, unity_function) - maxwell_stress_term_right_wall)
 
   end subroutine CalculateNormalPressureFromContactTheorem
 
@@ -110,8 +116,8 @@ contains
     real(dp), intent(out) :: maxwell_stress_term_left_wall
     real(dp), intent(out) :: maxwell_stress_term_right_wall
 
-    maxwell_stress_term_left_wall = 2.0_dp * pi * (surface_charge_density_left_wall**2)/ (epsilonr * epsilon0)
-    maxwell_stress_term_right_wall = 2.0_dp * pi * (surface_charge_density_right_wall**2)/ (epsilonr * epsilon0)
+    maxwell_stress_term_left_wall = 2.0_dp * pi * (surface_charge_density_left_wall**2)/ (epsilonr * epsilon0) 
+    maxwell_stress_term_right_wall = 2.0_dp * pi * (surface_charge_density_right_wall**2)/ (epsilonr * epsilon0) 
 
   end subroutine CalculateMaxwellStressTerm
 
@@ -130,8 +136,8 @@ contains
 
        !print *, "number = ", distance_from_left_wall, distance_from_right_wall, distance_from_right_wall + distance_from_left_wall
        
-       left_wall_term(ij) = (2.0_dp * pi * epsilon_LJ * ((0.4_dp * (hs_diameter/distance_from_left_wall)**9) - (hs_diameter/distance_from_left_wall)**3))/distance_from_left_wall
-       right_wall_term(ij) = (2.0_dp * pi * epsilon_LJ * ((0.4_dp * (hs_diameter/distance_from_right_wall)**9) - (hs_diameter/distance_from_right_wall)**3))/distance_from_right_wall
+       left_wall_term(ij) = (2.0_dp * pi * epsilon_LJ_particle_wall * ((0.4_dp * (hs_diameter/distance_from_left_wall)**9) - (hs_diameter/distance_from_left_wall)**3))/distance_from_left_wall
+       right_wall_term(ij) = (2.0_dp * pi * epsilon_LJ_particle_wall * ((0.4_dp * (hs_diameter/distance_from_right_wall)**9) - (hs_diameter/distance_from_right_wall)**3))/distance_from_right_wall
     end do
 
 
@@ -155,8 +161,8 @@ contains
     dispersion_particle_particle_adjust_to_contact_thm(:) = CalculateNegativeDerivOfPotentialPerUnitAreaWRTSeparation(dispersion_particle_particle_adjust_to_contact_thm)
     
     do ij = 1, size(normal_pressure_left_wall)
-       normal_pressure_left_wall(ij) =  normal_pressure_left_wall(ij) + dispersion_particle_particle_adjust_to_contact_thm(ij)
-       normal_pressure_right_wall(ij) =  normal_pressure_right_wall(ij) + dispersion_particle_particle_adjust_to_contact_thm(ij)
+       normal_pressure_left_wall(ij) =  normal_pressure_left_wall(ij) - dispersion_particle_particle_adjust_to_contact_thm(ij)
+       normal_pressure_right_wall(ij) =  normal_pressure_right_wall(ij) - dispersion_particle_particle_adjust_to_contact_thm(ij)
     end do
 
   end subroutine MakeContactTheoremAdjustmentFromParticleParticleDispersion

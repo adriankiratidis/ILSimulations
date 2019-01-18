@@ -23,6 +23,14 @@ contains
 
     calculate_central_difference = 0.0_dp
 
+    !Check input_array is the correct size
+    if(size(input_array) /= size(plate_separations)) then
+       print *, "discretederivatives.f90: calculate_central_difference: "
+       print *, "size(input_array) /= size(plate_separations)"
+       !print *, "size mismatch....likely coding error...aborting..."
+       !call abort()
+    end if
+
     !If the input_array size is one we can't calculate any derivatives
     !but we may still want the density profile. So print a warning and set the derivative to 0.
     if(size(input_array) == 1) then
@@ -93,7 +101,13 @@ contains
 
     integer :: ij
 
-    calculate_backward_difference = 0.0_dp
+    !Check input_array is the correct size
+    if(size(input_array) /= size(plate_separations)) then
+       print *, "discretederivatives.f90: calculate_backward_difference: "
+       print *, "size(input_array) /= size(plate_separations)"
+       !print *, "size mismatch....likely coding error...aborting..."
+       !call abort()
+    end if
 
     !If the input_array size is one we can't calculate any derivatives
     !but we may still want the density profile. So print a warning and set the derivative to 0.
@@ -151,7 +165,13 @@ contains
 
     integer :: ij
 
-    calculate_forward_difference = 0.0_dp
+    !Check input_array is the correct size
+    if(size(input_array) /= size(plate_separations)) then
+       print *, "discretederivatives.f90: calculate_forward_difference: "
+       print *, "size(input_array) /= size(plate_separations)"
+       !print *, "size mismatch....likely coding error...aborting..."
+       !call abort()
+    end if
 
     !If the input_array size is one we can't calculate any derivatives
     !but we may still want the density profile. So print a warning and set the derivative to 0.
