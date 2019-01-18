@@ -17,13 +17,14 @@ contains
 
   !Subroutine that calculates the 
   subroutine CalculateGrandPotentialValuePerUnitArea(ith_plate_separation, grand_potential_per_unit_area, &
-       size_of_ns_array, n_plus, n_neutral, n_minus)
+       size_of_ns_array, n_plus, n_neutral, n_minus, Donnan_potential)
     integer, intent(in)   :: ith_plate_separation
     real(dp), intent(out) :: grand_potential_per_unit_area
     integer, intent(in) :: size_of_ns_array
     real(dp), dimension(:), intent(in) :: n_plus
     real(dp), dimension(:), intent(in) :: n_neutral
     real(dp), dimension(:), intent(in) :: n_minus
+    real(dp), intent(in) :: Donnan_potential
 
     real(dp), dimension(size_of_ns_array) :: n_s
     real(dp), dimension(size_of_ns_array) :: n_sbar
@@ -62,21 +63,21 @@ contains
     n_neutral_input(:) = n_neutral(:)
     n_minus_input(:) = n_minus(:)
 
-    !F_surface_disp = integrate_z_cylindrical(n_s * &
-    !     calculate_surface_dispersion_functional_deriv(ith_plate_separation, size(n_s)), unity_function)
+    F_surface_disp = integrate_z_cylindrical(n_s * &
+         calculate_surface_dispersion_functional_deriv(ith_plate_separation, size(n_s)), unity_function) !J
 
-    F_ideal_chain = calculate_ideal_chain_term_per_unit_area(size(n_plus_input), n_plus_input, n_neutral_input, n_minus_input, ith_plate_separation)
+    F_ideal_chain = calculate_ideal_chain_term_per_unit_area(size(n_plus_input), n_plus_input, n_neutral_input, n_minus_input, ith_plate_separation, Donnan_potential)
 
-    !F_hard_sphere = calculate_hardsphere_term_per_unit_area(n_s, n_sbar)
+    F_hard_sphere = calculate_hardsphere_term_per_unit_area(n_s, n_sbar)
 
-    !F_van_der_waals = integrate_z_cylindrical(0.5_dp * n_s * calculate_vanderWaals_functional_deriv(n_s), unity_function)
+    F_van_der_waals = 0.5_dp * integrate_z_cylindrical(n_s * calculate_vanderWaals_functional_deriv(n_s), unity_function) !J
 
     F_surface_electro = integrate_z_cylindrical(n_plus_input(:) * calculate_surface_electrostatic_functional_deriv(size(n_plus_input), positive_bead_charge), unity_function) +&
-         integrate_z_cylindrical(n_minus_input * calculate_surface_electrostatic_functional_deriv(size(n_minus_input), negative_bead_charge), unity_function)
+         integrate_z_cylindrical(n_minus_input * calculate_surface_electrostatic_functional_deriv(size(n_minus_input), negative_bead_charge), unity_function) !J
 
 
     F_electric_like = 0.5_dp * (&
-         integrate_z_cylindrical(n_plus * calculate_electrostatic_like_term_functional_deriv(n_plus, positive_bead_charge, .false.), unity_function) +&
+         integrate_z_cylindrical(n_plus * calculate_electrostatic_like_term_functional_deriv(n_plus, positive_bead_charge, .false.), unity_function) +& !J
          integrate_z_cylindrical(n_minus * calculate_electrostatic_like_term_functional_deriv(n_minus, negative_bead_charge, .false.), unity_function))
 
     F_electric_unlike = 0.5_dp * (&
@@ -84,7 +85,7 @@ contains
          integrate_z_cylindrical(n_minus * calculate_electrostatic_unlike_term_functional_deriv(n_plus, positive_bead_charge, negative_bead_charge, .false.), unity_function))
 
 
-    !print *, "F_surface_electro = ", F_surface_electro
+    print *, "F_surface_electro = ", F_surface_electro
     !print *, "F_electric_like = ", F_electric_like
     !print *, "F_electric_unlike = ", F_electric_unlike 
     !call abort()
@@ -119,7 +120,7 @@ contains
 
 
 
-    chemical_potential_term = calculate_chem_potential_term(n_plus_input, n_neutral_input, n_minus_input, ith_plate_separation)
+    chemical_potential_term = calculate_chem_potential_term(n_plus_input, n_neutral_input, n_minus_input, ith_plate_separation, Donnan_potential)
 
     !F_van_der_waals = integrate_z_cylindrical(0.5_dp * n_s * calculate_vanderWaals_functional_deriv(n_s), unity_function)
 
@@ -137,11 +138,13 @@ contains
   end subroutine CalculateGrandPotentialValuePerUnitArea
 
 
-  function calculate_chem_potential_term(n_plus, n_neutral, n_minus, ith_plate_separation)
+  function calculate_chem_potential_term(n_plus, n_neutral, n_minus, ith_plate_separation, Donnan_potential)
     real(dp), dimension(:), intent(in) :: n_plus
     real(dp), dimension(:), intent(in) :: n_neutral
     real(dp), dimension(:), intent(in) :: n_minus
     integer, intent(in) :: ith_plate_separation
+
+    real(dp) :: Donnan_potential
 
     real(dp) :: calculate_chem_potential_term
 
@@ -150,11 +153,41 @@ contains
     else if(trim(ionic_liquid_name) == "NeutralDimers") then
        calculate_chem_potential_term = calculate_chem_potential_term_neutral_dimers(n_plus, n_neutral, n_minus, ith_plate_separation)
     else if(trim(ionic_liquid_name) == "C4MIM_BF4-") then
-       calculate_chem_potential_term = calculate_chem_potential_C4MIMBF4(n_plus, n_neutral, n_minus, ith_plate_separation)
+       calculate_chem_potential_term = calculate_chem_potential_C4MIMBF4(n_plus, n_neutral, n_minus, ith_plate_separation, Donnan_potential)
+    else if(trim(ionic_liquid_name) == "C2MIM_BF4-") then !Chemical potential is the same functional form as C4MIM_BF4-
+       calculate_chem_potential_term = calculate_chem_potential_C4MIMBF4(n_plus, n_neutral, n_minus, ith_plate_separation, Donnan_potential)
+    else if(trim(ionic_liquid_name) == "C6MIM_BF4-") then !Chemical potential is the same functional form as C4MIM_BF4-
+       calculate_chem_potential_term = calculate_chem_potential_C4MIMBF4(n_plus, n_neutral, n_minus, ith_plate_separation, Donnan_potential)
+    else if(trim(ionic_liquid_name) == "C8MIM_BF4-") then !Chemical potential is the same functional form as C4MIM_BF4-
+       calculate_chem_potential_term = calculate_chem_potential_C4MIMBF4(n_plus, n_neutral, n_minus, ith_plate_separation, Donnan_potential)
+    else if(trim(ionic_liquid_name) == "C10MIM_BF4-") then !Chemical potential is the same functional form as C4MIM_BF4-
+       calculate_chem_potential_term = calculate_chem_potential_C4MIMBF4(n_plus, n_neutral, n_minus, ith_plate_separation, Donnan_potential)
+    else if(trim(ionic_liquid_name) == "C4MIM+_TFSI-_model1") then
+       calculate_chem_potential_term = calculate_chem_potential_C4MIMTFSI_model1(n_plus, n_neutral, n_minus, ith_plate_separation, Donnan_potential)
+    else if(trim(ionic_liquid_name) == "C2MIM+_TFSI-_model1") then !Chemical potential is the same functional form as C4MIM+_TFSI-_model1.
+       calculate_chem_potential_term = calculate_chem_potential_C4MIMTFSI_model1(n_plus, n_neutral, n_minus, ith_plate_separation, Donnan_potential)
+    else if(trim(ionic_liquid_name) == "C6MIM+_TFSI-_model1") then !Chemical potential is the same functional form as C4MIM+_TFSI-_model1.
+       calculate_chem_potential_term = calculate_chem_potential_C4MIMTFSI_model1(n_plus, n_neutral, n_minus, ith_plate_separation, Donnan_potential)
+    else if(trim(ionic_liquid_name) == "C8MIM+_TFSI-_model1") then !Chemical potential is the same functional form as C4MIM+_TFSI-_model1.
+       calculate_chem_potential_term = calculate_chem_potential_C4MIMTFSI_model1(n_plus, n_neutral, n_minus, ith_plate_separation, Donnan_potential)
+    else if(trim(ionic_liquid_name) == "C10MIM+_TFSI-_model1") then !Chemical potential is the same functional form as C4MIM+_TFSI-_model1.
+       calculate_chem_potential_term = calculate_chem_potential_C4MIMTFSI_model1(n_plus, n_neutral, n_minus, ith_plate_separation, Donnan_potential)
+    else if(trim(ionic_liquid_name) == "C4MIM+_TFSI-_model2") then
+       calculate_chem_potential_term = calculate_chem_potential_C4MIMTFSI_model2(n_plus, n_neutral, n_minus, ith_plate_separation, Donnan_potential)
+    else if(trim(ionic_liquid_name) == "C2MIM+_TFSI-_model2") then !Chemical potential is the same functional form as C4MIM+_TFSI-_model2.
+       calculate_chem_potential_term = calculate_chem_potential_C4MIMTFSI_model2(n_plus, n_neutral, n_minus, ith_plate_separation, Donnan_potential)
+    else if(trim(ionic_liquid_name) == "C6MIM+_TFSI-_model2") then !Chemical potential is the same functional form as C4MIM+_TFSI-_model2.
+       calculate_chem_potential_term = calculate_chem_potential_C4MIMTFSI_model2(n_plus, n_neutral, n_minus, ith_plate_separation, Donnan_potential)
+    else if(trim(ionic_liquid_name) == "C8MIM+_TFSI-_model2") then !Chemical potential is the same functional form as C4MIM+_TFSI-_model2.
+       calculate_chem_potential_term = calculate_chem_potential_C4MIMTFSI_model2(n_plus, n_neutral, n_minus, ith_plate_separation, Donnan_potential)
+    else if(trim(ionic_liquid_name) == "C10MIM+_TFSI-_model2") then !Chemical potential is the same functional form as C4MIM+_TFSI-_model2.
+       calculate_chem_potential_term = calculate_chem_potential_C4MIMTFSI_model2(n_plus, n_neutral, n_minus, ith_plate_separation, Donnan_potential)
     else if(trim(ionic_liquid_name) == "PositiveMinusSpheres") then
        calculate_chem_potential_term = calculate_chem_potential_PositiveMinusSpheres(n_plus, n_neutral, n_minus, ith_plate_separation)
+    else if(trim(ionic_liquid_name) == "PositiveNeutralMinusSpheres") then
+       calculate_chem_potential_term = calculate_chem_potential_PositiveNeutralMinusSpheres(n_plus, n_neutral, n_minus, ith_plate_separation, Donnan_potential)
     else if(trim(ionic_liquid_name) == "PositiveNeutralDimerMinusSpheres") then
-       calculate_chem_potential_term = calculate_chem_potential_PositiveNeutralDimerMinusSpheres(n_plus, n_neutral, n_minus, ith_plate_separation)
+       calculate_chem_potential_term = calculate_chem_potential_PositiveNeutralDimerMinusSpheres(n_plus, n_neutral, n_minus, ith_plate_separation, Donnan_potential)
     else if(trim(ionic_liquid_name) == "PositiveNeutralDoubleDimerMinusDimer") then
        calculate_chem_potential_term = calculate_chem_potential_PositiveNeutralDoubleDimerMinusDimer(n_plus, n_neutral, n_minus, ith_plate_separation)
     else
@@ -169,12 +202,14 @@ contains
   !In the case that none are present then calculate the bulk value. (by setting lambda_b - lambda = 0).
   !In the case that they're all present calulculate the value based on the input densities.
   !In any other case, abort.
-  function calculate_ideal_chain_term_per_unit_area(n_points, n_plus, n_neutral, n_minus, ith_plate_separation)
+  function calculate_ideal_chain_term_per_unit_area(n_points, n_plus, n_neutral, n_minus, ith_plate_separation, Donnan_potential)
     integer, intent(in) :: n_points !Number of points to calculate
     real(dp), dimension(:), intent(in), optional :: n_plus
     real(dp), dimension(:), intent(in), optional :: n_neutral
     real(dp), dimension(:), intent(in), optional :: n_minus
     integer, intent(in), optional :: ith_plate_separation
+    real(dp), intent(in) :: Donnan_potential
+
     real(dp) :: calculate_ideal_chain_term_per_unit_area
 
     real(dp), dimension(n_points) :: lambda_plus, lambda_neutral, lambda_minus
@@ -216,11 +251,41 @@ contains
     else if(trim(ionic_liquid_name) == "NeutralDimers") then
        calculate_ideal_chain_term_per_unit_area = calculate_neutral_dimers_ideal_chain_term(lambda_neutral)
     else if(trim(ionic_liquid_name) == "C4MIM_BF4-") then
-       calculate_ideal_chain_term_per_unit_area = calculate_C4MIMBF4_ideal_chain_term(lambda_plus, lambda_neutral, lambda_minus)
+       calculate_ideal_chain_term_per_unit_area = calculate_C4MIMBF4_ideal_chain_term(lambda_plus, lambda_neutral, lambda_minus, Donnan_potential)
+    else if(trim(ionic_liquid_name) == "C2MIM_BF4-") then
+       calculate_ideal_chain_term_per_unit_area = calculate_C2MIMBF4_ideal_chain_term(lambda_plus, lambda_neutral, lambda_minus, Donnan_potential)
+    else if(trim(ionic_liquid_name) == "C6MIM_BF4-") then
+       calculate_ideal_chain_term_per_unit_area = calculate_C6MIMBF4_ideal_chain_term(lambda_plus, lambda_neutral, lambda_minus, Donnan_potential)
+    else if(trim(ionic_liquid_name) == "C8MIM_BF4-") then
+       calculate_ideal_chain_term_per_unit_area = calculate_C8MIMBF4_ideal_chain_term(lambda_plus, lambda_neutral, lambda_minus, Donnan_potential)
+    else if(trim(ionic_liquid_name) == "C10MIM_BF4-") then
+       calculate_ideal_chain_term_per_unit_area = calculate_C10MIMBF4_ideal_chain_term(lambda_plus, lambda_neutral, lambda_minus, Donnan_potential)
+    else if(trim(ionic_liquid_name) == "C4MIM+_TFSI-_model1") then
+       calculate_ideal_chain_term_per_unit_area = calculate_C4MIMTFSI_ideal_chain_term_model1(lambda_plus, lambda_neutral, lambda_minus, Donnan_potential)
+    else if(trim(ionic_liquid_name) == "C2MIM+_TFSI-_model1") then
+       calculate_ideal_chain_term_per_unit_area = calculate_C2MIMTFSI_ideal_chain_term_model1(lambda_plus, lambda_neutral, lambda_minus, Donnan_potential)
+    else if(trim(ionic_liquid_name) == "C6MIM+_TFSI-_model1") then
+       calculate_ideal_chain_term_per_unit_area = calculate_C6MIMTFSI_ideal_chain_term_model1(lambda_plus, lambda_neutral, lambda_minus, Donnan_potential)
+    else if(trim(ionic_liquid_name) == "C8MIM+_TFSI-_model1") then
+       calculate_ideal_chain_term_per_unit_area = calculate_C8MIMTFSI_ideal_chain_term_model1(lambda_plus, lambda_neutral, lambda_minus, Donnan_potential)
+    else if(trim(ionic_liquid_name) == "C10MIM+_TFSI-_model1") then
+       calculate_ideal_chain_term_per_unit_area = calculate_C10MIMTFSI_ideal_chain_term_model1(lambda_plus, lambda_neutral, lambda_minus, Donnan_potential)
+    else if(trim(ionic_liquid_name) == "C4MIM+_TFSI-_model2") then
+       calculate_ideal_chain_term_per_unit_area = calculate_C4MIMTFSI_ideal_chain_term_model2(lambda_plus, lambda_neutral, lambda_minus, Donnan_potential)       
+    else if(trim(ionic_liquid_name) == "C2MIM+_TFSI-_model2") then
+       calculate_ideal_chain_term_per_unit_area = calculate_C2MIMTFSI_ideal_chain_term_model2(lambda_plus, lambda_neutral, lambda_minus, Donnan_potential)       
+    else if(trim(ionic_liquid_name) == "C6MIM+_TFSI-_model2") then
+       calculate_ideal_chain_term_per_unit_area = calculate_C6MIMTFSI_ideal_chain_term_model2(lambda_plus, lambda_neutral, lambda_minus, Donnan_potential)       
+    else if(trim(ionic_liquid_name) == "C8MIM+_TFSI-_model2") then
+       calculate_ideal_chain_term_per_unit_area = calculate_C8MIMTFSI_ideal_chain_term_model2(lambda_plus, lambda_neutral, lambda_minus, Donnan_potential)       
+    else if(trim(ionic_liquid_name) == "C10MIM+_TFSI-_model2") then
+       calculate_ideal_chain_term_per_unit_area = calculate_C10MIMTFSI_ideal_chain_term_model2(lambda_plus, lambda_neutral, lambda_minus, Donnan_potential)       
     else if(trim(ionic_liquid_name) == "PositiveMinusSpheres") then
        calculate_ideal_chain_term_per_unit_area = calculate_PositiveMinusSpheres_ideal_chain_term(n_plus_input, n_minus_input)
+    else if(trim(ionic_liquid_name) == "PositiveNeutralMinusSpheres") then
+       calculate_ideal_chain_term_per_unit_area = calculate_PositiveNeutralMinusSpheres_ideal_chain_term(n_plus_input, n_neutral, n_minus_input)
     else if(trim(ionic_liquid_name) == "PositiveNeutralDimerMinusSpheres") then
-       calculate_ideal_chain_term_per_unit_area = calculate_PositiveNeutralDimerMinusSpheres_ideal_chain_term(lambda_plus, lambda_neutral, n_minus_input)
+       calculate_ideal_chain_term_per_unit_area = calculate_PositiveNeutralDimerMinusSpheres_ideal_chain_term(lambda_plus, lambda_neutral, lambda_minus, n_minus_input, Donnan_potential)
     else if(trim(ionic_liquid_name) == "PositiveNeutralDoubleDimerMinusDimer") then
        calculate_ideal_chain_term_per_unit_area = calculate_PositiveNeutralDoubleDimerMinusDimer_ideal_chain_term(lambda_plus, lambda_neutral, lambda_minus)
     else

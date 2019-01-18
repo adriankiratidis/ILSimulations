@@ -12,7 +12,7 @@ import math
 plt.rc('text', usetex=True)
 plt.rc('font', family='serif')
 
-separation = 10
+separation = 4
 charge = 1
 
 #Read in the data from "data.txt".  This will read in the whole file 
@@ -27,22 +27,17 @@ charge = 1
 #(Default python array indicies start at 0 unlike fortran which starts at 1.)
 #data_0 = np.loadtxt("../testing-n_" + charge + "_separation" + str(separation) + ".00000.txt")
 
-# data_1 = np.loadtxt("../bin/test-n_plus_separation" +  str(separation) + ".txt")
-# data_3 = np.loadtxt("../bin/test-n_minus_separation" + str(separation) + ".txt")
+        
+data_1 = np.loadtxt("../run_results/compare_epsilonLJ/charge/35.51-35.51_C2MIM+_TFSI-_model2TEST_plus_minus/testing7-a2-n_plus_separation4.00000charge1.txt")
+data_2 = np.loadtxt("../run_results/compare_epsilonLJ/charge/35.51-35.51_C2MIM+_TFSI-_model2TEST_plus_minus/testing7-a2-n_neutral_separation4.00000charge1.txt")
+data_3 = np.loadtxt("../run_results/compare_epsilonLJ/charge/35.51-35.51_C2MIM+_TFSI-_model2TEST_plus_minus/testing7-a2-n_minus_separation4.00000charge1.txt")
 
-data_1 = np.loadtxt("../bin/test-n_plus_separation" +  str(separation) + ".txt")
-data_3 = np.loadtxt("../bin/test-n_minus_separation" + str(separation) + ".txt")
-
-#data_1 = np.loadtxt("../testing-n_plus_separation" + str(separation) + ".00000charge" + str(charge) + ".txt")
-#data_2 = np.loadtxt("../testing-n_neutral_separation" + str(separation) + ".00000charge" + str(charge) + ".txt")
-#data_3 = np.loadtxt("../testing-n_minus_separation" + str(separation) + ".00000charge" + str(charge) + ".txt")
-#data_4 = np.loadtxt("../testing-n_s_separation" + str(separation) + ".00000.txt")
 
 x_1 = data_1[:,0]
 y_1 = data_1[:,1]
 
-# x_2 = data_2[:,0]
-# y_2 = data_2[:,1]
+x_2 = data_2[:,0]
+y_2 = data_2[:,1]
 
 x_3 = data_3[:,0]
 y_3 = data_3[:,1]
@@ -61,7 +56,7 @@ y_3 = data_3[:,1]
 #label='_nolegend_'
 #plt.plot(x_0,y_0,'rx',label='converged profile')
 plt.plot(x_1+0.02,y_1,'bx',label=r'$n_{+}$')
-#plt.plot(x_2+0.04,y_2,'go',label=r'$n_{0}$')
+plt.plot(x_2+0.04,y_2,'go',label=r'$n_{0}$')
 plt.plot(x_3,y_3,'rs',label=r'$n_{-}$')
 #plt.plot(x_4,y_4,'ch',label=r'$n_{s}$')
 #plt.plot(x_5,y_5,'m*',label='iteration 5')
@@ -94,7 +89,8 @@ plt.legend(loc='best',ncol=1, numpoints=1, frameon=False)
 #Uncomment if title is required
 #plt.title(r"Some Title")
 
-savefig("C4MIM.pdf",bbox_inches='tight')
+#savefig("C4MIM_TFSI_model2-35.51-35.51-charge_a2_TEST.pdf",bbox_inches='tight')
+savefig("C2MIM+_TFSI-_35.51-35.51_model2_TEST_plus_minus.pdf",bbox_inches='tight')
 
 #Open a window and show the plot
 plt.show()

@@ -26,8 +26,8 @@ contains
     if(size(input_array) /= size(plate_separations)) then
        print *, "discretederivatives.f90: calculate_central_difference: "
        print *, "size(input_array) /= size(plate_separations)"
-       print *, "size mismatch....likely coding error...aborting..."
-       call abort()
+       !print *, "size mismatch....likely coding error...aborting..."
+       !call abort()
     end if
 
     !If the input_array size is one we can't calculate any derivatives
@@ -72,8 +72,8 @@ contains
     if(size(input_array) /= size(plate_separations)) then
        print *, "discretederivatives.f90: calculate_backward_difference: "
        print *, "size(input_array) /= size(plate_separations)"
-       print *, "size mismatch....likely coding error...aborting..."
-       call abort()
+       !print *, "size mismatch....likely coding error...aborting..."
+       !call abort()
     end if
 
     !If the input_array size is one we can't calculate any derivatives
@@ -113,8 +113,8 @@ contains
     if(size(input_array) /= size(plate_separations)) then
        print *, "discretederivatives.f90: calculate_forward_difference: "
        print *, "size(input_array) /= size(plate_separations)"
-       print *, "size mismatch....likely coding error...aborting..."
-       call abort()
+       !print *, "size mismatch....likely coding error...aborting..."
+       !call abort()
     end if
 
     !If the input_array size is one we can't calculate any derivatives

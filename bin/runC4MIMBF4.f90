@@ -22,7 +22,11 @@ program runSingleSphere
 
   integer :: ij
   integer :: icharge
-  
+  real(dp) :: intermediate
+  integer :: end_size
+  logical :: abort_now
+
+  abort_now = .false.
   ! We use the standard notation of cj/aj to denote the contribution from bead j to the cation/anion
   ! as described in J. Phys. Chem C 2017, 121, 1742-1751. DOI: 10.1021/acs.jpcc.6b11491
   ! Here we use the notation c8c1 for example to denote the fact that due to symmetry c8 and c1
@@ -80,9 +84,13 @@ program runSingleSphere
           n_neutral_updated, lambda_neutral, n_minus_updated, lambda_minus, n_plus_previous, n_neutral_previous, n_minus_previous)
      call SetToZero(n_plus_updated, lambda_plus, n_neutral_updated, lambda_neutral, n_minus_updated, lambda_minus)
 
+     if(ith_separation == 1) then
+        call ImposeChargeNeutrality(n_plus, n_neutral, n_minus, Donnan_potential, abort_now)
+     end if
+
      call InitialiseChargeIncrement()
      do icharge = 1, n_charge_iterations
-        call UpdateChargeIncrement()
+        if(icharge > 1) call UpdateChargeIncrement()
 
 
         print *, "Starting iteration.  Searching for convergence of density profiles."
@@ -90,30 +98,19 @@ program runSingleSphere
         do while (iteration < MAX_ITERATION_LIMIT)
            iteration = iteration + 1
 
-           !n_plus = 0.0_dp
            !n_neutral = 0.0_dp
-           !n_minus = 0.0_dp
 
-           !print *, ""
-           !print *, "*****"
-           !print *, "iteration", iteration
-           !print *, "*****"
-           !print *, "n_neutral 0 ", n_neutral(100), n_neutral_previous(100)
+           !print *, "n_plus = ", n_plus
+           !print *, "n_neutral = ", n_neutral
+           !print *, "n_minus = ", n_minus
+           !call abort()
 
-
-           !print *, "n_plus_previous(100) = ", n_plus_previous(100)
-           if(iteration > 1) then
-              n_plus = (alpha_mixing_for_update * n_plus) + (1.0_dp - alpha_mixing_for_update) * n_plus_previous
-              n_neutral = (alpha_mixing_for_update * n_neutral) + (1.0_dp - alpha_mixing_for_update) * n_neutral_previous
-              n_minus = (alpha_mixing_for_update * n_minus) + (1.0_dp - alpha_mixing_for_update) * n_minus_previous
-           end if
-
-           !print *, "n_neutral 0.5 ", n_neutral(100), n_neutral_previous(100)
-
-           !n_plus = 0.0_dp
-           n_neutral = 0.0_dp
-           !n_minus = 0.0_dp
-
+           !print *, "*************************************"
+           !print *, "iteration = ", iteration
+           !print *, "*************************************"
+           !print *, "n_plus integral = ", integrate_z_cylindrical(positive_bead_charge*n_plus, "all_z")
+           !print *, "n_neutral integral = ", n_neutral_updated
+           !print *, "n_minus integral = ", integrate_z_cylindrical(negative_bead_charge*n_minus, "all_z")
 
            call CalculateLambdasDifference(lambda_plus, n_plus, lambda_neutral, n_neutral, lambda_minus, n_minus, ith_separation)
 
@@ -130,24 +127,30 @@ program runSingleSphere
            !print * , "lambda_minus = ", lambda_minus
            !call abort()
 
-           !print *, "n_plus = ", iteration,  n_plus
+
            !print *, "n_minus = ", n_minus
            !print *, "lambda_plus = ", lambda_plus
-           call UpdateDensities(lambda_plus, n_plus_updated, lambda_neutral, n_neutral_updated, lambda_minus, n_minus_updated)
+           !print *, "1"
+           call UpdateDensities(n_plus, n_neutral, n_minus, lambda_plus, n_plus_updated, lambda_neutral, n_neutral_updated, lambda_minus, n_minus_updated, Donnan_potential, iteration, abort_now)
 
-           !print *, "n_plus_updated 1 = ", iteration,  n_plus_updated
-
-           !call ReNormaliseToBulkDensity(n_plus_updated, "n+")
-           !call ReNormaliseToBulkDensity(n_minus_updated, "n-")
-
-           !print *, "n_plus_updated 2 = ", iteration,  n_plus_updated
-
+           !Found some problem, but still want to print what we've calculated so far.
+           if(abort_now) exit
+           !print *, "2"
+           !print *, "n_plus_updated = ", n_plus_updated
+           !print *, "n_plus_updated integral = ", integrate_z_cylindrical(positive_bead_charge*n_plus_updated, "all_z")
+           !print *, "n_neutral integral = ", n_neutral_updated
+           !print *, "n_minus_updated integral = ", integrate_z_cylindrical(negative_bead_charge*n_minus_updated, "all_z")
+           !call abort()
            do ij = 1, size(n_plus_updated)
               if(isnan((n_plus_updated(ij)))) then
+                 print *, "n_plus_updated = ", n_plus_updated
+                 print *, "iteration = ", iteration
                  print *, "DENSITY HAS A NAN......ABORTING..."
                  call abort()
               end if
            end do
+
+
 
            ! Now test convergence
            if(converged(n_plus_updated, n_plus, n_neutral_updated, n_neutral, n_minus_updated, n_minus)) then
@@ -160,12 +163,14 @@ program runSingleSphere
               print *, "************************************************************"
               print *, ""
               print *, "charge = ", positive_bead_charge, negative_bead_charge
-              
+
               !Perform this update if we get the solution in one iteration.
               !Possible in principle because we rescale the solution at the previous separation.
               n_plus = n_plus_updated
               n_neutral = n_neutral_updated
               n_minus = n_minus_updated
+
+              !call CalculateDonnanPotential(n_plus, n_minus, Donnan_potential)
 
               call WriteOutputFormattedAsFunctionOfPosition(n_plus_updated, trim(file_stub), &
                    "n_plus_separation"//trim(str(plate_separations(ith_separation)))//"charge"//trim(str(icharge)))
@@ -174,9 +179,15 @@ program runSingleSphere
               call WriteOutputFormattedAsFunctionOfPosition(n_minus_updated, trim(file_stub), &
                    "n_minus_separation"//trim(str(plate_separations(ith_separation)))//"charge"//trim(str(icharge)))
 
-              !Also print out the sum, n_s
-              call WriteOutputFormattedAsFunctionOfPosition(n_plus_updated + n_neutral_updated + n_minus_updated, trim(file_stub), &
-                   "n_s_separation"//str(plate_separations(ith_separation)))
+              ! !Also print out the sum, n_s
+              ! call WriteOutputFormattedAsFunctionOfPosition(n_plus_updated + n_neutral_updated + n_minus_updated, trim(file_stub), &
+              !      "n_s_separation"//trim(str(plate_separations(ith_separation)))//"charge"//trim(str(icharge)))
+
+              ! !Now print out n_s_bar for checking
+              ! call WriteOutputFormattedAsFunctionOfPosition(calculate_n_sbar(n_plus_updated + n_neutral_updated + n_minus_updated), trim(file_stub), &
+              !      "n_sbar_separation"//trim(str(plate_separations(ith_separation)))//"charge"//trim(str(icharge)))
+
+
               exit
 
            else if(iteration == MAX_ITERATION_LIMIT) then
@@ -184,7 +195,8 @@ program runSingleSphere
               print *, "runSingleSphere.x: iteration == MAX_ITERATION_LIMIT"
               print *, "Hit the iteration limit without converging"
               print *, "Increase the iteration limit"
-              call abort()
+              abort_now = .true.
+              !call abort()
 
            else if(iteration > MAX_ITERATION_LIMIT) then
 
@@ -195,52 +207,75 @@ program runSingleSphere
 
            else !Update and proceed to the next iteration
 
-              call WriteOutputFormattedAsFunctionOfPosition(n_plus_updated, trim(file_stub), &
-                   "n_plus_separation"//trim(str(plate_separations(ith_separation)))//"iteration"//trim(str(iteration)))
-              call WriteOutputFormattedAsFunctionOfPosition(n_neutral_updated, trim(file_stub), &
-                   "n_neutral_separation"//trim(str(plate_separations(ith_separation)))//"iteration"//trim(str(iteration)))
-              call WriteOutputFormattedAsFunctionOfPosition(n_minus_updated, trim(file_stub), &
-                   "n_minus_separation"//trim(str(plate_separations(ith_separation)))//"iteration"//trim(str(iteration)))
+              ! call WriteOutputFormattedAsFunctionOfPosition(n_plus_updated, trim(file_stub), &
+              !      "n_plus_separation"//trim(str(plate_separations(ith_separation)))//"charge"//trim(str(icharge))//"iteration"//trim(str(iteration)))
+              ! call WriteOutputFormattedAsFunctionOfPosition(n_neutral_updated, trim(file_stub), &
+              !      "n_neutral_separation"//trim(str(plate_separations(ith_separation)))//"charge"//trim(str(icharge))//"iteration"//trim(str(iteration)))
+              ! call WriteOutputFormattedAsFunctionOfPosition(n_minus_updated, trim(file_stub), &
+              !      "n_minus_separation"//trim(str(plate_separations(ith_separation)))//"charge"//trim(str(icharge))//"iteration"//trim(str(iteration)))
 
-              call WriteOutputFormattedAsFunctionOfPosition(n_plus_updated + n_neutral_updated + n_minus_updated, trim(file_stub), &
-                   "n_s_separation"//trim(str(plate_separations(ith_separation)))//"iteration"//trim(str(iteration)))
-
-
-              ! print *, "n_plus = ", n_plus
-              ! print *, "n_plus_updated = ", n_plus_updated
-
-
-              ! print *, "n_neutrals = ", n_neutral
-              ! print *, "n_neutral_updated = ", n_neutral_updated
-
-              ! print *, "n_minus = ", n_minus
-              ! print *, "n_minus_updated = ", n_minus_updated
-              ! call abort()
-
-
-
+              !call WriteOutputFormattedAsFunctionOfPosition(n_plus_updated + n_neutral_updated + n_minus_updated, trim(file_stub), &
+              !     "n_s_separation"//trim(str(plate_separations(ith_separation)))//"iteration"//trim(str(iteration)))
 
 
               n_plus_previous = n_plus
               n_neutral_previous = n_neutral
               n_minus_previous = n_minus
 
+              if(iteration < 3000) then
+                 do ij = 1, size(n_plus)
+                    if(n_plus_updated(ij) .gt. n_plus(ij)) then
+                       intermediate = 2*n_plus(ij) - (n_plus(ij)**2)/n_plus_updated(ij)
+                       if(intermediate .lt. n_plus_updated(ij)) then
+                          n_plus_updated(ij) = intermediate
+                       end if
+                    end if
+                 end do
+                 do ij = 1, size(n_neutral)
+                    if(n_neutral_updated(ij) .gt. n_neutral(ij)) then
+                       intermediate = 2*n_neutral(ij) - (n_neutral(ij)**2)/n_neutral_updated(ij)
+                       if(intermediate .lt. n_neutral_updated(ij)) then
+                          n_neutral_updated(ij) = intermediate
+                       end if
+                    end if
+                 end do
+                 do ij = 1, size(n_minus)
+                    if(n_minus_updated(ij) .gt. n_minus(ij)) then
+                       intermediate = 2*n_minus(ij) - (n_minus(ij)**2)/n_minus_updated(ij)
+                       if(intermediate .lt. n_minus_updated(ij)) then
+                          n_minus_updated(ij) = intermediate
+                       end if
+                    end if
+                 end do
+              end if
+
+
+              if(iteration >= 0) then
+                 n_plus_updated = (alpha_mixing_for_update * n_plus_updated) + (1.0_dp - alpha_mixing_for_update) * n_plus_previous
+                 n_neutral_updated = (alpha_mixing_for_update * n_neutral_updated) + (1.0_dp - alpha_mixing_for_update) * n_neutral_previous
+                 n_minus_updated = (alpha_mixing_for_update * n_minus_updated) + (1.0_dp - alpha_mixing_for_update) * n_minus_previous
+              end if
+
+
               n_plus = n_plus_updated
               n_neutral = n_neutral_updated
               n_minus = n_minus_updated
 
-              !print *, "n_neutral = ", n_neutral(100), n_neutral_previous(100)
 
            end if
 
         end do !end iteration loop
-
+        !Found some problem, but still want to print what we've calculated so far.
+        if(abort_now) exit
      end do !end charge increment loop
 
+     !call CalculateDonnanPotential(n_plus, n_minus, Donnan_potential)
 
+     if(abort_now) exit
+     
      print *, "Calculating grand potential per unit area value."
      call CalculateGrandPotentialValuePerUnitArea(ith_separation, grand_potential_per_unit_area(ith_separation), &
-          size(n_neutral_updated), n_plus_updated, n_neutral_updated, n_minus_updated)
+          size(n_neutral_updated), n_plus_updated, n_neutral_updated, n_minus_updated, Donnan_potential)
 
      print *, "Calculating normal pressure from the contact theorem"
      call CalculateNormalPressureFromContactTheorem(n_plus_updated, n_neutral_updated, n_minus_updated, &
@@ -254,22 +289,29 @@ program runSingleSphere
 
   end do !end loop over plate separation
 
-  call MakeContactTheoremAdjustmentFromParticleParticleDispersion(normal_pressure_left_wall, normal_pressure_right_wall, dispersion_particle_particle_adjust_to_contact_thm)  
+  !call MakeContactTheoremAdjustmentFromParticleParticleDispersion(normal_pressure_left_wall, normal_pressure_right_wall, dispersion_particle_particle_adjust_to_contact_thm)  
 
-  negative_deriv_of_potential = CalculateNegativeDerivOfPotentialPerUnitAreaWRTSeparation(grand_potential_per_unit_area)
+  if(abort_now) then
+     end_size = iteration - 1
+  else
+     end_size = size(plate_separations)
+  end if
 
-  do ith_separation = 1, size(plate_separations)
+     
+  negative_deriv_of_potential(1:end_size) = CalculateNegativeDerivOfPotentialPerUnitAreaWRTSeparation(grand_potential_per_unit_area(1:end_size))
+
+  do ith_separation = 1, end_size
      grand_potential_per_unit_area(ith_separation) = grand_potential_per_unit_area(ith_separation) + &
-          (negative_deriv_of_potential(size(negative_deriv_of_potential)) * (plate_separations(ith_separation)) * &
+          (negative_deriv_of_potential(end_size) * (plate_separations(ith_separation)) * &
           (hs_diameter))
   end do
 
-  do ith_separation = 1, size(plate_separations)
-     grand_potential_per_unit_area(ith_separation) = grand_potential_per_unit_area(ith_separation) - &
-          ( grand_potential_per_unit_area(size(negative_deriv_of_potential)))
+  do ith_separation = 1, end_size
+     grand_potential_per_unit_area(ith_separation) = grand_potential_per_unit_area(ith_separation) !- &
+     !( grand_potential_per_unit_area(size(negative_deriv_of_potential)))
   end do
 
-  negative_deriv_of_potential = CalculateNegativeDerivOfPotentialPerUnitAreaWRTSeparation(grand_potential_per_unit_area)
+  negative_deriv_of_potential(1:end_size) = CalculateNegativeDerivOfPotentialPerUnitAreaWRTSeparation(grand_potential_per_unit_area(1:end_size))
 
 
   call WriteOutputFormattedAsFunctionOfPlateSeparation(grand_potential_per_unit_area, trim(file_stub), "potential-per-unit-area")

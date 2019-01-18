@@ -52,9 +52,9 @@ contains
        call abort()
     else
 
-       av_sq_diff = sum((n1_updated(start_z_index:end_z_index) - n1(start_z_index:end_z_index))**2)&
+       av_sq_diff = sum((n1_updated(start_z_index:end_z_index)*(hs_diameter**3) - n1(start_z_index:end_z_index)*(hs_diameter**3))**2)&
             /real(size(n1(start_z_index:end_z_index)),dp)
-       bulk_value = sum(n1(start_z_index:end_z_index))/real(size(n1(start_z_index:end_z_index)),dp)
+       bulk_value = sum(n1(start_z_index:end_z_index)*(hs_diameter**3))/real(size(n1(start_z_index:end_z_index)),dp)
 
        ! if(av_sq_diff == 0.0_dp) then
        !    print *, "iteration.f90: converged: "
@@ -62,6 +62,8 @@ contains
        !    print *, "would appear to be a coding bug...aborting..."
        !    call abort()
        ! end if
+       !print *, "n1 = ", n1
+       !print *, "n1 = ", n1_updated
 
        if(av_sq_diff <= iterative_tolerance*bulk_value) then
           n1_converged = .true.
@@ -87,9 +89,9 @@ contains
              call abort()
           else
 
-             av_sq_diff = sum((n2_updated(start_z_index:end_z_index) - n2(start_z_index:end_z_index))**2)/&
+             av_sq_diff = sum((n2_updated(start_z_index:end_z_index)*(hs_diameter**3) - n2(start_z_index:end_z_index)*(hs_diameter**3))**2)/&
                   size(n2(start_z_index:end_z_index))
-             bulk_value = sum(n2(start_z_index:end_z_index))/size(n2(start_z_index:end_z_index))
+             bulk_value = sum(n2(start_z_index:end_z_index)*(hs_diameter**3))/size(n2(start_z_index:end_z_index))
 
              ! if(av_sq_diff == 0.0_dp) then
              !    print *, "iteration.f90: converged: "
@@ -97,6 +99,10 @@ contains
              !    print *, "would appear to be a coding bug...aborting..."
              !    !call abort()
              ! end if
+
+
+             !print *, "n1 = ", n2
+             !print *, "n1 = ", n2_updated
 
              if(av_sq_diff <= iterative_tolerance*bulk_value) then
                 n2_converged = .true.
@@ -127,9 +133,9 @@ contains
              call abort()
           else
 
-             av_sq_diff = sum((n3_updated(start_z_index:end_z_index) - n3(start_z_index:end_z_index))**2)/ &
+             av_sq_diff = sum((n3_updated(start_z_index:end_z_index)*(hs_diameter**3) - n3(start_z_index:end_z_index)*(hs_diameter**3))**2)/ &
                   size(n3(start_z_index:end_z_index))
-             bulk_value = sum(n3(start_z_index:end_z_index))/size(n3(start_z_index:end_z_index))
+             bulk_value = sum(n3(start_z_index:end_z_index)*(hs_diameter**3))/size(n3(start_z_index:end_z_index))
 
              if(av_sq_diff <= iterative_tolerance*bulk_value) then
                 n3_converged = .true.
@@ -149,6 +155,7 @@ contains
        print *, "iteration.f90: converged: Iterative scheme successfully converged."
        converged = .true.
     else
+       !print *, "convergence = ", n1_converged, n2_converged, n3_converged
        converged = .false.
     end if
 

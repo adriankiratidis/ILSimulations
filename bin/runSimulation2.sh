@@ -1,13 +1,13 @@
 #### Shell script to run runSingleSphere.csh
 #!/bin/bash
 
-declare -a epsilons=(100)
+declare -a epsilons=(68.17)
 
 for i in "${epsilons[@]}"
 do
 Epsilon_LJ_particle_wall="$i"
 
-test_file_stub="testing-a2"
+test_file_stub="testing2-a2"
 
 #ionic_liquid_name="NeutralDimers"
 #ionic_liquid_name="SingleNeutralSpheres"
@@ -32,7 +32,6 @@ surface_charge_density_right_wall=-0.003125
 hs_diameter=2.4
 a_term_index=2
 bulk_density=0.04475			# ( =n_{b} * [hs_diameter**3] )
-#bulk_density=0.01467			# ( =n_{b} * [hs_diameter**3] )
 #bulk_density=0.005			# ( =n_{b} * [hs_diameter**3] )
 temp=294.0			        #Temperature in Kelvin
 alpha_mixing_for_update=0.005
@@ -101,7 +100,7 @@ done
 $test_file_stub
 EOF
 
-write_dir="./run_results/compare_epsilonLJ/charge/${Epsilon_LJ_particle_particle}-${Epsilon_LJ_particle_wall}_${ionic_liquid_name}-COMPAREWITHPAPER"
+write_dir="./run_results/compare_epsilonLJ/charge/${Epsilon_LJ_particle_particle}-${Epsilon_LJ_particle_wall}_${ionic_liquid_name}-COMPAREWITHPAPER2"
 mkdir -p ${write_dir}
 mv ${test_file_stub}* ${write_dir}
 

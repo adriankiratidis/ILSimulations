@@ -6,3 +6,4 @@ clean:
 	make -C src/ clean
 	make -C bin/ clean
 	rm -f *.txt
+	rm *.params
