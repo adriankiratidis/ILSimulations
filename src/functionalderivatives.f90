@@ -104,30 +104,40 @@ contains
     !Ensure that we only integrate from hs_diameter/2 up to h - hs_diameter/2
     call get_allowed_z_values(start_z_index, end_z_index, size(n_s))
 
+    integrand1(start_z_index:end_z_index) = GetAExDerivIntegrand(n_mbar(start_z_index:end_z_index), n_sbar(start_z_index:end_z_index), 1)
+    integrand2(start_z_index:end_z_index) = GetAExDerivIntegrand(n_mbar(start_z_index:end_z_index), n_sbar(start_z_index:end_z_index), 2)
 
     if(calculate_bulk) then            
 
-       lambda_hs_end(:) = 0.0_dp 
-       lambda_hs_nonend(:) = 0.0_dp
+       lambda_hs_end(start_z_index:end_z_index) = (0.5_dp / beta) * (&
+            GetAEx(n_mbar(start_z_index:end_z_index), n_sbar(start_z_index:end_z_index), 2) + &
+            (((4.0_dp * pi * (hs_diameter**3))/3.0_dp) * n_hs_end(start_z_index:end_z_index) * integrand2(start_z_index:end_z_index))) + &
+            (n_hs_nonend(start_z_index:end_z_index) * GetYMix(n_mbar, n_sbar, 'm') * ((4.0_dp * pi * (hs_diameter**3))/3.0_dp) * &
+            (integrand2(start_z_index:end_z_index) - integrand1(start_z_index:end_z_index)))/beta
+
+       lambda_hs_nonend(start_z_index:end_z_index) = (0.5_dp / beta) * (&
+            (((4.0_dp * pi * (hs_diameter**3))/3.0_dp) * n_hs_end(start_z_index:end_z_index) * integrand2(start_z_index:end_z_index))) + &
+            (n_hs_nonend(start_z_index:end_z_index) * GetYMix(n_mbar, n_sbar, 'm') * ((4.0_dp * pi * (hs_diameter**3))/3.0_dp) * &
+            (integrand2(start_z_index:end_z_index) - integrand1(start_z_index:end_z_index)))/beta + &
+            (GetYMix(n_mbar, n_sbar, 'm') * GetAEx(n_mbar(start_z_index:end_z_index), n_sbar(start_z_index:end_z_index), 2) - &
+            GetAEx(n_mbar(start_z_index:end_z_index), n_sbar(start_z_index:end_z_index), 1))/beta
+
+
     else
 
-       integrand1(start_z_index:end_z_index) = GetAExDerivIntegrand(n_mbar(start_z_index:end_z_index), n_sbar(start_z_index:end_z_index), 1)
        integral1(:) = ((4.0_dp * pi * (hs_diameter**3))/3.0_dp) * calculate_n_sbar(integrand1(:))
-
-       integrand2(start_z_index:end_z_index) = GetAExDerivIntegrand(n_mbar(start_z_index:end_z_index), n_sbar(start_z_index:end_z_index), 2)
        integral2(:) = ((4.0_dp * pi * (hs_diameter**3))/3.0_dp) * calculate_n_sbar(integrand2(:))
 
        lambda_hs_end(start_z_index:end_z_index) = (0.5_dp / beta) * (&
             GetAEx(n_mbar(start_z_index:end_z_index), n_sbar(start_z_index:end_z_index), 2) + &
-            (n_hs_end(start_z_index:end_z_index) * integral1(start_z_index:end_z_index))) + &
-            (n_hs_nonend(start_z_index:end_z_index) * GetYMix(n_mbar, n_sbar, 'm') * (integral2(start_z_index:end_z_index) - integral1(start_z_index:end_z_index)))
-
+            (n_hs_end(start_z_index:end_z_index) * integral2(start_z_index:end_z_index))) + &
+            (n_hs_nonend(start_z_index:end_z_index) * GetYMix(n_mbar, n_sbar, 'm') * (integral2(start_z_index:end_z_index) - integral1(start_z_index:end_z_index)))/beta
 
        lambda_hs_nonend(start_z_index:end_z_index) = (0.5_dp / beta) * (&
-            (n_hs_end(start_z_index:end_z_index) * integral1(start_z_index:end_z_index))) + &
-            (n_hs_nonend(start_z_index:end_z_index) * GetYMix(n_mbar, n_sbar, 'm') * (integral2(start_z_index:end_z_index) - integral1(start_z_index:end_z_index))) + &
-            (GetYMix(n_mbar, n_sbar, 'm') * GetAEx(n_mbar(start_z_index:end_z_index), n_sbar(start_z_index:end_z_index), 2)) - &
-            (GetAEx(n_mbar(start_z_index:end_z_index), n_sbar(start_z_index:end_z_index), 1))
+            (n_hs_end(start_z_index:end_z_index) * integral2(start_z_index:end_z_index))) + &
+            (n_hs_nonend(start_z_index:end_z_index) * GetYMix(n_mbar, n_sbar, 'm') * (integral2(start_z_index:end_z_index) - integral1(start_z_index:end_z_index)))/beta + &
+            (GetYMix(n_mbar, n_sbar, 'm') * GetAEx(n_mbar(start_z_index:end_z_index), n_sbar(start_z_index:end_z_index), 2) - &
+            GetAEx(n_mbar(start_z_index:end_z_index), n_sbar(start_z_index:end_z_index), 1))/beta
 
     end if
 
