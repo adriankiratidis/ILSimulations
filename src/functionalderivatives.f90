@@ -19,6 +19,8 @@ module functionalderivatives
   public :: calculate_electrostatic_like_term_functional_deriv
   public :: calculate_electrostatic_unlike_term_functional_deriv
 
+  public :: CalculateHSEndAndNonEndHSFunctionalDeriv
+  
   public :: calculate_n_sbar
 
   real(dp) :: CURRENT_BULK_BEAD_DENSITY
@@ -56,9 +58,6 @@ contains
             (((4.0_dp * pi * (hs_diameter**3))/3.0_dp) * ((n_s(start_z_index:end_z_index)) * &
             GetAExDerivIntegrand(n_s(start_z_index:end_z_index), n_sbar(start_z_index:end_z_index), a_term_index))))
 
-
-
-
     else
 
        integrand(start_z_index:end_z_index) = n_s(start_z_index:end_z_index) * &
@@ -70,59 +69,72 @@ contains
             GetAEx(n_mbar(start_z_index:end_z_index), n_sbar(start_z_index:end_z_index), a_term_index) + &
             (((4.0_dp * pi * (hs_diameter**3))/3.0_dp) * integral(start_z_index:end_z_index)))
 
+    end if
 
+  end function calculate_hardsphere_functional_deriv
+
+  subroutine CalculateHSEndAndNonEndHSFunctionalDeriv(n_s, lambda_hs_end, n_hs_end, lambda_hs_nonend, n_hs_nonend, calculate_bulk)
+    real(dp), dimension(:), intent(in) :: n_s
+    real(dp), dimension(:), intent(out) :: lambda_hs_end
+    real(dp), dimension(:), intent(in)  :: n_hs_end
+
+    real(dp), dimension(:), intent(out) :: lambda_hs_nonend
+    real(dp), dimension(:), intent(in)  :: n_hs_nonend
+    logical, intent(in) :: calculate_bulk
+
+    !
+    real(dp), dimension(size(n_s)) :: n_mbar, n_sbar
+    real(dp), dimension(size(n_s)) :: integrand1, integral1
+    real(dp), dimension(size(n_s)) :: integrand2, integral2
+
+    integer :: start_z_index
+    integer :: end_z_index
+
+    integrand1(:) = 0.0_dp
+    integral1(:) = 0.0_dp
+
+    integrand2(:) = 0.0_dp
+    integral2(:) = 0.0_dp
+
+    n_mbar(:) = 0.0_dp
+    n_sbar(:) = 0.0_dp
+
+    n_mbar(:) = calculate_n_sbar(n_s(:))
+
+    !Ensure that we only integrate from hs_diameter/2 up to h - hs_diameter/2
+    call get_allowed_z_values(start_z_index, end_z_index, size(n_s))
+
+
+    if(calculate_bulk) then            
+
+       lambda_hs_end(:) = 0.0_dp 
+       lambda_hs_nonend(:) = 0.0_dp
+    else
+
+       integrand1(start_z_index:end_z_index) = GetAExDerivIntegrand(n_mbar(start_z_index:end_z_index), n_sbar(start_z_index:end_z_index), 1)
+       integral1(:) = ((4.0_dp * pi * (hs_diameter**3))/3.0_dp) * calculate_n_sbar(integrand1(:))
+
+       integrand2(start_z_index:end_z_index) = GetAExDerivIntegrand(n_mbar(start_z_index:end_z_index), n_sbar(start_z_index:end_z_index), 2)
+       integral2(:) = ((4.0_dp * pi * (hs_diameter**3))/3.0_dp) * calculate_n_sbar(integrand2(:))
+
+       lambda_hs_end(start_z_index:end_z_index) = (0.5_dp / beta) * (&
+            GetAEx(n_mbar(start_z_index:end_z_index), n_sbar(start_z_index:end_z_index), 2) + &
+            (n_hs_end(start_z_index:end_z_index) * integral1(start_z_index:end_z_index))) + &
+            (n_hs_nonend(start_z_index:end_z_index) * GetYMix(n_mbar, n_sbar, 'm') * (integral2(start_z_index:end_z_index) - integral1(start_z_index:end_z_index)))
+
+
+       lambda_hs_nonend(start_z_index:end_z_index) = (0.5_dp / beta) * (&
+            (n_hs_end(start_z_index:end_z_index) * integral1(start_z_index:end_z_index))) + &
+            (n_hs_nonend(start_z_index:end_z_index) * GetYMix(n_mbar, n_sbar, 'm') * (integral2(start_z_index:end_z_index) - integral1(start_z_index:end_z_index))) + &
+            (GetYMix(n_mbar, n_sbar, 'm') * GetAEx(n_mbar(start_z_index:end_z_index), n_sbar(start_z_index:end_z_index), 2)) - &
+            (GetAEx(n_mbar(start_z_index:end_z_index), n_sbar(start_z_index:end_z_index), 1))
 
     end if
 
 
-    ! if(calculate_bulk) then !n_s input parameter is the bulk value so, 
-
-    !    ! calculate_hardsphere_functional_deriv(start_z_index:end_z_index) = (1.0_dp / beta) * (&
-    !    !      log(n_s(start_z_index:end_z_index) / (1.0_dp - ((hs_diameter**3)*n_s(start_z_index:end_z_index)))) + &
-    !    !      ((n_s(start_z_index:end_z_index) * (hs_diameter**3))/(1.0_dp - ((hs_diameter**3)*n_s(start_z_index:end_z_index)))) + &
-    !    !      1.0_dp )
-
-    !    extra_integral_contribution2(:) = 0.0_dp
-    !    extra_integral_contribution2(start_z_index:end_z_index) = (hs_diameter**3)/(1.0_dp - (hs_diameter**3)*n_s(start_z_index:end_z_index))
-    !    extra_integral_contribution2 = calculate_n_sbar(extra_integral_contribution2)
-
-    !    calculate_hardsphere_functional_deriv(start_z_index:end_z_index) = (1.0_dp / beta) * (&
-    !         log(n_s(start_z_index:end_z_index) / (1.0_dp - ((hs_diameter**3)*n_s(start_z_index:end_z_index)))) + &
-    !         extra_integral_contribution2(start_z_index:end_z_index) + &
-    !         1.0_dp )
+  end subroutine CalculateHSEndAndNonEndHSFunctionalDeriv
 
 
-    ! else
-    !    n_sbar = calculate_n_sbar(n_s)
-
-    !    extra_integral_contribution(:) = 0.0_dp
-    !    extra_integral_contribution(start_z_index:end_z_index) = n_s(start_z_index:end_z_index)/n_sbar(start_z_index:end_z_index)
-    !    extra_integral_contribution = calculate_n_sbar(extra_integral_contribution)
-
-    !    extra_integral_contribution2(:) = 0.0_dp
-    !    extra_integral_contribution2(start_z_index:end_z_index) = (hs_diameter**3)/(1.0_dp - (hs_diameter**3)*n_sbar(start_z_index:end_z_index))
-    !    extra_integral_contribution2 = calculate_n_sbar(extra_integral_contribution2)
-
-    !    calculate_hardsphere_functional_deriv(start_z_index:end_z_index) = (1.0_dp / beta) * (&
-    !         log(n_sbar(start_z_index:end_z_index) / (1.0_dp - ((hs_diameter**3)*n_sbar(start_z_index:end_z_index)))) + &
-    !         extra_integral_contribution2(start_z_index:end_z_index) + &
-    !         extra_integral_contribution(start_z_index:end_z_index) )
-
-
-
-    !    ! end if
-    !    !call abort()
-
-    ! end if
-    !calculate_hardsphere_functional_deriv = 0.0_dp
-    !print *,  calculate_hardsphere_functional_deriv
-    !call abort()
-    !print *, "bulk density n_s = ", get_bulk_density(n_s)
-    !print *, "n_sbar = ", n_sbar
-    !print *, "bulk density n_sbar = ", get_bulk_density(n_sbar)
-    !print *, "f_hs = ", calculate_hardsphere_functional_deriv
-
-  end function calculate_hardsphere_functional_deriv
 
   function calculate_surface_dispersion_functional_deriv(ith_plate_separation, array_size)
     integer, intent(in) :: ith_plate_separation
@@ -234,7 +246,7 @@ contains
 
     real(dp) :: lambda
     real(dp), dimension(size(n)) :: unit_array
-    
+
     ! integer :: start_z_index
     ! integer :: end_z_index
     ! call get_allowed_z_values(start_z_index, end_z_index, size(n))
@@ -261,7 +273,7 @@ contains
 
     !lambda = get_lambda()
     unit_array(:) = 1.0_dp
-    
+
     if(calculate_bulk) then
        !calculate_electrostatic_like_term_functional_deriv(:) = 0.0_dp
 
@@ -381,7 +393,7 @@ contains
   function get_lambda()
     real(dp) :: get_lambda
     real(dp) :: s
-    
+
     s = (3.0_dp/(4.0_dp * pi * CURRENT_BULK_BEAD_DENSITY))**(1.0_dp/3.0_dp)
     get_lambda = sqrt(2.0_dp)/s
 

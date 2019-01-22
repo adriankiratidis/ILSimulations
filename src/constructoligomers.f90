@@ -4696,14 +4696,19 @@ contains
     real(dp), dimension(size(n_plus)) :: lambda_plus
     real(dp), dimension(size(n_neutral)) :: lambda_neutral
     real(dp), dimension(size(n_minus)) :: lambda_minus
-
+    
+    real(dp), dimension(size(n_neutral)) :: lambda_hs_end
+    real(dp), dimension(size(n_minus)) :: lambda_hs_nonend
+    real(dp), dimension(size(n_neutral)) :: n_hs_end
+    real(dp), dimension(size(n_minus)) :: n_hs_nonend
+    
     real(dp) :: lambda
 
     integer :: start_z_index, end_z_index
 
     call get_allowed_z_values(start_z_index, end_z_index, size(lambda_neutral))
 
-    call CalculateLambdasBulk(lambda_plus, n_plus, lambda_neutral, n_neutral, lambda_minus, n_minus, ith_plate_separation)
+    call CalculateLambdasBulk(lambda_plus, n_plus, lambda_neutral, n_neutral, lambda_minus, n_minus, lambda_hs_end, n_hs_end, lambda_hs_nonend, n_hs_nonend, ith_plate_separation)
 
     !Check that lambda_bulk is the same everywhere.
     if(all(lambda_neutral(start_z_index:end_z_index) - lambda_neutral(start_z_index) < 0.000001_dp)) then
@@ -4737,13 +4742,18 @@ contains
     real(dp), dimension(size(n_neutral)) :: lambda_neutral
     real(dp), dimension(size(n_minus)) :: lambda_minus
 
+    real(dp), dimension(size(n_neutral)) :: lambda_hs_end
+    real(dp), dimension(size(n_minus)) :: lambda_hs_nonend
+    real(dp), dimension(size(n_neutral)) :: n_hs_end
+    real(dp), dimension(size(n_minus)) :: n_hs_nonend
+
     real(dp) :: lambda
 
     integer :: start_z_index, end_z_index
 
     call get_allowed_z_values(start_z_index, end_z_index, size(lambda_neutral))
 
-    call CalculateLambdasBulk(lambda_plus, n_plus, lambda_neutral, n_neutral, lambda_minus, n_minus, ith_plate_separation)
+    call CalculateLambdasBulk(lambda_plus, n_plus, lambda_neutral, n_neutral, lambda_minus, n_minus, lambda_hs_end, n_hs_end, lambda_hs_nonend, n_hs_nonend, ith_plate_separation)
 
     !Check that lambda_bulk is the same everywhere.
     if(all(lambda_neutral(start_z_index:end_z_index) - lambda_neutral(start_z_index) < 0.000001_dp)) then
@@ -4779,13 +4789,18 @@ contains
     real(dp), dimension(size(n_neutral)) :: lambda_neutral
     real(dp), dimension(size(n_minus)) :: lambda_minus
 
+    real(dp), dimension(size(n_neutral)) :: lambda_hs_end
+    real(dp), dimension(size(n_minus)) :: lambda_hs_nonend
+    real(dp), dimension(size(n_neutral)) :: n_hs_end
+    real(dp), dimension(size(n_minus)) :: n_hs_nonend
+
     real(dp) :: lambda_plus_bulk, lambda_minus_bulk
 
     integer :: start_z_index, end_z_index
 
     call get_allowed_z_values(start_z_index, end_z_index, size(lambda_neutral))
 
-    call CalculateLambdasBulk(lambda_plus, n_plus, lambda_neutral, n_neutral, lambda_minus, n_minus, ith_plate_separation)
+    call CalculateLambdasBulk(lambda_plus, n_plus, lambda_neutral, n_neutral, lambda_minus, n_minus, lambda_hs_end, n_hs_end, lambda_hs_nonend, n_hs_nonend, ith_plate_separation)
 
     !Check that lambda_bulk is the same everywhere.
     if(all(lambda_plus(start_z_index:end_z_index) - lambda_plus(start_z_index) < 0.000001_dp)) then
@@ -4829,13 +4844,18 @@ contains
     real(dp), dimension(size(n_neutral)) :: lambda_neutral
     real(dp), dimension(size(n_minus)) :: lambda_minus
 
+    real(dp), dimension(size(n_neutral)) :: lambda_hs_end
+    real(dp), dimension(size(n_minus)) :: lambda_hs_nonend
+    real(dp), dimension(size(n_neutral)) :: n_hs_end
+    real(dp), dimension(size(n_minus)) :: n_hs_nonend
+
     real(dp) :: lambda_plus_bulk, lambda_neutral_bulk, lambda_minus_bulk
 
     integer :: start_z_index, end_z_index
 
     call get_allowed_z_values(start_z_index, end_z_index, size(lambda_neutral))
 
-    call CalculateLambdasBulk(lambda_plus, n_plus, lambda_neutral, n_neutral, lambda_minus, n_minus, ith_plate_separation)
+    call CalculateLambdasBulk(lambda_plus, n_plus, lambda_neutral, n_neutral, lambda_minus, n_minus, lambda_hs_end, n_hs_end, lambda_hs_nonend, n_hs_nonend, ith_plate_separation)
 
     !Check that lambda_bulk is the same everywhere.
     if(all(lambda_plus(start_z_index:end_z_index) - lambda_plus(start_z_index) < 0.000001_dp)) then
@@ -4895,6 +4915,11 @@ contains
     real(dp), dimension(size(n_neutral)) :: lambda_neutral
     real(dp), dimension(size(n_minus)) :: lambda_minus
 
+    real(dp), dimension(size(n_neutral)) :: lambda_hs_end
+    real(dp), dimension(size(n_minus)) :: lambda_hs_nonend
+    real(dp), dimension(size(n_neutral)) :: n_hs_end
+    real(dp), dimension(size(n_minus)) :: n_hs_nonend
+
     real(dp), dimension(size(n_neutral)) :: integrand, integrand_with_lambda, c1, c2
 
     real(dp) :: lambda_plus_bulk, lambda_neutral_bulk, lambda_minus_bulk
@@ -4904,7 +4929,7 @@ contains
 
     call get_allowed_z_values(start_z_index, end_z_index, size(lambda_neutral))
 
-    call CalculateLambdasBulk(lambda_plus, n_plus, lambda_neutral, n_neutral, lambda_minus, n_minus, ith_plate_separation)
+    call CalculateLambdasBulk(lambda_plus, n_plus, lambda_neutral, n_neutral, lambda_minus, n_minus, lambda_hs_end, n_hs_end, lambda_hs_nonend, n_hs_nonend, ith_plate_separation)
 
     !Check that lambda_bulk is the same everywhere.
     if(all(lambda_plus(start_z_index:end_z_index) - lambda_plus(start_z_index) < 0.000001_dp)) then
@@ -4999,13 +5024,18 @@ contains
     real(dp), dimension(size(n_neutral)) :: lambda_neutral
     real(dp), dimension(size(n_minus)) :: lambda_minus
 
+    real(dp), dimension(size(n_neutral)) :: lambda_hs_end
+    real(dp), dimension(size(n_minus)) :: lambda_hs_nonend
+    real(dp), dimension(size(n_neutral)) :: n_hs_end
+    real(dp), dimension(size(n_minus)) :: n_hs_nonend
+
     real(dp) :: lambda_plus_bulk, lambda_neutral_bulk, lambda_minus_bulk
 
     integer :: start_z_index, end_z_index
 
     call get_allowed_z_values(start_z_index, end_z_index, size(lambda_neutral))
 
-    call CalculateLambdasBulk(lambda_plus, n_plus, lambda_neutral, n_neutral, lambda_minus, n_minus, ith_plate_separation)
+    call CalculateLambdasBulk(lambda_plus, n_plus, lambda_neutral, n_neutral, lambda_minus, n_minus, lambda_hs_end, n_hs_end, lambda_hs_nonend, n_hs_nonend, ith_plate_separation)
 
     !Check that lambda_bulk is the same everywhere.
     if(all(lambda_plus(start_z_index:end_z_index) - lambda_plus(start_z_index) < 0.000001_dp)) then
@@ -5075,10 +5105,14 @@ contains
 
     real(dp) :: calculate_chem_potential_C4MIMBF4
 
-
     real(dp), dimension(size(n_plus)) :: lambda_plus
     real(dp), dimension(size(n_neutral)) :: lambda_neutral
     real(dp), dimension(size(n_minus)) :: lambda_minus
+
+    real(dp), dimension(size(n_neutral)) :: lambda_hs_end
+    real(dp), dimension(size(n_minus)) :: lambda_hs_nonend
+    real(dp), dimension(size(n_neutral)) :: n_hs_end
+    real(dp), dimension(size(n_minus)) :: n_hs_nonend
 
     real(dp) :: lambda_plus_bulk, lambda_neutral_bulk, lambda_minus_bulk
 
@@ -5086,7 +5120,7 @@ contains
 
     call get_allowed_z_values(start_z_index, end_z_index, size(lambda_neutral))
 
-    call CalculateLambdasBulk(lambda_plus, n_plus, lambda_neutral, n_neutral, lambda_minus, n_minus, ith_plate_separation)
+    call CalculateLambdasBulk(lambda_plus, n_plus, lambda_neutral, n_neutral, lambda_minus, n_minus, lambda_hs_end, n_hs_end, lambda_hs_nonend, n_hs_nonend, ith_plate_separation)
 
     !Check that lambda_bulk is the same everywhere.
     if(all(lambda_plus(start_z_index:end_z_index) - lambda_plus(start_z_index) < 0.000001_dp)) then
@@ -5182,12 +5216,17 @@ contains
 
     !real(dp), dimension(size(n_plus)) :: lambda_hs_end
     !real(dp), dimension(size(n_plus)) :: lambda_hs_nonend
-    
+
     real(dp) :: calculate_chem_potential_C4MIMTFSI_model1
 
     real(dp), dimension(size(n_plus)) :: lambda_plus
     real(dp), dimension(size(n_neutral)) :: lambda_neutral
     real(dp), dimension(size(n_minus)) :: lambda_minus
+
+    real(dp), dimension(size(n_neutral)) :: lambda_hs_end
+    real(dp), dimension(size(n_minus)) :: lambda_hs_nonend
+    real(dp), dimension(size(n_neutral)) :: n_hs_end
+    real(dp), dimension(size(n_minus)) :: n_hs_nonend
 
     real(dp) :: lambda_plus_bulk, lambda_neutral_bulk, lambda_minus_bulk
 
@@ -5195,7 +5234,7 @@ contains
 
     call get_allowed_z_values(start_z_index, end_z_index, size(lambda_neutral))
 
-    call CalculateLambdasBulk(lambda_plus, n_plus, lambda_neutral, n_neutral, lambda_minus, n_minus, ith_plate_separation)
+    call CalculateLambdasBulk(lambda_plus, n_plus, lambda_neutral, n_neutral, lambda_minus, n_minus, lambda_hs_end, n_hs_end, lambda_hs_nonend, n_hs_nonend, ith_plate_separation)
 
     !Check that lambda_bulk is the same everywhere.
     if(all(lambda_plus(start_z_index:end_z_index) - lambda_plus(start_z_index) < 0.000001_dp)) then
@@ -5260,13 +5299,17 @@ contains
 
     !real(dp), dimension(size(n_plus)) :: lambda_hs_end
     !real(dp), dimension(size(n_plus)) :: lambda_hs_nonend
-    
-    real(dp) :: calculate_chem_potential_C4MIMTFSI_model2
 
+    real(dp) :: calculate_chem_potential_C4MIMTFSI_model2
 
     real(dp), dimension(size(n_plus)) :: lambda_plus
     real(dp), dimension(size(n_neutral)) :: lambda_neutral
     real(dp), dimension(size(n_minus)) :: lambda_minus
+
+    real(dp), dimension(size(n_neutral)) :: lambda_hs_end
+    real(dp), dimension(size(n_minus)) :: lambda_hs_nonend
+    real(dp), dimension(size(n_neutral)) :: n_hs_end
+    real(dp), dimension(size(n_minus)) :: n_hs_nonend
 
     real(dp) :: lambda_plus_bulk, lambda_neutral_bulk, lambda_minus_bulk
 
@@ -5274,7 +5317,7 @@ contains
 
     call get_allowed_z_values(start_z_index, end_z_index, size(lambda_neutral))
 
-    call CalculateLambdasBulk(lambda_plus, n_plus, lambda_neutral, n_neutral, lambda_minus, n_minus, ith_plate_separation)
+    call CalculateLambdasBulk(lambda_plus, n_plus, lambda_neutral, n_neutral, lambda_minus, n_minus, lambda_hs_end, n_hs_end, lambda_hs_nonend, n_hs_nonend, ith_plate_separation)
 
     !Check that lambda_bulk is the same everywhere.
     if(all(lambda_plus(start_z_index:end_z_index) - lambda_plus(start_z_index) < 0.000001_dp)) then

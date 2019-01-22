@@ -16,19 +16,26 @@ module lambdas
 
 contains
   
-  subroutine CalculateLambdas(lambda_plus, n_plus, lambda_neutral, n_neutral, lambda_minus, n_minus, ith_plate_separation)
+  subroutine CalculateLambdas(lambda_plus, n_plus, lambda_neutral, n_neutral, lambda_minus, n_minus, lambda_hs_end, n_hs_end, lambda_hs_nonend, n_hs_nonend, ith_plate_separation)
     real(dp), dimension(:), intent(out) :: lambda_plus
     real(dp), dimension(:), intent(in)  :: n_plus
-    
+
     real(dp), dimension(:), intent(out) :: lambda_neutral
     real(dp), dimension(:), intent(in)  :: n_neutral
-    
+
     real(dp), dimension(:), intent(out) :: lambda_minus
     real(dp), dimension(:), intent(in)  :: n_minus
+
+    !Variables for hs calculation.  End and non-end monomer density needed.
+    real(dp), dimension(:), intent(out) :: lambda_hs_end
+    real(dp), dimension(:), intent(in)  :: n_hs_end
+    
+    real(dp), dimension(:), intent(out) :: lambda_hs_nonend
+    real(dp), dimension(:), intent(in)  :: n_hs_nonend
     integer, intent(in)                 :: ith_plate_separation
     
     real(dp), dimension(size(lambda_plus)) :: lambda_common_terms
-    
+
     integer :: input_array_size
 
     ! First ensure that the sizes of all the input variables are the same.
@@ -49,23 +56,22 @@ contains
     lambda_neutral(:) = 0.0_dp
     lambda_minus(:) = 0.0_dp
 
-    
-    ! Now calculate the terms in common to all the lambdas
+
+    ! Now calculate the terms in common to all the lambdas.
     lambda_common_terms = CalculateLambdaCommonTerms(n_plus, n_neutral, n_minus, ith_plate_separation, .false.)
-    
+
     ! Now calculate our lambdas(r)
     lambda_plus = beta * (lambda_common_terms + CalculateLambdaPlusSpecificTerms(n_plus, n_minus, .false.))
     lambda_neutral = beta * (lambda_common_terms + CalculateLambaNeutralSpecificTerms(n_plus, n_neutral, n_minus, .false.))
     lambda_minus = beta * (lambda_common_terms + CalculateLambdaMinusSpecificTerms(n_plus, n_minus, .false.))
 
-    !print *, "lambda_plus = ", lambda_plus
-    !print *, "lambda_neutral = ", lambda_neutral
-    !print *, "lambda_minus = ", lambda_minus
-    !call abort()
-    
+    ! lambda_hs_end and lambda_hs_nonend terms correspond to the contributions from the hard sphere term (only) from 
+    ! end and nonend monomers respectively.
+    call CalculateHSEndAndNonEndHSFunctionalDeriv(n_plus + n_neutral + n_minus, lambda_hs_end, n_hs_end, lambda_hs_nonend, n_hs_nonend, .false.)
+
   end subroutine CalculateLambdas
 
-  subroutine CalculateLambdasBulk(lambda_plus_bulk, n_plus, lambda_neutral_bulk, n_neutral, lambda_minus_bulk, n_minus, ith_plate_separation)
+  subroutine CalculateLambdasBulk(lambda_plus_bulk, n_plus, lambda_neutral_bulk, n_neutral, lambda_minus_bulk, n_minus, lambda_hs_end, n_hs_end, lambda_hs_nonend, n_hs_nonend, ith_plate_separation)
     real(dp), dimension(:), intent(out) :: lambda_plus_bulk
     real(dp), dimension(:), intent(in)  :: n_plus
 
@@ -74,11 +80,18 @@ contains
 
     real(dp), dimension(:), intent(out) :: lambda_minus_bulk
     real(dp), dimension(:), intent(in)  :: n_minus
-    integer, intent(in)                 :: ith_plate_separation
 
+    !Variables for hs calculation.  End and non-end monomer density needed.
+    real(dp), dimension(:), intent(out) :: lambda_hs_end
+    real(dp), dimension(:), intent(in)  :: n_hs_end
+    
+    real(dp), dimension(:), intent(out) :: lambda_hs_nonend
+    real(dp), dimension(:), intent(in)  :: n_hs_nonend
+    integer, intent(in)                 :: ith_plate_separation
+    
     real(dp), dimension(size(lambda_plus_bulk)) :: lambda_common_terms_bulk
     real(dp), dimension(size(n_neutral)) :: n_neutral_array
-    
+
     integer :: input_array_size
 
     ! First ensure that the sizes of all the input variables are the same.
@@ -98,16 +111,20 @@ contains
     lambda_plus_bulk(:) = 0.0_dp
     lambda_neutral_bulk(:) = 0.0_dp
     lambda_minus_bulk(:) = 0.0_dp
-    
+
     lambda_common_terms_bulk = CalculateLambdaCommonTerms(n_plus, n_neutral, n_minus, ith_plate_separation, .true.)
 
     lambda_plus_bulk = beta * (lambda_common_terms_bulk + CalculateLambdaPlusSpecificTerms(n_plus, n_minus, .true.))
     lambda_neutral_bulk = beta * (lambda_common_terms_bulk + CalculateLambaNeutralSpecificTerms(n_plus, n_neutral, n_minus, .true.))
     lambda_minus_bulk = beta * (lambda_common_terms_bulk + CalculateLambdaMinusSpecificTerms(n_plus, n_minus, .true.))
 
+    ! lambda_hs_end and lambda_hs_nonend terms correspond to the contributions from the hard sphere term (only) from 
+    ! end and nonend monomers respectively.
+    call CalculateHSEndAndNonEndHSFunctionalDeriv(n_plus + n_neutral + n_minus, lambda_hs_end, n_hs_end, lambda_hs_nonend, n_hs_nonend, .true.)
+    
   end subroutine CalculateLambdasBulk
 
-  subroutine CalculateLambdasDifference(lambda_plus, n_plus, lambda_neutral, n_neutral, lambda_minus, n_minus, ith_plate_separation, lambda_hs_end, lambda_hs_nonend)
+  subroutine CalculateLambdasDifference(lambda_plus, n_plus, lambda_neutral, n_neutral, lambda_minus, n_minus, lambda_hs_end, n_hs_end, lambda_hs_nonend, n_hs_nonend, ith_plate_separation)
     real(dp), dimension(:), intent(out) :: lambda_plus
     real(dp), dimension(:), intent(in)  :: n_plus
 
@@ -116,15 +133,21 @@ contains
 
     real(dp), dimension(:), intent(out) :: lambda_minus
     real(dp), dimension(:), intent(in)  :: n_minus
-    integer, intent(in)                 :: ith_plate_separation
 
     !Variables for hs calculation.  End and non-end monomer density needed.
     real(dp), dimension(:), intent(out) :: lambda_hs_end
+    real(dp), dimension(:), intent(in)  :: n_hs_end
+
     real(dp), dimension(:), intent(out) :: lambda_hs_nonend
-    
+    real(dp), dimension(:), intent(in)  :: n_hs_nonend
+
+    integer, intent(in)                 :: ith_plate_separation
+
     real(dp), dimension(size(lambda_plus)) :: lambda_plus_bulk
     real(dp), dimension(size(lambda_plus)) :: lambda_neutral_bulk
     real(dp), dimension(size(lambda_plus)) :: lambda_minus_bulk
+    real(dp), dimension(size(lambda_plus)) :: lambda_hs_end_bulk
+    real(dp), dimension(size(lambda_plus)) :: lambda_hs_nonend_bulk
 
     integer :: input_array_size
 
@@ -142,22 +165,16 @@ contains
        call abort()
     end if
 
-    call CalculateLambdasBulk(lambda_plus_bulk, n_plus, lambda_neutral_bulk, n_neutral, lambda_minus_bulk, n_minus, ith_plate_separation)
-    call CalculateLambdas(lambda_plus, n_plus, lambda_neutral, n_neutral, lambda_minus, n_minus, ith_plate_separation)
-
-    !print *, "lambda_plus_bulk = ", lambda_plus_bulk
-    !print *, "lambda_minus_bulk = ", lambda_minus_bulk(100)
-    !print *, "lambda_plus = ", lambda_plus
-    !print *, "lambda_minus = ", lambda_minus()
-    !call abort()
+    call CalculateLambdasBulk(lambda_plus_bulk, n_plus, lambda_neutral_bulk, n_neutral, lambda_minus_bulk, n_minus, lambda_hs_end_bulk, n_hs_end, lambda_hs_nonend_bulk, n_hs_nonend, ith_plate_separation)
+    call CalculateLambdas(lambda_plus, n_plus, lambda_neutral, n_neutral, lambda_minus, n_minus, lambda_hs_end, n_hs_end, lambda_hs_nonend, n_hs_nonend, ith_plate_separation)
 
     lambda_plus(:) = lambda_plus_bulk(:) - lambda_plus(:)
     lambda_neutral(:) = lambda_neutral_bulk(:) - lambda_neutral(:)
     lambda_minus(:) = lambda_minus_bulk(:) - lambda_minus(:)
 
-    !print *, "lambda_plus after= ", lambda_plus
-    !print *, "lambda_minus after = ", lambda_minus(100)
-    !call abort()
+    lambda_hs_end(:) = lambda_hs_end_bulk(:) - lambda_hs_end(:)
+    lambda_hs_nonend(:) = lambda_hs_nonend_bulk(:) - lambda_hs_nonend(:)
+
   end subroutine CalculateLambdasDifference
 
 
@@ -261,23 +278,14 @@ contains
        n_s(:) = bulk_density_positive_beads + bulk_density_neutral_beads + bulk_density_negative_beads
 
        allowed_distance_between_plates = (((size(n_s) - 1)*hs_diameter/n_discretised_points_z) + ((hs_diameter)*1.0_dp))/2.0_dp
-       !print *, "allowed_distance_between_plates = ", allowed_distance_between_plates
-       !call abort()
        
        hs_term = 1.0_dp * calculate_hardsphere_functional_deriv(n_s, .true.)
-       !van_der_waals_term = calculate_vanderWaals_functional_deriv(n_s)
 
        van_der_waals_term = (-8.0_dp * epsilon_LJ_particle_particle * (hs_diameter**6) * pi * n_s(:)) * ( &
             (2.0_dp/(3.0_dp*(hs_diameter**3))))
 
 
-       ! van_der_waals_term = (-2.0_dp * epsilon_LJ_particle_particle * (hs_diameter**6) * pi * n_s(:)) * ( &
-       !      (-1.0_dp / (3.0_dp * ((allowed_distance_between_plates)**3))) + (2.0_dp/(hs_diameter**3))) !+ &
-
-
        call setNonCalculatedRegionToZero(n_s)
-
-       !print *, "van_der_waals_term = ", van_der_waals_term
 
     else
        n_s = n_plus + n_neutral + n_minus
@@ -286,25 +294,12 @@ contains
        surface_fluid_dispersion_term = calculate_surface_dispersion_functional_deriv(&
             ith_plate_separation, size(surface_fluid_dispersion_term))
 
-       !print *, "hs_term(41) NON BULK =", hs_term(41)
-
-       !print *, "surface_fluid_dispersion_term = ", surface_fluid_dispersion_term(41)
        van_der_waals_term = calculate_vanderWaals_functional_deriv(n_s)
     end if
 
-    !print *, "hs_term = ", hs_term(26), hs_term(size(hs_term) - 25), hs_term(size(hs_term) - 25) - hs_term(26)
-    !print *, "surface_fluid_dispersion_term = ", surface_fluid_dispersion_term(26), surface_fluid_dispersion_term(size(surface_fluid_dispersion_term) - 25),&
-    !     surface_fluid_dispersion_term(size(surface_fluid_dispersion_term) - 25) - surface_fluid_dispersion_term(26)
-
-    !print *, "van_der_waals_term = ", van_der_waals_term(26), van_der_waals_term(size(van_der_waals_term) - 26), van_der_waals_term(size(van_der_waals_term) - 26) - van_der_waals_term(26)
-    !print *, ""
-    !call abort()
-
     CalculateLambdaCommonTerms = hs_term + surface_fluid_dispersion_term + van_der_waals_term
 
-    !print *, "common terms = ", CalculateLambdaCommonTerms
-    !call abort()
-
+    
   end function CalculateLambdaCommonTerms
 
 

@@ -213,9 +213,11 @@ contains
     real(dp) :: calculate_ideal_chain_term_per_unit_area
 
     real(dp), dimension(n_points) :: lambda_plus, lambda_neutral, lambda_minus
-    real(dp), dimension(n_points) :: lambda_hs_end, lambda_hs_nonend
     real(dp), dimension(n_points) :: n_plus_input, n_neutral_input, n_minus_input
 
+    real(dp), dimension(n_points) :: lambda_hs_end, lambda_hs_nonend
+    real(dp), dimension(n_points) :: n_hs_end, n_hs_nonend
+    
     calculate_ideal_chain_term_per_unit_area = 0.0_dp
 
     lambda_plus(:) = 0.0_dp
@@ -232,7 +234,7 @@ contains
           call abort()
        end if
 
-       call CalculateLambdasDifference(lambda_plus, n_plus, lambda_neutral, n_neutral, lambda_minus, n_minus, ith_plate_separation, lambda_hs_end, lambda_hs_nonend)
+       call CalculateLambdasDifference(lambda_plus, n_plus, lambda_neutral, n_neutral, lambda_minus, n_minus, lambda_hs_end, n_hs_end, lambda_hs_nonend, n_hs_nonend, ith_plate_separation)
        n_plus_input(:) = n_plus(:)
        n_neutral_input(:) = n_neutral(:)
        n_minus_input(:) = n_minus(:)

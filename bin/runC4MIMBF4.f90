@@ -14,6 +14,7 @@ program runSingleSphere
   !and l^{i}_{b} is the value in the bulk.
   real(dp), dimension(:), allocatable :: lambda_plus, lambda_neutral, lambda_minus
   real(dp), dimension(:), allocatable :: lambda_hs_end, lambda_hs_nonend
+  real(dp), dimension(:), allocatable :: n_hs_end, n_hs_nonend
 
   real(dp), dimension(:), allocatable :: grand_potential_per_unit_area, grand_potential_per_unit_area_in_bulk
   real(dp), dimension(:), allocatable :: normal_pressure_left_wall, normal_pressure_right_wall
@@ -82,9 +83,10 @@ program runSingleSphere
 
      print *, "Initialise/ReInitialise Discretisation for all the temperary variables we need."
      call InitialiseVariableDiscretisation(ith_separation, n_plus_updated, lambda_plus, &
-          n_neutral_updated, lambda_neutral, n_minus_updated, lambda_minus, n_plus_previous, n_neutral_previous, n_minus_previous, lambda_hs_end, lambda_hs_nonend)
+          n_neutral_updated, lambda_neutral, n_minus_updated, lambda_minus, n_plus_previous, n_neutral_previous, n_minus_previous, &
+          lambda_hs_end, n_hs_end, lambda_hs_nonend, n_hs_nonend)
      call SetToZero(n_plus_updated, lambda_plus, n_neutral_updated, lambda_neutral, n_minus_updated, lambda_minus)
-     call SetToZero(lambda_hs_end, lambda_hs_nonend)     
+     call SetToZero(lambda_hs_end, lambda_hs_nonend, n_hs_end, n_hs_nonend)     
      if(ith_separation == 1) then
         call ImposeChargeNeutrality(n_plus, n_neutral, n_minus, Donnan_potential, abort_now)
      end if
@@ -113,7 +115,7 @@ program runSingleSphere
            !print *, "n_neutral integral = ", n_neutral_updated
            !print *, "n_minus integral = ", integrate_z_cylindrical(negative_bead_charge*n_minus, "all_z")
 
-           call CalculateLambdasDifference(lambda_plus, n_plus, lambda_neutral, n_neutral, lambda_minus, n_minus, ith_separation, lambda_hs_end, lambda_hs_nonend)
+           call CalculateLambdasDifference(lambda_plus, n_plus, lambda_neutral, n_neutral, lambda_minus, n_minus, lambda_hs_end, n_hs_end, lambda_hs_nonend, n_hs_nonend, ith_separation)
 
            !print *, "lambda_plus = ", lambda_plus
            !call abort()
@@ -273,7 +275,7 @@ program runSingleSphere
      !call CalculateDonnanPotential(n_plus, n_minus, Donnan_potential)
 
      if(abort_now) exit
-     
+
      print *, "Calculating grand potential per unit area value."
      call CalculateGrandPotentialValuePerUnitArea(ith_separation, grand_potential_per_unit_area(ith_separation), &
           size(n_neutral_updated), n_plus_updated, n_neutral_updated, n_minus_updated, Donnan_potential)
@@ -298,7 +300,7 @@ program runSingleSphere
      end_size = size(plate_separations)
   end if
 
-     
+
   negative_deriv_of_potential(1:end_size) = CalculateNegativeDerivOfPotentialPerUnitAreaWRTSeparation(grand_potential_per_unit_area(1:end_size))
 
   do ith_separation = 1, end_size

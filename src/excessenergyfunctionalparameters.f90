@@ -11,7 +11,8 @@ module excessenergyfunctionalparameters
 
   public :: GetAEx
   public :: GetAExDerivIntegrand
-
+  public :: GetYMix
+  
   real(dp) :: sigma_monomer
   real(dp) :: sigma_solvent
 
@@ -256,6 +257,8 @@ contains
 
     call InitialiseHardSphereDiameters(sigma_monomer, sigma_solvent)
 
+    GetYMix(:) = 1.0_dp
+    
     ! if(trim(alpha) == 'm') then
     !    sigma_alpha = sigma_monomer
     ! else if(trim(alpha) == 's') then
