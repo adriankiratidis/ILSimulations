@@ -92,6 +92,8 @@ contains
     real(dp), dimension(size(lambda_plus_bulk)) :: lambda_common_terms_bulk
     real(dp), dimension(size(n_neutral)) :: n_neutral_array
 
+    real(dp), dimension(size(n_plus)) :: n_s_bulk
+    
     integer :: input_array_size
 
     ! First ensure that the sizes of all the input variables are the same.
@@ -120,7 +122,8 @@ contains
 
     ! lambda_hs_end and lambda_hs_nonend terms correspond to the contributions from the hard sphere term (only) from 
     ! end and nonend monomers respectively.
-    call CalculateHSEndAndNonEndHSFunctionalDeriv(n_plus + n_neutral + n_minus, lambda_hs_end, n_hs_end, lambda_hs_nonend, n_hs_nonend, .true.)
+    n_s_bulk(:) = bulk_density_positive_beads + bulk_density_neutral_beads + bulk_density_negative_beads
+    call CalculateHSEndAndNonEndHSFunctionalDeriv(n_s_bulk, lambda_hs_end, n_hs_end, lambda_hs_nonend, n_hs_nonend, .true.)
     
   end subroutine CalculateLambdasBulk
 
@@ -279,7 +282,7 @@ contains
 
        allowed_distance_between_plates = (((size(n_s) - 1)*hs_diameter/n_discretised_points_z) + ((hs_diameter)*1.0_dp))/2.0_dp
        
-       hs_term = 1.0_dp * calculate_hardsphere_functional_deriv(n_s, .true.)
+       !hs_term = 1.0_dp * calculate_hardsphere_functional_deriv(n_s, .true.)
 
        van_der_waals_term = (-8.0_dp * epsilon_LJ_particle_particle * (hs_diameter**6) * pi * n_s(:)) * ( &
             (2.0_dp/(3.0_dp*(hs_diameter**3))))
@@ -289,7 +292,7 @@ contains
 
     else
        n_s = n_plus + n_neutral + n_minus
-       hs_term = 1.0_dp * calculate_hardsphere_functional_deriv(n_s, .false.)
+       !hs_term = 1.0_dp * calculate_hardsphere_functional_deriv(n_s, .false.)
 
        surface_fluid_dispersion_term = calculate_surface_dispersion_functional_deriv(&
             ith_plate_separation, size(surface_fluid_dispersion_term))

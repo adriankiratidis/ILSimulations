@@ -84,7 +84,7 @@ module constructoligomers
 
 contains
 
-  subroutine UpdateDensities(n1, n2, n3, lambda1, n1_updated, lambda2, n2_updated, lambda3, n3_updated, Donnan_potential, iteration, abort_now)
+  subroutine UpdateDensities(n1, n2, n3, lambda1, n1_updated, lambda2, n2_updated, lambda3, n3_updated, lambda_hs_end, n_hs_end, lambda_hs_nonend, n_hs_nonend, Donnan_potential, iteration, abort_now)
     real(dp), dimension(:), intent(in) :: n1
     real(dp), dimension(:), intent(in) :: n2
     real(dp), dimension(:), intent(in) :: n3
@@ -98,6 +98,12 @@ contains
     real(dp), dimension(:), intent(in), optional :: lambda3
     real(dp), dimension(:), intent(out), optional :: n3_updated
 
+    real(dp), dimension(:), intent(in) :: lambda_hs_end
+    real(dp), dimension(:), intent(out) :: n_hs_end
+
+    real(dp), dimension(:), intent(in), optional :: lambda_hs_nonend
+    real(dp), dimension(:), intent(out), optional :: n_hs_nonend
+    
     real(dp) :: Donnan_potential
     integer :: iteration
     logical :: abort_now
