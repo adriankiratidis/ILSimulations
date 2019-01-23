@@ -101,8 +101,8 @@ contains
     real(dp), dimension(:), intent(in) :: lambda_hs_end
     real(dp), dimension(:), intent(out) :: n_hs_end
 
-    real(dp), dimension(:), intent(in), optional :: lambda_hs_nonend
-    real(dp), dimension(:), intent(out), optional :: n_hs_nonend
+    real(dp), dimension(:), intent(in) :: lambda_hs_nonend
+    real(dp), dimension(:), intent(out) :: n_hs_nonend
     
     real(dp) :: Donnan_potential
     integer :: iteration
@@ -265,9 +265,10 @@ contains
           print *, "coding error...aborting..."
           call abort()
        else
-          call UpdateC4MIMBF4PositiveBeadDensities(lambda1, lambda2, n1_updated)
-          call UpdateC4MIMBF4NeutralBeadDensities(lambda1, lambda2, n2_updated)
-          call UpdateC4MIMBF4NegativeBeadDensities(lambda3, n3_updated)
+          
+          call UpdateC4MIMBF4PositiveBeadDensities(lambda1, lambda2, n1_updated, lambda_hs_end, n_hs_end, lambda_hs_nonend, n_hs_nonend)
+          call UpdateC4MIMBF4NeutralBeadDensities(lambda1, lambda2, n2_updated, lambda_hs_end, n_hs_end, lambda_hs_nonend, n_hs_nonend)
+          call UpdateC4MIMBF4NegativeBeadDensities(lambda3, n3_updated, lambda_hs_end, n_hs_end, lambda_hs_nonend, n_hs_nonend)
 
           Donnan_potential_previous = Donnan_potential
           n1_updated = n1_updated*exp(beta*Donnan_potential*positive_oligomer_charge)
@@ -298,7 +299,7 @@ contains
        else
           call UpdateC2MIMBF4PositiveBeadDensities(lambda1, lambda2, n1_updated)
           call UpdateC2MIMBF4NeutralBeadDensities(lambda1, lambda2, n2_updated)
-          call UpdateC4MIMBF4NegativeBeadDensities(lambda3, n3_updated)
+          call UpdateC4MIMBF4NegativeBeadDensities(lambda3, n3_updated, lambda_hs_end, n_hs_end, lambda_hs_nonend, n_hs_nonend)
 
           Donnan_potential_previous = Donnan_potential
           n1_updated = n1_updated*exp(beta*Donnan_potential*positive_oligomer_charge)
@@ -328,7 +329,7 @@ contains
        else
           call UpdateC6MIMBF4PositiveBeadDensities(lambda1, lambda2, n1_updated)
           call UpdateC6MIMBF4NeutralBeadDensities(lambda1, lambda2, n2_updated)
-          call UpdateC4MIMBF4NegativeBeadDensities(lambda3, n3_updated)
+          call UpdateC4MIMBF4NegativeBeadDensities(lambda3, n3_updated, lambda_hs_end, n_hs_end, lambda_hs_nonend, n_hs_nonend)
 
           Donnan_potential_previous = Donnan_potential
           n1_updated = n1_updated*exp(beta*Donnan_potential*positive_oligomer_charge)
@@ -358,7 +359,7 @@ contains
        else
           call UpdateC8MIMBF4PositiveBeadDensities(lambda1, lambda2, n1_updated)
           call UpdateC8MIMBF4NeutralBeadDensities(lambda1, lambda2, n2_updated)
-          call UpdateC4MIMBF4NegativeBeadDensities(lambda3, n3_updated)
+          call UpdateC4MIMBF4NegativeBeadDensities(lambda3, n3_updated, lambda_hs_end, n_hs_end, lambda_hs_nonend, n_hs_nonend)
 
           Donnan_potential_previous = Donnan_potential
           n1_updated = n1_updated*exp(beta*Donnan_potential*positive_oligomer_charge)
@@ -388,7 +389,7 @@ contains
        else
           call UpdateC10MIMBF4PositiveBeadDensities(lambda1, lambda2, n1_updated)
           call UpdateC10MIMBF4NeutralBeadDensities(lambda1, lambda2, n2_updated)
-          call UpdateC4MIMBF4NegativeBeadDensities(lambda3, n3_updated)
+          call UpdateC4MIMBF4NegativeBeadDensities(lambda3, n3_updated, lambda_hs_end, n_hs_end, lambda_hs_nonend, n_hs_nonend)
 
           Donnan_potential_previous = Donnan_potential
           n1_updated = n1_updated*exp(beta*Donnan_potential*positive_oligomer_charge)
@@ -527,7 +528,7 @@ contains
           print *, "coding error...aborting..."
           call abort()
        else
-          call UpdateC4MIMBF4PositiveBeadDensities(lambda1, lambda2, n1_updated)
+          call UpdateC4MIMBF4PositiveBeadDensities(lambda1, lambda2, n1_updated, lambda_hs_end, n_hs_end, lambda_hs_nonend, n_hs_nonend)
           call UpdateC4MIMTFSINegativeBeadDensities_model1(lambda2, lambda3, n3_updated)
 
 
@@ -587,7 +588,7 @@ contains
           print *, "coding error...aborting..."
           call abort()
        else
-          call UpdateC4MIMBF4PositiveBeadDensities(lambda1, lambda2, n1_updated)
+          call UpdateC4MIMBF4PositiveBeadDensities(lambda1, lambda2, n1_updated, lambda_hs_end, n_hs_end, lambda_hs_nonend, n_hs_nonend)
           call UpdateC4MIMTFSINegativeBeadDensities_model2(lambda2, lambda3, n3_updated)
 
           !if(iteration > 1) then
@@ -1010,10 +1011,15 @@ contains
   end subroutine UpdatePositiveNeutralDoubleDimerMinusDimerDensities
 
 
-  subroutine UpdateC4MIMBF4PositiveBeadDensities(lambda_plus, lambda_neutral, n_plus_updated)
+  subroutine UpdateC4MIMBF4PositiveBeadDensities(lambda_plus, lambda_neutral, n_plus_updated, lambda_hs_end, n_hs_end, lambda_hs_nonend, n_hs_nonend)
     real(dp), dimension(:), intent(in) :: lambda_plus
     real(dp), dimension(:), intent(in) :: lambda_neutral
     real(dp), dimension(:), intent(out) :: n_plus_updated
+
+    real(dp), dimension(:), intent(in) :: lambda_hs_end
+    real(dp), dimension(:), intent(out) :: n_hs_end
+    real(dp), dimension(:), intent(in) :: lambda_hs_nonend
+    real(dp), dimension(:), intent(out) :: n_hs_nonend
 
     real(dp), dimension(size(lambda_plus)) :: c8c1, c9c10, c7, c6, c5, c4, c2, c3p, c3pp, c3ppp
     integer :: array_size
@@ -1032,30 +1038,37 @@ contains
     ! from the delta function bond, a factor of 2 * pi from the theta integral
     ! and a factor of hs_diameter**2 from the jacobian.  Combining these factors
     ! gives the required 0.5_dp factor that we are multiplying by.
-    c9c10 = integrate_phi_spherical(exp(lambda_plus))
+    c9c10 = integrate_phi_spherical(exp(lambda_plus + lambda_hs_end))
 
-    c8c1 = integrate_phi_spherical(exp(lambda_neutral))
+    c8c1 = integrate_phi_spherical(exp(lambda_neutral + lambda_hs_end))
 
-    c7 = integrate_phi_spherical(exp(lambda_neutral) * c8c1)
+    c7 = integrate_phi_spherical(exp(lambda_neutral + lambda_hs_nonend) * c8c1)
 
-    c6 = integrate_phi_spherical(exp(lambda_neutral) * c7)
+    c6 = integrate_phi_spherical(exp(lambda_neutral + lambda_hs_nonend) * c7)
 
-    c5 = integrate_phi_spherical(exp(lambda_neutral) * c6)
+    c5 = integrate_phi_spherical(exp(lambda_neutral + lambda_hs_nonend) * c6)
 
-    c4 = integrate_phi_spherical(exp(lambda_plus) * c5)
+    c4 = integrate_phi_spherical(exp(lambda_plus + lambda_hs_nonend) * c5)
 
-    c3p = integrate_phi_spherical(exp(lambda_plus) * c4 * c9c10 * c9c10)
+    c3p = integrate_phi_spherical(exp(lambda_plus + lambda_hs_nonend) * c4 * c9c10 * c9c10)
 
-    c2 = integrate_phi_spherical(exp(lambda_plus) * c8c1)
+    c2 = integrate_phi_spherical(exp(lambda_plus + lambda_hs_nonend) * c8c1)
 
-    c3pp = integrate_phi_spherical(exp(lambda_plus) * c4 * c2 * c9c10)
+    c3pp = integrate_phi_spherical(exp(lambda_plus + lambda_hs_nonend) * c4 * c2 * c9c10)
 
-    c3ppp = integrate_phi_spherical(exp(lambda_plus) * c2 * c9c10 * c9c10)
+    c3ppp = integrate_phi_spherical(exp(lambda_plus + lambda_hs_nonend) * c2 * c9c10 * c9c10)
 
     !Calculate the resulting positive bead densities.
     !n_plus_updated = nc2 + nc3 + nc4 + nc9 + nc10 =  nc2 + nc3 + nc4 + 2*nc9
-    n_plus_updated = bulk_density * ( (exp(lambda_plus) * c8c1 * c3p) + (exp(lambda_plus) * c2 * c9c10 * c9c10 * c4) + &
-         (exp(lambda_plus) * c3ppp * c5) + (2.0_dp * (exp(lambda_plus) * c3pp)) )
+    n_plus_updated = bulk_density * ( (exp(lambda_plus + lambda_hs_nonend) * c8c1 * c3p) + (exp(lambda_plus + lambda_hs_nonend) * c2 * c9c10 * c9c10 * c4) + &
+         (exp(lambda_plus + lambda_hs_nonend) * c3ppp * c5) + (2.0_dp * (exp(lambda_plus + lambda_hs_end) * c3pp)) )
+
+    n_hs_end = n_hs_end +  bulk_density * ( (2.0_dp * (exp(lambda_plus + lambda_hs_end) * c3pp)) )
+    
+    n_hs_nonend = n_hs_nonend + bulk_density * ( (exp(lambda_plus + lambda_hs_nonend) * c8c1 * c3p) + (exp(lambda_plus + lambda_hs_nonend) * c2 * c9c10 * c9c10 * c4) + &
+         (exp(lambda_plus + lambda_hs_nonend) * c3ppp * c5) )
+
+
 
     !n_plus_updated = 0.0_dp
 
@@ -1324,10 +1337,15 @@ contains
   end subroutine UpdateC10MIMBF4PositiveBeadDensities
 
 
-  subroutine UpdateC4MIMBF4NeutralBeadDensities(lambda_plus, lambda_neutral, n_neutral_updated)
+  subroutine UpdateC4MIMBF4NeutralBeadDensities(lambda_plus, lambda_neutral, n_neutral_updated, lambda_hs_end, n_hs_end, lambda_hs_nonend, n_hs_nonend)
     real(dp), dimension(:), intent(in) :: lambda_plus
     real(dp), dimension(:), intent(in) :: lambda_neutral
     real(dp), dimension(:), intent(out) :: n_neutral_updated
+
+    real(dp), dimension(:), intent(in) :: lambda_hs_end
+    real(dp), dimension(:), intent(out) :: n_hs_end
+    real(dp), dimension(:), intent(in) :: lambda_hs_nonend
+    real(dp), dimension(:), intent(out) :: n_hs_nonend
 
     real(dp), dimension(size(lambda_plus)) :: c3p, c3ppp, c9c10, c8c1, c7, c6, c5, c4, c2 !contributions also used in +ve beads.
     real(dp), dimension(size(lambda_plus)) :: c2p, c4p, c5p, c6p, c7p !extra contributions for -ve beads.
@@ -1344,54 +1362,63 @@ contains
        call abort()
     end if
 
-    c9c10 = integrate_phi_spherical(exp(lambda_plus))
+    c9c10 = integrate_phi_spherical(exp(lambda_plus + lambda_hs_end))
 
-    c8c1 = integrate_phi_spherical(exp(lambda_neutral))
+    c8c1 = integrate_phi_spherical(exp(lambda_neutral + lambda_hs_end))
 
-    c7 = integrate_phi_spherical(exp(lambda_neutral) * c8c1)
+    c7 = integrate_phi_spherical(exp(lambda_neutral + lambda_hs_nonend) * c8c1)
 
-    c6 = integrate_phi_spherical(exp(lambda_neutral) * c7)
+    c6 = integrate_phi_spherical(exp(lambda_neutral + lambda_hs_nonend) * c7)
 
-    c5 = integrate_phi_spherical(exp(lambda_neutral) * c6)
+    c5 = integrate_phi_spherical(exp(lambda_neutral + lambda_hs_nonend) * c6)
 
-    c4 = integrate_phi_spherical(exp(lambda_plus) * c5)
+    c4 = integrate_phi_spherical(exp(lambda_plus + lambda_hs_nonend) * c5)
 
-    c2 = integrate_phi_spherical(exp(lambda_plus) * c8c1)
+    c2 = integrate_phi_spherical(exp(lambda_plus + lambda_hs_nonend) * c8c1)
 
-    c3p = integrate_phi_spherical(exp(lambda_plus) * c4 * c9c10 * c9c10)
+    c3p = integrate_phi_spherical(exp(lambda_plus + lambda_hs_nonend) * c4 * c9c10 * c9c10)
 
-    c3ppp = integrate_phi_spherical(exp(lambda_plus) * c2 * c9c10 * c9c10)
+    c3ppp = integrate_phi_spherical(exp(lambda_plus + lambda_hs_nonend) * c2 * c9c10 * c9c10)
 
-    c2p = integrate_phi_spherical(exp(lambda_plus) * c3p)
+    c2p = integrate_phi_spherical(exp(lambda_plus + lambda_hs_nonend) * c3p)
 
-    c4p = integrate_phi_spherical(exp(lambda_plus) * c3ppp)
+    c4p = integrate_phi_spherical(exp(lambda_plus + lambda_hs_nonend) * c3ppp)
 
-    c5p = integrate_phi_spherical(exp(lambda_neutral) * c4p)
+    c5p = integrate_phi_spherical(exp(lambda_neutral + lambda_hs_nonend) * c4p)
 
-    c6p = integrate_phi_spherical(exp(lambda_neutral) * c5p)
+    c6p = integrate_phi_spherical(exp(lambda_neutral + lambda_hs_nonend) * c5p)
 
-    c7p = integrate_phi_spherical(exp(lambda_neutral) * c6p)
+    c7p = integrate_phi_spherical(exp(lambda_neutral + lambda_hs_nonend) * c6p)
 
     !Calculate the resulting neutral bead densities.
     !n_zero_updated = nc1 + nc5 + nc6 + nc7 + nc8
-    n_neutral_updated = bulk_density * ( (exp(lambda_neutral) * c2p) + (exp(lambda_neutral) * c4p * c6) + &
-         (exp(lambda_neutral) * c5p * c7) + (exp(lambda_neutral) * c6p * c8c1) + (exp(lambda_neutral) * c7p) )
+    n_neutral_updated = bulk_density * ( (exp(lambda_neutral + lambda_hs_end) * c2p) + (exp(lambda_neutral + lambda_hs_nonend) * c4p * c6) + &
+         (exp(lambda_neutral + lambda_hs_nonend) * c5p * c7) + (exp(lambda_neutral + lambda_hs_nonend) * c6p * c8c1) + (exp(lambda_neutral + lambda_hs_end) * c7p) )
 
-    !n_neutral_updated = 0.0_dp
+    n_hs_end = n_hs_end + bulk_density * ( (exp(lambda_neutral + lambda_hs_end) * c2p) + (exp(lambda_neutral + lambda_hs_end) * c7p) )
+    
+    n_hs_nonend = n_hs_nonend + bulk_density * ( (exp(lambda_neutral + lambda_hs_nonend) * c4p * c6) + &
+         (exp(lambda_neutral + lambda_hs_nonend) * c5p * c7) + (exp(lambda_neutral + lambda_hs_nonend) * c6p * c8c1) )
 
-    do ij = 1, (size(n_neutral_updated) - 1)/2
-       n_neutral_updated(ij) = n_neutral_updated(size(n_neutral_updated) - ij + 1)
-    end do
 
-    !call RenormaliseToBulkDensity(n_neutral_updated, "n0")
+    ! do ij = 1, (size(n_neutral_updated) - 1)/2
+    !    n_neutral_updated(ij) = n_neutral_updated(size(n_neutral_updated) - ij + 1)
+    ! end do
+
+
     call setNonCalculatedRegionToZero(n_neutral_updated)
 
   end subroutine UpdateC4MIMBF4NeutralBeadDensities
 
 
-  subroutine UpdateC4MIMBF4NegativeBeadDensities(lambda_minus, n_minus_updated)
+  subroutine UpdateC4MIMBF4NegativeBeadDensities(lambda_minus, n_minus_updated, lambda_hs_end, n_hs_end, lambda_hs_nonend, n_hs_nonend)
     real(dp), dimension(:), intent(in) :: lambda_minus
     real(dp), dimension(:), intent(out) :: n_minus_updated
+
+    real(dp), dimension(:), intent(in) :: lambda_hs_end
+    real(dp), dimension(:), intent(out) :: n_hs_end
+    real(dp), dimension(:), intent(in) :: lambda_hs_nonend
+    real(dp), dimension(:), intent(out) :: n_hs_nonend
 
     real(dp), dimension(size(lambda_minus)) :: a1a2a3a4, a5p
     integer :: array_size
@@ -1405,33 +1432,28 @@ contains
        call abort()
     end if
 
-    !print *, "lambda_minus = ", lambda_minus
-    !print *, "exp(lambda_minus) = ", exp(lambda_minus)
-
+    
     !Calculate the required contributions for the anion
-    a1a2a3a4 = integrate_phi_spherical(exp(lambda_minus))
+    a1a2a3a4 = integrate_phi_spherical(exp(lambda_minus + lambda_hs_end))
 
-    !print *, "a1a2a3a4 = ", a1a2a3a4 
+    
+    a5p = integrate_phi_spherical(exp(lambda_minus + lambda_hs_nonend) * (a1a2a3a4 ** 3.0_dp))
 
-    a5p = integrate_phi_spherical(exp(lambda_minus) * (a1a2a3a4 ** 3.0_dp))
-
-    !print *, "a5p = ", a5p
-
+    
     !Calculate the resulting negative bead densities.
     !n_minus_updated = na1 + na2 + na3 + na4 + na5 = 4*na1 + na5
-    n_minus_updated = bulk_density * ( 4.0_dp*(exp(lambda_minus) * a5p) + (exp(lambda_minus) * (a1a2a3a4**4.0_dp)) )
+    n_minus_updated = bulk_density * ( 4.0_dp*(exp(lambda_minus + lambda_hs_end) * a5p) + (exp(lambda_minus + lambda_hs_nonend) * (a1a2a3a4**4.0_dp)) )
 
-    !call RenormaliseToBulkDensity(n_minus_updated, "n-")
+    n_hs_end = n_hs_end + bulk_density * ( 4.0_dp*(exp(lambda_minus + lambda_hs_end) * a5p) )
+    n_hs_nonend = n_hs_nonend + bulk_density * ( (exp(lambda_minus + lambda_hs_nonend) * (a1a2a3a4**4.0_dp)) )
 
-    do ij = 1, (size(n_minus_updated) - 1)/2
-       n_minus_updated(ij) = n_minus_updated(size(n_minus_updated) - ij + 1)
-    end do
+    
+    ! do ij = 1, (size(n_minus_updated) - 1)/2
+    !    n_minus_updated(ij) = n_minus_updated(size(n_minus_updated) - ij + 1)
+    ! end do
 
     call setNonCalculatedRegionToZero(n_minus_updated)
 
-    !n_minus_updated = 0.0_dp
-
-    !print *, "n_minus_updated = ", n_minus_updated
 
   end subroutine UpdateC4MIMBF4NegativeBeadDensities
 

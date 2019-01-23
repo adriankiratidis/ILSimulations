@@ -134,6 +134,10 @@ program runSingleSphere
            !print *, "n_minus = ", n_minus
            !print *, "lambda_plus = ", lambda_plus
            !print *, "1"
+           
+           n_hs_end(:) = 0.0_dp
+           n_hs_nonend(:) = 0.0_dp
+           
            call UpdateDensities(n_plus, n_neutral, n_minus, lambda_plus, n_plus_updated, lambda_neutral, n_neutral_updated, lambda_minus, n_minus_updated, lambda_hs_end, n_hs_end, lambda_hs_nonend, n_hs_nonend, Donnan_potential, iteration, abort_now)
 
            !Found some problem, but still want to print what we've calculated so far.
