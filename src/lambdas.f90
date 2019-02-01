@@ -16,7 +16,8 @@ module lambdas
 
 contains
   
-  subroutine CalculateLambdas(lambda_plus, n_plus, lambda_neutral, n_neutral, lambda_minus, n_minus, lambda_hs_end, n_hs_end, lambda_hs_nonend, n_hs_nonend, ith_plate_separation)
+  subroutine CalculateLambdas(lambda_plus, n_plus, lambda_neutral, n_neutral, lambda_minus, n_minus, lambda_hs_end_cation, n_hs_end_cation, lambda_hs_nonend_cation, n_hs_nonend_cation, &
+       lambda_hs_end_anion, n_hs_end_anion, lambda_hs_nonend_anion, n_hs_nonend_anion, ith_plate_separation)
     real(dp), dimension(:), intent(out) :: lambda_plus
     real(dp), dimension(:), intent(in)  :: n_plus
 
@@ -27,13 +28,18 @@ contains
     real(dp), dimension(:), intent(in)  :: n_minus
 
     !Variables for hs calculation.  End and non-end monomer density needed.
-    real(dp), dimension(:), intent(out) :: lambda_hs_end
-    real(dp), dimension(:), intent(in)  :: n_hs_end
-    
-    real(dp), dimension(:), intent(out) :: lambda_hs_nonend
-    real(dp), dimension(:), intent(in)  :: n_hs_nonend
+    real(dp), dimension(:), intent(out) :: lambda_hs_end_cation
+    real(dp), dimension(:), intent(in)  :: n_hs_end_cation
+    real(dp), dimension(:), intent(out) :: lambda_hs_nonend_cation
+    real(dp), dimension(:), intent(in)  :: n_hs_nonend_cation
+
+    real(dp), dimension(:), intent(out) :: lambda_hs_end_anion
+    real(dp), dimension(:), intent(in)  :: n_hs_end_anion
+    real(dp), dimension(:), intent(out) :: lambda_hs_nonend_anion
+    real(dp), dimension(:), intent(in)  :: n_hs_nonend_anion
+
     integer, intent(in)                 :: ith_plate_separation
-    
+
     real(dp), dimension(size(lambda_plus)) :: lambda_common_terms
 
     integer :: input_array_size
@@ -67,11 +73,13 @@ contains
 
     ! lambda_hs_end and lambda_hs_nonend terms correspond to the contributions from the hard sphere term (only) from 
     ! end and nonend monomers respectively.
-    call CalculateHSEndAndNonEndHSFunctionalDeriv(n_plus + n_neutral + n_minus, lambda_hs_end, n_hs_end, lambda_hs_nonend, n_hs_nonend, .false.)
+    call CalculateHSEndAndNonEndHSFunctionalDeriv(n_plus + n_neutral + n_minus, lambda_hs_end_cation, n_hs_end_cation, lambda_hs_nonend_cation, n_hs_nonend_cation, &
+         lambda_hs_end_anion, n_hs_end_anion, lambda_hs_nonend_anion, n_hs_nonend_anion, .false.)
 
   end subroutine CalculateLambdas
 
-  subroutine CalculateLambdasBulk(lambda_plus_bulk, n_plus, lambda_neutral_bulk, n_neutral, lambda_minus_bulk, n_minus, lambda_hs_end, n_hs_end, lambda_hs_nonend, n_hs_nonend, ith_plate_separation)
+  subroutine CalculateLambdasBulk(lambda_plus_bulk, n_plus, lambda_neutral_bulk, n_neutral, lambda_minus_bulk, n_minus, lambda_hs_end_cation_bulk, lambda_hs_nonend_cation_bulk, &
+       lambda_hs_end_anion_bulk, lambda_hs_nonend_anion_bulk, ith_plate_separation)
     real(dp), dimension(:), intent(out) :: lambda_plus_bulk
     real(dp), dimension(:), intent(in)  :: n_plus
 
@@ -82,12 +90,17 @@ contains
     real(dp), dimension(:), intent(in)  :: n_minus
 
     !Variables for hs calculation.  End and non-end monomer density needed.
-    real(dp), dimension(:), intent(out) :: lambda_hs_end
-    real(dp), dimension(:), intent(in)  :: n_hs_end
+    real(dp), dimension(:), intent(out) :: lambda_hs_end_cation_bulk
+    real(dp), dimension(:), intent(out) :: lambda_hs_nonend_cation_bulk
+    real(dp), dimension(:), intent(out) :: lambda_hs_end_anion_bulk
+    real(dp), dimension(:), intent(out) :: lambda_hs_nonend_anion_bulk
     
-    real(dp), dimension(:), intent(out) :: lambda_hs_nonend
-    real(dp), dimension(:), intent(in)  :: n_hs_nonend
     integer, intent(in)                 :: ith_plate_separation
+
+    real(dp), dimension(size(n_plus)) :: n_hs_end_cation_bulk
+    real(dp), dimension(size(n_plus)) :: n_hs_nonend_cation_bulk
+    real(dp), dimension(size(n_plus)) :: n_hs_end_anion_bulk
+    real(dp), dimension(size(n_plus)) :: n_hs_nonend_anion_bulk
     
     real(dp), dimension(size(lambda_plus_bulk)) :: lambda_common_terms_bulk
     real(dp), dimension(size(n_neutral)) :: n_neutral_array
@@ -123,11 +136,18 @@ contains
     ! lambda_hs_end and lambda_hs_nonend terms correspond to the contributions from the hard sphere term (only) from 
     ! end and nonend monomers respectively.
     n_s_bulk(:) = bulk_density_positive_beads + bulk_density_neutral_beads + bulk_density_negative_beads
-    call CalculateHSEndAndNonEndHSFunctionalDeriv(n_s_bulk, lambda_hs_end, n_hs_end, lambda_hs_nonend, n_hs_nonend, .true.)
+    n_hs_end_cation_bulk = n_end_cation_bulk
+    n_hs_nonend_cation_bulk = n_nonend_cation_bulk
+    n_hs_end_anion_bulk = n_end_anion_bulk
+    n_hs_nonend_anion_bulk = n_nonend_anion_bulk
+    
+    call CalculateHSEndAndNonEndHSFunctionalDeriv(n_s_bulk, lambda_hs_end_cation_bulk, n_hs_end_cation_bulk, lambda_hs_nonend_cation_bulk, n_hs_nonend_cation_bulk, &
+         lambda_hs_end_anion_bulk, n_hs_end_anion_bulk, lambda_hs_nonend_anion_bulk, n_hs_nonend_anion_bulk,.true.)
     
   end subroutine CalculateLambdasBulk
 
-  subroutine CalculateLambdasDifference(lambda_plus, n_plus, lambda_neutral, n_neutral, lambda_minus, n_minus, lambda_hs_end, n_hs_end, lambda_hs_nonend, n_hs_nonend, ith_plate_separation)
+  subroutine CalculateLambdasDifference(lambda_plus, n_plus, lambda_neutral, n_neutral, lambda_minus, n_minus, lambda_hs_end_cation, n_hs_end_cation, &
+       lambda_hs_nonend_cation, n_hs_nonend_cation, lambda_hs_end_anion, n_hs_end_anion, lambda_hs_nonend_anion, n_hs_nonend_anion, ith_plate_separation)
     real(dp), dimension(:), intent(out) :: lambda_plus
     real(dp), dimension(:), intent(in)  :: n_plus
 
@@ -138,19 +158,27 @@ contains
     real(dp), dimension(:), intent(in)  :: n_minus
 
     !Variables for hs calculation.  End and non-end monomer density needed.
-    real(dp), dimension(:), intent(out) :: lambda_hs_end
-    real(dp), dimension(:), intent(in)  :: n_hs_end
+    real(dp), dimension(:), intent(out) :: lambda_hs_end_cation
+    real(dp), dimension(:), intent(in)  :: n_hs_end_cation
+    real(dp), dimension(:), intent(out) :: lambda_hs_nonend_cation
+    real(dp), dimension(:), intent(in)  :: n_hs_nonend_cation
 
-    real(dp), dimension(:), intent(out) :: lambda_hs_nonend
-    real(dp), dimension(:), intent(in)  :: n_hs_nonend
+    real(dp), dimension(:), intent(out) :: lambda_hs_end_anion
+    real(dp), dimension(:), intent(in)  :: n_hs_end_anion
+    real(dp), dimension(:), intent(out) :: lambda_hs_nonend_anion
+    real(dp), dimension(:), intent(in)  :: n_hs_nonend_anion
 
     integer, intent(in)                 :: ith_plate_separation
 
     real(dp), dimension(size(lambda_plus)) :: lambda_plus_bulk
     real(dp), dimension(size(lambda_plus)) :: lambda_neutral_bulk
     real(dp), dimension(size(lambda_plus)) :: lambda_minus_bulk
-    real(dp), dimension(size(lambda_plus)) :: lambda_hs_end_bulk
-    real(dp), dimension(size(lambda_plus)) :: lambda_hs_nonend_bulk
+
+    real(dp), dimension(size(lambda_plus)) :: lambda_hs_end_cation_bulk
+    real(dp), dimension(size(lambda_plus)) :: lambda_hs_nonend_cation_bulk
+
+    real(dp), dimension(size(lambda_plus)) :: lambda_hs_end_anion_bulk
+    real(dp), dimension(size(lambda_plus)) :: lambda_hs_nonend_anion_bulk
 
     integer :: input_array_size
 
@@ -168,15 +196,20 @@ contains
        call abort()
     end if
 
-    call CalculateLambdasBulk(lambda_plus_bulk, n_plus, lambda_neutral_bulk, n_neutral, lambda_minus_bulk, n_minus, lambda_hs_end_bulk, n_hs_end, lambda_hs_nonend_bulk, n_hs_nonend, ith_plate_separation)
-    call CalculateLambdas(lambda_plus, n_plus, lambda_neutral, n_neutral, lambda_minus, n_minus, lambda_hs_end, n_hs_end, lambda_hs_nonend, n_hs_nonend, ith_plate_separation)
+    call CalculateLambdasBulk(lambda_plus_bulk, n_plus, lambda_neutral_bulk, n_neutral, lambda_minus_bulk, n_minus, lambda_hs_end_cation_bulk, lambda_hs_nonend_cation_bulk, &
+         lambda_hs_end_anion_bulk, lambda_hs_nonend_anion_bulk, ith_plate_separation)
+    call CalculateLambdas(lambda_plus, n_plus, lambda_neutral, n_neutral, lambda_minus, n_minus, lambda_hs_end_cation, n_hs_end_cation, lambda_hs_nonend_cation, n_hs_nonend_cation, &
+         lambda_hs_end_anion, n_hs_end_anion, lambda_hs_nonend_anion, n_hs_nonend_anion, ith_plate_separation)
 
     lambda_plus(:) = lambda_plus_bulk(:) - lambda_plus(:)
     lambda_neutral(:) = lambda_neutral_bulk(:) - lambda_neutral(:)
     lambda_minus(:) = lambda_minus_bulk(:) - lambda_minus(:)
 
-    lambda_hs_end(:) = lambda_hs_end_bulk(:) - lambda_hs_end(:)
-    lambda_hs_nonend(:) = lambda_hs_nonend_bulk(:) - lambda_hs_nonend(:)
+    lambda_hs_end_cation(:) = lambda_hs_end_cation_bulk(:) - lambda_hs_end_cation(:)
+    lambda_hs_nonend_cation(:) = lambda_hs_nonend_cation_bulk(:) - lambda_hs_nonend_cation(:)
+    
+    lambda_hs_end_anion(:) = lambda_hs_end_anion_bulk(:) - lambda_hs_end_anion(:)
+    lambda_hs_nonend_anion(:) = lambda_hs_nonend_anion_bulk(:) - lambda_hs_nonend_anion(:)
 
   end subroutine CalculateLambdasDifference
 

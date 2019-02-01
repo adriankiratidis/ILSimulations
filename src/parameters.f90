@@ -49,6 +49,16 @@ module parameters
   public :: n_charge_iterations
   public :: Donnan_potential
 
+  public :: r_cation !r parameter used in hard sphere paper in calculating Ymix
+  public :: r_anion
+  public :: num_end_monomers_cation
+  public :: num_end_monomers_anion
+
+  public :: n_end_cation_bulk
+  public :: n_non_end_cation_bulk
+  public :: n_end_anion_bulk
+  public :: n_non_end_anion_bulk
+
   character(len=256) :: ionic_liquid_name 
   real(dp) :: chi_parameter
   integer  :: n_discretised_points_z
@@ -84,6 +94,16 @@ module parameters
   integer :: n_charge_iterations
 
   real(dp) :: Donnan_potential
+
+  integer :: r_cation
+  integer :: r_anion
+  integer :: num_end_monomers_cation
+  integer :: num_end_monomers_anion
+
+  real(dp) :: n_end_cation_bulk
+  real(dp) :: n_non_end_cation_bulk
+  real(dp) :: n_end_anion_bulk
+  real(dp) :: n_non_end_anion_bulk
 
 contains
 
@@ -233,19 +253,19 @@ contains
 
     else if(trim(ionic_liquid_name) == "C4MIM+_TFSI-_model2") then
        call SetC4MIN_TFSIBeadDensityFromBulkIonDensity2()
-       
+
     else if(trim(ionic_liquid_name) == "C2MIM+_TFSI-_model2") then
        call SetC2MIN_TFSIBeadDensityFromBulkIonDensity2()
-       
+
     else if(trim(ionic_liquid_name) == "C6MIM+_TFSI-_model2") then
        call SetC6MIN_TFSIBeadDensityFromBulkIonDensity2()
-       
+
     else if(trim(ionic_liquid_name) == "C8MIM+_TFSI-_model2") then
        call SetC8MIN_TFSIBeadDensityFromBulkIonDensity2()
-       
+
     else if(trim(ionic_liquid_name) == "C10MIM+_TFSI-_model2") then
        call SetC10MIN_TFSIBeadDensityFromBulkIonDensity2()
-       
+
     else if(trim(ionic_liquid_name) == "PositiveMinusSpheres") then
        call SetPositiveMinusBeadDensityFromBulkIonDensity()
 
@@ -320,6 +340,16 @@ contains
 
     positive_oligomer_charge = 5.0_dp * positive_bead_charge
     negative_oligomer_charge = 5.0_dp * negative_bead_charge
+
+    r_cation = 10
+    r_anion = 5
+    num_end_monomers_cation = 4
+    num_end_monomers_anion = 4
+
+    n_end_cation_bulk = 4.0_dp * bulk_density
+    n_non_end_cation_bulk = 6.0_dp * bulk_density
+    n_end_anion_bulk = 4.0_dp * bulk_density
+    n_non_end_anion_bulk = 1.0_dp * bulk_density
 
   end subroutine SetC4MIN_BF4BeadDensityFromBulkIonDensity
 
@@ -434,7 +464,7 @@ contains
 
   end subroutine SetC4MIN_TFSIBeadDensityFromBulkIonDensity2
 
-  
+
   subroutine SetC2MIN_TFSIBeadDensityFromBulkIonDensity2()
 
     bulk_density_positive_beads = 5.0_dp * bulk_density
@@ -446,7 +476,7 @@ contains
 
   end subroutine SetC2MIN_TFSIBeadDensityFromBulkIonDensity2
 
-  
+
   subroutine SetC6MIN_TFSIBeadDensityFromBulkIonDensity2()
 
     bulk_density_positive_beads = 5.0_dp * bulk_density
@@ -458,7 +488,7 @@ contains
 
   end subroutine SetC6MIN_TFSIBeadDensityFromBulkIonDensity2
 
-  
+
   subroutine SetC8MIN_TFSIBeadDensityFromBulkIonDensity2()
 
     bulk_density_positive_beads = 5.0_dp * bulk_density
@@ -470,7 +500,7 @@ contains
 
   end subroutine SetC8MIN_TFSIBeadDensityFromBulkIonDensity2
 
-  
+
   subroutine SetC10MIN_TFSIBeadDensityFromBulkIonDensity2()
 
     bulk_density_positive_beads = 5.0_dp * bulk_density

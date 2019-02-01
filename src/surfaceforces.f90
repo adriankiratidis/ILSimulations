@@ -254,7 +254,7 @@ contains
     else if(trim(ionic_liquid_name) == "NeutralDimers") then
        calculate_ideal_chain_term_per_unit_area = calculate_neutral_dimers_ideal_chain_term(lambda_neutral)
     else if(trim(ionic_liquid_name) == "C4MIM_BF4-") then
-       calculate_ideal_chain_term_per_unit_area = calculate_C4MIMBF4_ideal_chain_term(lambda_plus, lambda_neutral, lambda_minus, Donnan_potential)
+       calculate_ideal_chain_term_per_unit_area = calculate_C4MIMBF4_ideal_chain_term(lambda_plus, lambda_neutral, lambda_minus, lambda_hs_end, lambda_hs_nonend, Donnan_potential)
     else if(trim(ionic_liquid_name) == "C2MIM_BF4-") then
        calculate_ideal_chain_term_per_unit_area = calculate_C2MIMBF4_ideal_chain_term(lambda_plus, lambda_neutral, lambda_minus, Donnan_potential)
     else if(trim(ionic_liquid_name) == "C6MIM_BF4-") then
