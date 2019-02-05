@@ -25,12 +25,12 @@ plt.rc('font', family='serif')
 
 
 charges=["charge"]
-ELJ_wall=["0"]
+ELJ_wall=["100"]
 ELJ_wall_index=[""]
 
 for j in range(len(charges)):
     for i in range(len(ELJ_wall)):
-        data_contactthm2 = np.loadtxt("../run_results/compare_epsilonLJ/"+charges[j]+"/100-"+ELJ_wall[i]+"_C4MIM_BF4--COMPAREWITHPAPER1/testing"+ELJ_wall_index[i]+"-a2-potential-per-unit-area.txt")
+        data_contactthm2 = np.loadtxt("../run_results/compare_epsilonLJ/"+charges[j]+"/100-"+ELJ_wall[i]+"_C4MIM_BF4--TESTING-NEW-HS/testing"+ELJ_wall_index[i]+"-a2-potential-per-unit-area.txt")
 
 # charges=["charge", "nocharge"]
 # ELJ_wall=["53.27"]

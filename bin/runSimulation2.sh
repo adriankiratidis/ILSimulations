@@ -100,7 +100,7 @@ done
 $test_file_stub
 EOF
 
-write_dir="./run_results/compare_epsilonLJ/charge/${Epsilon_LJ_particle_particle}-${Epsilon_LJ_particle_wall}_${ionic_liquid_name}-COMPAREWITHPAPER2"
+write_dir="./run_results/compare_epsilonLJ/charge/${Epsilon_LJ_particle_particle}-${Epsilon_LJ_particle_wall}_${ionic_liquid_name}-COMPAREWITHPAPER2-HSDONE"
 mkdir -p ${write_dir}
 mv ${test_file_stub}* ${write_dir}
 

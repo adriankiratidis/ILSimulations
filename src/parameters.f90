@@ -55,9 +55,9 @@ module parameters
   public :: num_end_monomers_anion
 
   public :: n_end_cation_bulk
-  public :: n_non_end_cation_bulk
+  public :: n_nonend_cation_bulk
   public :: n_end_anion_bulk
-  public :: n_non_end_anion_bulk
+  public :: n_nonend_anion_bulk
 
   character(len=256) :: ionic_liquid_name 
   real(dp) :: chi_parameter
@@ -101,9 +101,9 @@ module parameters
   integer :: num_end_monomers_anion
 
   real(dp) :: n_end_cation_bulk
-  real(dp) :: n_non_end_cation_bulk
+  real(dp) :: n_nonend_cation_bulk
   real(dp) :: n_end_anion_bulk
-  real(dp) :: n_non_end_anion_bulk
+  real(dp) :: n_nonend_anion_bulk
 
 contains
 
@@ -347,9 +347,9 @@ contains
     num_end_monomers_anion = 4
 
     n_end_cation_bulk = 4.0_dp * bulk_density
-    n_non_end_cation_bulk = 6.0_dp * bulk_density
+    n_nonend_cation_bulk = 6.0_dp * bulk_density
     n_end_anion_bulk = 4.0_dp * bulk_density
-    n_non_end_anion_bulk = 1.0_dp * bulk_density
+    n_nonend_anion_bulk = 1.0_dp * bulk_density
 
   end subroutine SetC4MIN_BF4BeadDensityFromBulkIonDensity
 

@@ -17,13 +17,19 @@ contains
 
   !Subroutine that calculates the 
   subroutine CalculateGrandPotentialValuePerUnitArea(ith_plate_separation, grand_potential_per_unit_area, &
-       size_of_ns_array, n_plus, n_neutral, n_minus, Donnan_potential)
+       size_of_ns_array, n_plus, n_neutral, n_minus, n_hs_end_cation, n_hs_nonend_cation, n_hs_end_anion, n_hs_nonend_anion, Donnan_potential)
     integer, intent(in)   :: ith_plate_separation
     real(dp), intent(out) :: grand_potential_per_unit_area
     integer, intent(in) :: size_of_ns_array
     real(dp), dimension(:), intent(in) :: n_plus
     real(dp), dimension(:), intent(in) :: n_neutral
     real(dp), dimension(:), intent(in) :: n_minus
+
+    real(dp), dimension(:), intent(in) :: n_hs_end_cation
+    real(dp), dimension(:), intent(in) :: n_hs_nonend_cation
+    real(dp), dimension(:), intent(in) :: n_hs_end_anion
+    real(dp), dimension(:), intent(in) :: n_hs_nonend_anion
+    
     real(dp), intent(in) :: Donnan_potential
 
     real(dp), dimension(size_of_ns_array) :: n_s
@@ -66,10 +72,12 @@ contains
     F_surface_disp = integrate_z_cylindrical(n_s * &
          calculate_surface_dispersion_functional_deriv(ith_plate_separation, size(n_s)), unity_function) !J
 
-    F_ideal_chain = calculate_ideal_chain_term_per_unit_area(size(n_plus_input), n_plus_input, n_neutral_input, n_minus_input, ith_plate_separation, Donnan_potential)
+    F_ideal_chain = calculate_ideal_chain_term_per_unit_area(size(n_plus_input), n_plus_input, n_neutral_input, n_minus_input, &
+         n_hs_end_cation, n_hs_nonend_cation, n_hs_end_anion, n_hs_nonend_anion, ith_plate_separation, Donnan_potential)
 
-    F_hard_sphere = calculate_hardsphere_term_per_unit_area(n_s, n_sbar)
-
+    !F_hard_sphere = calculate_hardsphere_term_per_unit_area(n_s, n_sbar)
+    F_hard_sphere = calculate_hardsphere_term_per_unit_area_end_and_nonend(n_sbar, n_hs_end_cation, n_hs_nonend_cation, n_hs_end_anion, n_hs_nonend_anion)
+    
     F_van_der_waals = 0.5_dp * integrate_z_cylindrical(n_s * calculate_vanderWaals_functional_deriv(n_s), unity_function) !J
 
     F_surface_electro = integrate_z_cylindrical(n_plus_input(:) * calculate_surface_electrostatic_functional_deriv(size(n_plus_input), positive_bead_charge), unity_function) +&
@@ -120,7 +128,8 @@ contains
 
 
 
-    chemical_potential_term = calculate_chem_potential_term(n_plus_input, n_neutral_input, n_minus_input, ith_plate_separation, Donnan_potential)
+    chemical_potential_term = calculate_chem_potential_term(n_plus_input, n_neutral_input, n_minus_input, &
+         n_hs_end_cation, n_hs_nonend_cation, n_hs_end_anion, n_hs_nonend_anion, ith_plate_separation, Donnan_potential)
 
     !F_van_der_waals = integrate_z_cylindrical(0.5_dp * n_s * calculate_vanderWaals_functional_deriv(n_s), unity_function)
 
@@ -138,10 +147,16 @@ contains
   end subroutine CalculateGrandPotentialValuePerUnitArea
 
 
-  function calculate_chem_potential_term(n_plus, n_neutral, n_minus, ith_plate_separation, Donnan_potential)
+  function calculate_chem_potential_term(n_plus, n_neutral, n_minus, n_hs_end_cation, n_hs_nonend_cation, n_hs_end_anion, n_hs_nonend_anion, ith_plate_separation, Donnan_potential)
     real(dp), dimension(:), intent(in) :: n_plus
     real(dp), dimension(:), intent(in) :: n_neutral
     real(dp), dimension(:), intent(in) :: n_minus
+
+    real(dp), dimension(:), intent(in) :: n_hs_end_cation
+    real(dp), dimension(:), intent(in) :: n_hs_nonend_cation
+    real(dp), dimension(:), intent(in) :: n_hs_end_anion
+    real(dp), dimension(:), intent(in) :: n_hs_nonend_anion
+    
     integer, intent(in) :: ith_plate_separation
 
     real(dp) :: Donnan_potential
@@ -153,15 +168,20 @@ contains
     else if(trim(ionic_liquid_name) == "NeutralDimers") then
        calculate_chem_potential_term = calculate_chem_potential_term_neutral_dimers(n_plus, n_neutral, n_minus, ith_plate_separation)
     else if(trim(ionic_liquid_name) == "C4MIM_BF4-") then
-       calculate_chem_potential_term = calculate_chem_potential_C4MIMBF4(n_plus, n_neutral, n_minus, ith_plate_separation, Donnan_potential)
+       calculate_chem_potential_term = calculate_chem_potential_C4MIMBF4(n_plus, n_neutral, n_minus, &
+            n_hs_end_cation, n_hs_nonend_cation, n_hs_end_anion, n_hs_nonend_anion, ith_plate_separation, Donnan_potential)
     else if(trim(ionic_liquid_name) == "C2MIM_BF4-") then !Chemical potential is the same functional form as C4MIM_BF4-
-       calculate_chem_potential_term = calculate_chem_potential_C4MIMBF4(n_plus, n_neutral, n_minus, ith_plate_separation, Donnan_potential)
+       calculate_chem_potential_term = calculate_chem_potential_C4MIMBF4(n_plus, n_neutral, n_minus, &
+            n_hs_end_cation, n_hs_nonend_cation, n_hs_end_anion, n_hs_nonend_anion, ith_plate_separation, Donnan_potential)
     else if(trim(ionic_liquid_name) == "C6MIM_BF4-") then !Chemical potential is the same functional form as C4MIM_BF4-
-       calculate_chem_potential_term = calculate_chem_potential_C4MIMBF4(n_plus, n_neutral, n_minus, ith_plate_separation, Donnan_potential)
+       calculate_chem_potential_term = calculate_chem_potential_C4MIMBF4(n_plus, n_neutral, n_minus, &
+            n_hs_end_cation, n_hs_nonend_cation, n_hs_end_anion, n_hs_nonend_anion, ith_plate_separation, Donnan_potential)
     else if(trim(ionic_liquid_name) == "C8MIM_BF4-") then !Chemical potential is the same functional form as C4MIM_BF4-
-       calculate_chem_potential_term = calculate_chem_potential_C4MIMBF4(n_plus, n_neutral, n_minus, ith_plate_separation, Donnan_potential)
+       calculate_chem_potential_term = calculate_chem_potential_C4MIMBF4(n_plus, n_neutral, n_minus, &
+            n_hs_end_cation, n_hs_nonend_cation, n_hs_end_anion, n_hs_nonend_anion, ith_plate_separation, Donnan_potential)
     else if(trim(ionic_liquid_name) == "C10MIM_BF4-") then !Chemical potential is the same functional form as C4MIM_BF4-
-       calculate_chem_potential_term = calculate_chem_potential_C4MIMBF4(n_plus, n_neutral, n_minus, ith_plate_separation, Donnan_potential)
+       calculate_chem_potential_term = calculate_chem_potential_C4MIMBF4(n_plus, n_neutral, n_minus, &
+            n_hs_end_cation, n_hs_nonend_cation, n_hs_end_anion, n_hs_nonend_anion, ith_plate_separation, Donnan_potential)
     else if(trim(ionic_liquid_name) == "C4MIM+_TFSI-_model1") then
        calculate_chem_potential_term = calculate_chem_potential_C4MIMTFSI_model1(n_plus, n_neutral, n_minus, ith_plate_separation, Donnan_potential)
     else if(trim(ionic_liquid_name) == "C2MIM+_TFSI-_model1") then !Chemical potential is the same functional form as C4MIM+_TFSI-_model1.
@@ -202,11 +222,16 @@ contains
   !In the case that none are present then calculate the bulk value. (by setting lambda_b - lambda = 0).
   !In the case that they're all present calulculate the value based on the input densities.
   !In any other case, abort.
-  function calculate_ideal_chain_term_per_unit_area(n_points, n_plus, n_neutral, n_minus, ith_plate_separation, Donnan_potential)
+  function calculate_ideal_chain_term_per_unit_area(n_points, n_plus, n_neutral, n_minus, n_hs_end_cation, n_hs_nonend_cation, n_hs_end_anion, n_hs_nonend_anion, ith_plate_separation, Donnan_potential)
     integer, intent(in) :: n_points !Number of points to calculate
     real(dp), dimension(:), intent(in), optional :: n_plus
     real(dp), dimension(:), intent(in), optional :: n_neutral
     real(dp), dimension(:), intent(in), optional :: n_minus
+    real(dp), dimension(:), intent(in), optional :: n_hs_end_cation
+    real(dp), dimension(:), intent(in), optional :: n_hs_nonend_cation
+    real(dp), dimension(:), intent(in), optional :: n_hs_end_anion
+    real(dp), dimension(:), intent(in), optional :: n_hs_nonend_anion
+
     integer, intent(in), optional :: ith_plate_separation
     real(dp), intent(in) :: Donnan_potential
 
@@ -215,9 +240,9 @@ contains
     real(dp), dimension(n_points) :: lambda_plus, lambda_neutral, lambda_minus
     real(dp), dimension(n_points) :: n_plus_input, n_neutral_input, n_minus_input
 
-    real(dp), dimension(n_points) :: lambda_hs_end, lambda_hs_nonend
-    real(dp), dimension(n_points) :: n_hs_end, n_hs_nonend
-    
+    real(dp), dimension(n_points) :: lambda_hs_end_cation, lambda_hs_nonend_cation
+    real(dp), dimension(n_points) :: lambda_hs_end_anion, lambda_hs_nonend_anion
+
     calculate_ideal_chain_term_per_unit_area = 0.0_dp
 
     lambda_plus(:) = 0.0_dp
@@ -234,7 +259,8 @@ contains
           call abort()
        end if
 
-       call CalculateLambdasDifference(lambda_plus, n_plus, lambda_neutral, n_neutral, lambda_minus, n_minus, lambda_hs_end, n_hs_end, lambda_hs_nonend, n_hs_nonend, ith_plate_separation)
+       call CalculateLambdasDifference(lambda_plus, n_plus, lambda_neutral, n_neutral, lambda_minus, n_minus, lambda_hs_end_cation, n_hs_end_cation, &
+            lambda_hs_nonend_cation, n_hs_nonend_cation, lambda_hs_end_anion, n_hs_end_anion, lambda_hs_nonend_anion, n_hs_nonend_anion, ith_plate_separation)
        n_plus_input(:) = n_plus(:)
        n_neutral_input(:) = n_neutral(:)
        n_minus_input(:) = n_minus(:)
@@ -254,7 +280,8 @@ contains
     else if(trim(ionic_liquid_name) == "NeutralDimers") then
        calculate_ideal_chain_term_per_unit_area = calculate_neutral_dimers_ideal_chain_term(lambda_neutral)
     else if(trim(ionic_liquid_name) == "C4MIM_BF4-") then
-       calculate_ideal_chain_term_per_unit_area = calculate_C4MIMBF4_ideal_chain_term(lambda_plus, lambda_neutral, lambda_minus, lambda_hs_end, lambda_hs_nonend, Donnan_potential)
+       calculate_ideal_chain_term_per_unit_area = calculate_C4MIMBF4_ideal_chain_term(lambda_plus, lambda_neutral, lambda_minus, lambda_hs_end_cation, lambda_hs_nonend_cation, &
+            lambda_hs_end_anion, lambda_hs_nonend_anion, Donnan_potential)
     else if(trim(ionic_liquid_name) == "C2MIM_BF4-") then
        calculate_ideal_chain_term_per_unit_area = calculate_C2MIMBF4_ideal_chain_term(lambda_plus, lambda_neutral, lambda_minus, Donnan_potential)
     else if(trim(ionic_liquid_name) == "C6MIM_BF4-") then
@@ -327,4 +354,46 @@ contains
 
   end function calculate_hardsphere_term_per_unit_area
 
+    !Calculates the hard sphere contribution to the grand potential.
+  !Note that the integration over the angle and radial directions in cylindrical
+  !co-ordinates cancel, as we are interested in the value of the term
+  !PER UNIT AREA.
+  function calculate_hardsphere_term_per_unit_area_end_and_nonend(n_sbar, n_hs_end_cation, n_hs_nonend_cation, n_hs_end_anion, n_hs_nonend_anion)
+    real(dp), dimension(:), intent(in) :: n_sbar
+    real(dp), dimension(:), intent(in) :: n_hs_end_cation
+    real(dp), dimension(:), intent(in) :: n_hs_nonend_cation
+    real(dp), dimension(:), intent(in) :: n_hs_end_anion
+    real(dp), dimension(:), intent(in) :: n_hs_nonend_anion
+
+    real(dp) :: calculate_hardsphere_term_per_unit_area_end_and_nonend
+
+    integer :: start_z_index
+    integer :: end_z_index
+
+    real(dp), dimension(size(n_sbar)) :: hs_integrand
+    real(dp), dimension(size(n_sbar)) :: n_solvent
+
+    hs_integrand(:) = 0.0_dp
+    n_solvent(:) = 0.0_dp
+
+    call get_allowed_z_values(start_z_index, end_z_index, size(n_sbar))
+
+    hs_integrand(start_z_index:end_z_index) = (n_hs_nonend_cation(start_z_index:end_z_index)/beta * &
+         (GetYMix(n_sbar(start_z_index:end_z_index), n_solvent(start_z_index:end_z_index), 'm', r_cation)/(r_cation - num_end_monomers_cation)) * &
+         (GetAEx(n_sbar(start_z_index:end_z_index), n_solvent(start_z_index:end_z_index), 2) - GetAEx(n_sbar(start_z_index:end_z_index), n_solvent(start_z_index:end_z_index), 1))) &
+         + &
+         ((1.0_dp/(num_end_monomers_cation*beta)) * n_hs_end_cation(start_z_index:end_z_index) * GetAEx(n_sbar(start_z_index:end_z_index), n_solvent(start_z_index:end_z_index), 2)) &
+         + &
+         (n_hs_nonend_anion(start_z_index:end_z_index)/beta * &
+         (GetYMix(n_sbar(start_z_index:end_z_index), n_solvent(start_z_index:end_z_index), 'm', r_anion)/(r_anion - num_end_monomers_anion)) * &
+         (GetAEx(n_sbar(start_z_index:end_z_index), n_solvent(start_z_index:end_z_index), 2) - GetAEx(n_sbar(start_z_index:end_z_index), n_solvent(start_z_index:end_z_index), 1))) &
+         + &
+         ((1.0_dp/(num_end_monomers_anion*beta)) * n_hs_end_anion(start_z_index:end_z_index) * GetAEx(n_sbar(start_z_index:end_z_index), n_solvent(start_z_index:end_z_index), 2))
+
+    !call setNonCalculatedRegionToZero(hs_integrand)
+
+    calculate_hardsphere_term_per_unit_area_end_and_nonend = integrate_z_cylindrical(hs_integrand, unity_function)
+
+  end function calculate_hardsphere_term_per_unit_area_end_and_nonend
+  
 end module surfaceforces

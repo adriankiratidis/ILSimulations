@@ -34,8 +34,8 @@ ELJ_wall_index=[""]
 
 for j in range(len(charges)):
    for i in range(len(ELJ_wall)):
-       data_contactthm2 = np.loadtxt("../run_results/compare_epsilonLJ/"+charges[j]+"/100-68.17_C4MIM_BF4--COMPAREWITHPAPER2/testing2"+ELJ_wall_index[i]+"-a2-normal-pressure-left-wall.txt")
-       data_negativederiv2 = np.loadtxt("../run_results/compare_epsilonLJ/"+charges[j]+"/100-68.17_C4MIM_BF4--COMPAREWITHPAPER2/testing2"+ELJ_wall_index[i]+"-a2-negative_deriv_of_potential.txt")
+       data_contactthm2 = np.loadtxt("../run_results/compare_epsilonLJ/"+charges[j]+"/100-100_C4MIM_BF4--TESTING-NEW-HS3/testing"+ELJ_wall_index[i]+"-a2-normal-pressure-left-wall.txt")
+       data_negativederiv2 = np.loadtxt("../run_results/compare_epsilonLJ/"+charges[j]+"/100-100_C4MIM_BF4--TESTING-NEW-HS3/testing"+ELJ_wall_index[i]+"-a2-negative_deriv_of_potential.txt")
 
        #data_negativederiv2 = np.loadtxt("../run_results/compare_epsilonLJ/"+charges[j]+"/100.0-"+ELJ_wall[i]+"_C4MIM_BF4-TESTING_OSCILLATION_COMPARE/testing"+ELJ_wall_index[i]+"-a2-negative_deriv_of_potential.txt")
 
@@ -115,7 +115,7 @@ for j in range(len(charges)):
        
        #savefig("Contact_theorem_35.51-"+ELJ_wall[0]+"-"+charges[j]+IL[i]+"_density1_a2.pdf",bbox_inches='tight')
        #savefig("Contact_theorem_35.51-"+ELJ_wall[i]+"-"+charges[j]+"_C4MIM+_TFSI-_model1_density2_plus_halfplus.pdf",bbox_inches='tight')
-       savefig("Contact_theorem_for_paper_35.51-"+ELJ_wall[i]+"-"+charges[j]+"_C10MIM+_TFSI-_model2.pdf",bbox_inches='tight')
+       #savefig("Contact_theorem_for_paper_35.51-"+ELJ_wall[i]+"-"+charges[j]+"_C10MIM+_TFSI-_model2.pdf",bbox_inches='tight')
        
        #Open a window and show the plot
        plt.show()

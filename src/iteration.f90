@@ -1,3 +1,4 @@
+
 !Contains relevant routines for our iterative procedure, such as convergence check.
 module iteration
   use kinds
@@ -166,26 +167,40 @@ contains
   !(i.e. ith_plate_separation = 1) they are initialised to be constant.  In the case of subsequent run throughs
   !(i.e. ith_plate_separation > 1) they are rescaled based on the previously converged value by the routine
   !'ReScaleArray'.
-  subroutine InitialiseDensityDiscretisationAndSetIntegrationAnsatz(ith_plate_separation, n1, n2, n3)
+  subroutine InitialiseDensityDiscretisationAndSetIntegrationAnsatz(ith_plate_separation, n_plus, n_neutral, n_minus, n_hs_end_cation, n_hs_nonend_cation, n_hs_end_anion, n_hs_nonend_anion)
     integer, intent(in) :: ith_plate_separation
-    real(dp), dimension(:), allocatable, intent(inout) :: n1
-    real(dp), dimension(:), allocatable, optional, intent(inout) :: n2
-    real(dp), dimension(:), allocatable, optional, intent(inout) :: n3
+    real(dp), dimension(:), allocatable, intent(inout) :: n_plus
+    real(dp), dimension(:), allocatable, optional, intent(inout) :: n_neutral
+    real(dp), dimension(:), allocatable, optional, intent(inout) :: n_minus
+    real(dp), dimension(:), allocatable, optional, intent(inout) :: n_hs_end_cation
+    real(dp), dimension(:), allocatable, optional, intent(inout) :: n_hs_nonend_cation
+    real(dp), dimension(:), allocatable, optional, intent(inout) :: n_hs_end_anion
+    real(dp), dimension(:), allocatable, optional, intent(inout) :: n_hs_nonend_anion
+    
 
     integer :: new_array_size
     
     !Note we add on one to include values at both endpoints/the walls.
     new_array_size = nint(plate_separations(ith_plate_separation) *  n_discretised_points_z) + 1
 
-    call UpdateArraySize(n1, new_array_size, rescale=allocated(n1), charge='+')
-    if(present(n2)) call UpdateArraySize(n2, new_array_size, rescale=allocated(n2), charge='0')
-    if(present(n3)) call UpdateArraySize(n3, new_array_size, rescale=allocated(n3), charge='-')
-
+    call UpdateArraySize(n_plus, new_array_size, rescale=allocated(n_plus), bead_type='+')
+    if(present(n_neutral)) call UpdateArraySize(n_neutral, new_array_size, rescale=allocated(n_neutral), bead_type='0')
+    if(present(n_minus)) call UpdateArraySize(n_minus, new_array_size, rescale=allocated(n_minus), bead_type='-')
+    
+    if(present(n_hs_end_cation)) call UpdateArraySize(n_hs_end_cation, new_array_size, rescale=allocated(n_hs_end_cation), bead_type='ce')
+    if(present(n_hs_nonend_cation)) call UpdateArraySize(n_hs_nonend_cation, new_array_size, rescale=allocated(n_hs_nonend_cation), bead_type='cne')
+    if(present(n_hs_end_anion)) call UpdateArraySize(n_hs_end_anion, new_array_size, rescale=allocated(n_hs_end_anion), bead_type='ae')
+    if(present(n_hs_nonend_anion)) call UpdateArraySize(n_hs_nonend_anion, new_array_size, rescale=allocated(n_hs_nonend_anion), bead_type='ane')
+    
     !We don't calculate with hs_diameter/2 of the wall.  Therefore set it zero.
     !This aids with plotting ease.
-    call setNonCalculatedRegionToZero(n1)
-    if(present(n2)) call setNonCalculatedRegionToZero(n2)
-    if(present(n3)) call setNonCalculatedRegionToZero(n3)
+    call setNonCalculatedRegionToZero(n_plus)
+    if(present(n_neutral)) call setNonCalculatedRegionToZero(n_neutral)
+    if(present(n_minus)) call setNonCalculatedRegionToZero(n_minus)
+    if(present(n_hs_end_cation)) call setNonCalculatedRegionToZero(n_hs_end_cation)
+    if(present(n_hs_nonend_cation)) call setNonCalculatedRegionToZero(n_hs_nonend_cation)
+    if(present(n_hs_end_anion)) call setNonCalculatedRegionToZero(n_hs_end_anion)
+    if(present(n_hs_nonend_anion)) call setNonCalculatedRegionToZero(n_hs_nonend_anion)
     
   end subroutine InitialiseDensityDiscretisationAndSetIntegrationAnsatz
 
@@ -350,11 +365,11 @@ contains
 
   !Routine that either resizes or rescales the array, based on the presence and value
   !of the optional parameter 'rescale'.  Also, initialises the array values.
-  subroutine UpdateArraySize(array, new_size, rescale, charge)
+  subroutine UpdateArraySize(array, new_size, rescale, bead_type)
     real(dp), dimension(:), allocatable, intent(inout) :: array
     integer                                            :: new_size
     logical, intent(in), optional                      :: rescale
-    character(len=1), intent(in), optional             :: charge
+    character(len=*), intent(in), optional             :: bead_type
 
     if(allocated(array)) then
 
@@ -383,9 +398,9 @@ contains
 
     else
        if(present(rescale)) then
-          if(.not. present(charge)) then
+          if(.not. present(bead_type)) then
              print *, "iteration.f90: UpdateArraySize:"
-             print *, "If present(rescale) then charge must also be present...aborting..."
+             print *, "If present(rescale) then bead_type must also be present...aborting..."
              call abort()
           end if
           if(rescale) then
@@ -396,10 +411,10 @@ contains
        end if
 
        allocate(array(new_size)) !size = M x N
-       if(.not. present(charge)) then
+       if(.not. present(bead_type)) then
           array(:) = 0.0_dp
        else
-          call InitialiseIntegrationAnsatz(array, charge)
+          call InitialiseIntegrationAnsatz(array, trim(bead_type))
        end if
        
     end if
@@ -473,18 +488,18 @@ contains
   end subroutine ReScaleArray
 
   !Routine to initialise our ansatz for our integrative scheme to an arbitrary constant.
-  subroutine InitialiseIntegrationAnsatz(array, charge)
+  subroutine InitialiseIntegrationAnsatz(array, bead_type)
     real(dp), dimension(:) :: array
-    character(len=1), intent(in) :: charge
+    character(len=*), intent(in) :: bead_type
 
     integer :: midpoint
     integer :: ij
 
-    !print *, "charge = ", charge
+    !print *, "bead_type = ", bead_type
     !print *, "size(array) = ", size(array), size(array)/2
-    
-    
-    if(charge == '+') then
+
+
+    if(trim(bead_type) == '+') then
 
        midpoint = size(array)/2
 
@@ -492,26 +507,38 @@ contains
           array(ij) = bulk_density_positive_beads + ((ij - midpoint)*hs_diameter/real(n_discretised_points_z,dp))*slope_for_initial_guess
        end do
 
-    else if(charge == '0') then
+    else if(trim(bead_type) == '0') then
        array(:) = bulk_density_neutral_beads
 
-    else if(charge == '-') then
+    else if(trim(bead_type) == '-') then
 
        midpoint = size(array)/2
 
        do ij = 1, size(array)
           array(ij) = bulk_density_negative_beads - ((ij - midpoint)*hs_diameter/real(n_discretised_points_z, dp))*slope_for_initial_guess
        end do
-       
+
+    else if(trim(bead_type) == 'ce') then !bead_type = cation end density
+       array(:) = n_end_cation_bulk
+
+    else if(trim(bead_type) == 'cne') then !bead_type = cation nonend density
+       array(:) = n_nonend_cation_bulk
+
+    else if(trim(bead_type) == 'ae') then !bead_type = anion end density
+       array(:) = n_end_anion_bulk
+
+    else if(trim(bead_type) == 'ane') then !bead_type = anion nonend density
+       array(:) = n_nonend_anion_bulk
+
     else
        print *, "iteration.f90: InitialiseIntegrationAnsatz"
-       print *, "charge has an illegal value of ", charge, "...aborting..."
+       print *, "bead_type has an illegal value of ", trim(bead_type), "...aborting..."
        call abort()
     end if
-    !print *, "printing charge and array" 
-    !print *, charge, array(midpoint)*(hs_diameter**3), array*(hs_diameter**3)
-    
-    array(:) = bulk_density_positive_beads
+    !print *, "printing bead_type and array" 
+    !print *, bead_type, array(midpoint)*(hs_diameter**3), array*(hs_diameter**3)
+
+    !array(:) = bulk_density_positive_beads
   end subroutine InitialiseIntegrationAnsatz
 
 end module iteration

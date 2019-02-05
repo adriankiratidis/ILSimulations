@@ -84,15 +84,15 @@ program runSingleSphere
      print *, ""
      print *, "Initialising/ReInitialising Discretistion and setting integration ansatz."
      print *, "Doing this for the densities"
-     call InitialiseDensityDiscretisationAndSetIntegrationAnsatz(ith_separation, n_plus, n_neutral, n_minus)
+     call InitialiseDensityDiscretisationAndSetIntegrationAnsatz(ith_separation, n_plus, n_neutral, n_minus, n_hs_end_cation, n_hs_nonend_cation, n_hs_end_anion, n_hs_nonend_anion)
 
      print *, "Initialise/ReInitialise Discretisation for all the temperary variables we need."
      call InitialiseVariableDiscretisation(ith_separation, n_plus_updated, lambda_plus, &
           n_neutral_updated, lambda_neutral, n_minus_updated, lambda_minus, n_plus_previous, n_neutral_previous, n_minus_previous, &
-          lambda_hs_end_cation, n_hs_end_cation, lambda_hs_nonend_cation, n_hs_nonend_cation, lambda_hs_end_anion, n_hs_end_anion, lambda_hs_nonend_anion, n_hs_nonend_anion)
+          lambda_hs_end_cation, lambda_hs_nonend_cation, lambda_hs_end_anion, lambda_hs_nonend_anion)
      call SetToZero(n_plus_updated, lambda_plus, n_neutral_updated, lambda_neutral, n_minus_updated, lambda_minus)
-     call SetToZero(lambda_hs_end_cation, lambda_hs_nonend_cation, n_hs_end_cation, n_hs_nonend_cation)
-     call SetToZero(lambda_hs_end_anion, lambda_hs_nonend_anion, n_hs_end_anion, n_hs_nonend_anion)
+     call SetToZero(lambda_hs_end_cation, lambda_hs_nonend_cation, lambda_hs_end_anion, lambda_hs_nonend_anion)
+
      if(ith_separation == 1) then
         call ImposeChargeNeutrality(n_plus, n_neutral, n_minus, Donnan_potential, abort_now)
      end if
@@ -292,7 +292,7 @@ program runSingleSphere
 
      print *, "Calculating grand potential per unit area value."
      call CalculateGrandPotentialValuePerUnitArea(ith_separation, grand_potential_per_unit_area(ith_separation), &
-          size(n_neutral_updated), n_plus_updated, n_neutral_updated, n_minus_updated, Donnan_potential)
+          size(n_neutral_updated), n_plus_updated, n_neutral_updated, n_minus_updated, n_hs_end_cation, n_hs_nonend_cation, n_hs_end_anion, n_hs_nonend_anion, Donnan_potential)
 
      print *, "Calculating normal pressure from the contact theorem"
      call CalculateNormalPressureFromContactTheorem(n_plus_updated, n_neutral_updated, n_minus_updated, &
