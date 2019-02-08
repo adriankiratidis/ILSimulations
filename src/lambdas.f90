@@ -76,6 +76,16 @@ contains
     call CalculateHSEndAndNonEndHSFunctionalDeriv(n_plus + n_neutral + n_minus, lambda_hs_end_cation, n_hs_end_cation, lambda_hs_nonend_cation, n_hs_nonend_cation, &
          lambda_hs_end_anion, n_hs_end_anion, lambda_hs_nonend_anion, n_hs_nonend_anion, .false.)
 
+    lambda_hs_end_cation = beta * lambda_hs_end_cation
+    lambda_hs_nonend_cation = beta * lambda_hs_nonend_cation
+    lambda_hs_end_anion = beta * lambda_hs_end_anion
+    lambda_hs_nonend_anion = beta * lambda_hs_nonend_anion
+
+    !print *, "TESTING non bulk", lambda_hs_end_cation
+    !print *, "n_plus", n_plus
+    !print *, "n_neutral", n_neutral
+    !print *, "n_minus", n_minus
+
   end subroutine CalculateLambdas
 
   subroutine CalculateLambdasBulk(lambda_plus_bulk, n_plus, lambda_neutral_bulk, n_neutral, lambda_minus_bulk, n_minus, lambda_hs_end_cation_bulk, lambda_hs_nonend_cation_bulk, &
@@ -94,19 +104,19 @@ contains
     real(dp), dimension(:), intent(out) :: lambda_hs_nonend_cation_bulk
     real(dp), dimension(:), intent(out) :: lambda_hs_end_anion_bulk
     real(dp), dimension(:), intent(out) :: lambda_hs_nonend_anion_bulk
-    
+
     integer, intent(in)                 :: ith_plate_separation
 
     real(dp), dimension(size(n_plus)) :: n_hs_end_cation_bulk
     real(dp), dimension(size(n_plus)) :: n_hs_nonend_cation_bulk
     real(dp), dimension(size(n_plus)) :: n_hs_end_anion_bulk
     real(dp), dimension(size(n_plus)) :: n_hs_nonend_anion_bulk
-    
+
     real(dp), dimension(size(lambda_plus_bulk)) :: lambda_common_terms_bulk
     real(dp), dimension(size(n_neutral)) :: n_neutral_array
 
     real(dp), dimension(size(n_plus)) :: n_s_bulk
-    
+
     integer :: input_array_size
 
     ! First ensure that the sizes of all the input variables are the same.
@@ -140,10 +150,18 @@ contains
     n_hs_nonend_cation_bulk = n_nonend_cation_bulk
     n_hs_end_anion_bulk = n_end_anion_bulk
     n_hs_nonend_anion_bulk = n_nonend_anion_bulk
-    
+
     call CalculateHSEndAndNonEndHSFunctionalDeriv(n_s_bulk, lambda_hs_end_cation_bulk, n_hs_end_cation_bulk, lambda_hs_nonend_cation_bulk, n_hs_nonend_cation_bulk, &
          lambda_hs_end_anion_bulk, n_hs_end_anion_bulk, lambda_hs_nonend_anion_bulk, n_hs_nonend_anion_bulk,.true.)
+
+    lambda_hs_end_cation_bulk = beta * lambda_hs_end_cation_bulk
+    lambda_hs_nonend_cation_bulk = beta * lambda_hs_nonend_cation_bulk
+    lambda_hs_end_anion_bulk = beta * lambda_hs_end_anion_bulk
+    lambda_hs_nonend_anion_bulk = beta * lambda_hs_nonend_anion_bulk
+
+    !print *, "TESTING bulk", lambda_hs_end_cation_bulk, bulk_density_positive_beads, bulk_density_neutral_beads, bulk_density_negative_beads
     
+
   end subroutine CalculateLambdasBulk
 
   subroutine CalculateLambdasDifference(lambda_plus, n_plus, lambda_neutral, n_neutral, lambda_minus, n_minus, lambda_hs_end_cation, n_hs_end_cation, &
@@ -316,7 +334,8 @@ contains
        allowed_distance_between_plates = (((size(n_s) - 1)*hs_diameter/n_discretised_points_z) + ((hs_diameter)*1.0_dp))/2.0_dp
        
        !hs_term = 1.0_dp * calculate_hardsphere_functional_deriv(n_s, .true.)
-
+       !print *, "he_term_in_bulk", beta * calculate_hardsphere_functional_deriv(n_s, .true.)
+       
        van_der_waals_term = (-8.0_dp * epsilon_LJ_particle_particle * (hs_diameter**6) * pi * n_s(:)) * ( &
             (2.0_dp/(3.0_dp*(hs_diameter**3))))
 
@@ -326,6 +345,7 @@ contains
     else
        n_s = n_plus + n_neutral + n_minus
        !hs_term = 1.0_dp * calculate_hardsphere_functional_deriv(n_s, .false.)
+       !print *, "he_term_not_in_bulk", beta * calculate_hardsphere_functional_deriv(n_s, .false.)
 
        surface_fluid_dispersion_term = calculate_surface_dispersion_functional_deriv(&
             ith_plate_separation, size(surface_fluid_dispersion_term))

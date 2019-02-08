@@ -1026,9 +1026,9 @@ contains
     real(dp), dimension(:), intent(in) :: lambda_neutral
     real(dp), dimension(:), intent(out) :: n_plus_updated
 
-    real(dp), dimension(:), intent(in) :: lambda_hs_end_cation
+    real(dp), dimension(:) :: lambda_hs_end_cation
     real(dp), dimension(:), intent(out) :: n_hs_end_cation
-    real(dp), dimension(:), intent(in) :: lambda_hs_nonend_cation
+    real(dp), dimension(:) :: lambda_hs_nonend_cation
     real(dp), dimension(:), intent(out) :: n_hs_nonend_cation
 
     real(dp), dimension(size(lambda_plus)) :: c8c1, c9c10, c7, c6, c5, c4, c2, c3p, c3pp, c3ppp
@@ -1044,10 +1044,27 @@ contains
        call abort()
     end if
 
+    !print *, "printing lambdas..."
+    !print *, "lambda_plus", lambda_plus
+    !print *, "lambda_neutral", lambda_neutral
+    !print *, "lambda_hs_end_cation", lambda_hs_end_cation
+    !print *, "lambda_hs_nonend_cation", lambda_hs_nonend_cation
+    !print *, ""
+    !print *, ""
+    !call abort()
+
+
     ! Note that there is a factor of 1.0_dp/(4.0_dp * pi * hs_diameter**2)
     ! from the delta function bond, a factor of 2 * pi from the theta integral
     ! and a factor of hs_diameter**2 from the jacobian.  Combining these factors
     ! gives the required 0.5_dp factor that we are multiplying by.
+
+    !lambda_hs_end_cation = 0.0_dp
+    !lambda_hs_nonend_cation = 0.0_dp
+    
+    !print *, "lambda_plus + lambda_hs_end_cation"
+    !print *, lambda_plus + lambda_hs_end_cation
+
     c9c10 = integrate_phi_spherical(exp(lambda_plus + lambda_hs_end_cation))
 
     c8c1 = integrate_phi_spherical(exp(lambda_neutral + lambda_hs_end_cation))
@@ -1068,14 +1085,32 @@ contains
 
     c3ppp = integrate_phi_spherical(exp(lambda_plus + lambda_hs_nonend_cation) * c2 * c9c10 * c9c10)
 
+
+    !print *, 
+    !print *, "c9c10", c9c10
+    !print *, "c8c1", c8c1
+    !print *, "c7", c7 
+    !print *, "c6", c6
+    !print *, "c5", c5
+    !print *, "c4", c4
+    !print *, "c3p", c3p
+    !print *, "c2", c2
+    !print *, "c3pp", c3pp
+    !print *, "c3ppp", c3ppp
+    !call abort()
+
+
+
     !Calculate the resulting positive bead densities.
     !n_plus_updated = nc2 + nc3 + nc4 + nc9 + nc10 =  nc2 + nc3 + nc4 + 2*nc9
     n_plus_updated = bulk_density * ( (exp(lambda_plus + lambda_hs_nonend_cation) * c8c1 * c3p) + (exp(lambda_plus + lambda_hs_nonend_cation) * c2 * c9c10 * c9c10 * c4) + &
          (exp(lambda_plus + lambda_hs_nonend_cation) * c3ppp * c5) + (2.0_dp * (exp(lambda_plus + lambda_hs_end_cation) * c3pp)) )
 
+    !print *, "n_plus_updated", n_plus_updated(40)
+    !call abort()
     !Now calculate the end and nonend densities for the hs term
     n_hs_end_cation = n_hs_end_cation +  bulk_density * ( (2.0_dp * (exp(lambda_plus + lambda_hs_end_cation) * c3pp)) )
-    
+
     n_hs_nonend_cation = n_hs_nonend_cation + bulk_density * ( (exp(lambda_plus + lambda_hs_nonend_cation) * c8c1 * c3p) + &
          (exp(lambda_plus + lambda_hs_nonend_cation) * c2 * c9c10 * c9c10 * c4) + (exp(lambda_plus + lambda_hs_nonend_cation) * c3ppp * c5) )
 

@@ -24,8 +24,8 @@ Epsilon_LJ_particle_particle=100 # ( = epsilon_LJ * k_{B})
 #Epsilon_LJ_particle_wall=100
 #mica_density=0.00505293988 #Mica density in particles/angstrom^3
 mica_density=0.10611173748 #Mica density in particles/angstrom^3
-#surface_charge_density_left_wall=312500000000000000
-#surface_charge_density_right_wall=312500000000000000
+#surface_charge_density_left_wall=-312500000000000000
+#surface_charge_density_right_wall=-312500000000000000
 #hs_diameter=0.00000000024
 surface_charge_density_left_wall=-0.003125
 surface_charge_density_right_wall=-0.003125
@@ -103,7 +103,7 @@ done
 $test_file_stub
 EOF
 
-write_dir="./run_results/compare_epsilonLJ/charge/${Epsilon_LJ_particle_particle}-${Epsilon_LJ_particle_wall}_${ionic_liquid_name}-TESTING-NEW-HS4"
+write_dir="./run_results/compare_epsilonLJ/charge/${Epsilon_LJ_particle_particle}-${Epsilon_LJ_particle_wall}_${ionic_liquid_name}-TESTING-NEW-HS6"
 mkdir -p ${write_dir}
 mv ${test_file_stub}* ${write_dir}
 
