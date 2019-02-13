@@ -16,8 +16,7 @@ module lambdas
 
 contains
   
-  subroutine CalculateLambdas(lambda_plus, n_plus, lambda_neutral, n_neutral, lambda_minus, n_minus, lambda_hs_end_cation, n_hs_end_cation, lambda_hs_nonend_cation, n_hs_nonend_cation, &
-       lambda_hs_end_anion, n_hs_end_anion, lambda_hs_nonend_anion, n_hs_nonend_anion, ith_plate_separation)
+  subroutine CalculateLambdas(lambda_plus, n_plus, lambda_neutral, n_neutral, lambda_minus, n_minus, lambda_hs_end_cation, n_hs_end_cation, lambda_hs_nonend_cation, n_hs_nonend_cation, lambda_hs_end_anion, n_hs_end_anion, lambda_hs_nonend_anion, n_hs_nonend_anion, ith_plate_separation)
     real(dp), dimension(:), intent(out) :: lambda_plus
     real(dp), dimension(:), intent(in)  :: n_plus
 
@@ -229,6 +228,11 @@ contains
     lambda_hs_end_anion(:) = lambda_hs_end_anion_bulk(:) - lambda_hs_end_anion(:)
     lambda_hs_nonend_anion(:) = lambda_hs_nonend_anion_bulk(:) - lambda_hs_nonend_anion(:)
 
+    ! lambda_hs_end_cation(:) = 0.0_dp
+    ! lambda_hs_nonend_cation(:) = 0.0_dp
+    ! lambda_hs_end_anion(:) = 0.0_dp
+    ! lambda_hs_nonend_anion(:) = 0.0_dp
+    
   end subroutine CalculateLambdasDifference
 
 

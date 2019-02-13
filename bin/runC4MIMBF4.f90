@@ -142,6 +142,11 @@ program runSingleSphere
            !print *, "lambda_plus = ", lambda_plus
            !print *, "1"
 
+           ! lambda_hs_end_cation(:) = 0.0_dp
+           ! lambda_hs_nonend_cation(:) = 0.0_dp
+           ! lambda_hs_end_anion(:) = 0.0_dp
+           ! lambda_hs_nonend_anion(:) = 0.0_dp
+           
            n_hs_end_cation(:) = 0.0_dp
            n_hs_nonend_cation(:) = 0.0_dp
            

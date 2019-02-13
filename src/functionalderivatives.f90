@@ -125,36 +125,8 @@ contains
     !with
     !GetYMix(n_hs_end_cation(start_z_index:end_z_index) + n_hs_nonend_cation(start_z_index:end_z_index), n_hs_end_anion(start_z_index:end_z_index) + n_hs_nonend_anion(start_z_index:end_z_index)
 
-
     if(calculate_bulk) then            
 
-       ! !First we do the cation
-       ! lambda_hs_end_cation(start_z_index:end_z_index) = (1.0_dp / (beta * num_end_monomers_cation)) * (&
-       !      GetAEx(n_mbar(start_z_index:end_z_index), n_sbar(start_z_index:end_z_index), 2) + &
-       !      (n_hs_end_cation(start_z_index:end_z_index) * integrand2(start_z_index:end_z_index))) + &
-       !      (n_hs_nonend_cation(start_z_index:end_z_index) * (GetYMix(n_mbar(start_z_index:end_z_index), n_sbar(start_z_index:end_z_index), 'm', r_cation)/(r_cation - num_end_monomers_cation)) * &
-       !      (integrand2(start_z_index:end_z_index) - integrand1(start_z_index:end_z_index)))/beta
-
-       ! lambda_hs_nonend_cation(start_z_index:end_z_index) = (1.0_dp / (beta * num_end_monomers_cation)) * (&
-       !      (n_hs_end_cation(start_z_index:end_z_index) * integrand2(start_z_index:end_z_index))) + &
-       !      (n_hs_nonend_cation(start_z_index:end_z_index) * (GetYMix(n_mbar(start_z_index:end_z_index), n_sbar(start_z_index:end_z_index), 'm', r_cation)/(r_cation - num_end_monomers_cation)) * &
-       !      (integrand2(start_z_index:end_z_index) - integrand1(start_z_index:end_z_index)))/beta + &
-       !      ((GetYMix(n_mbar(start_z_index:end_z_index), n_sbar(start_z_index:end_z_index), 'm', r_cation)/(r_cation - num_end_monomers_cation)) * GetAEx(n_mbar(start_z_index:end_z_index), n_sbar(start_z_index:end_z_index), 2) - &
-       !      GetAEx(n_mbar(start_z_index:end_z_index), n_sbar(start_z_index:end_z_index), 1))/beta
-
-       ! !Now we do the anion
-       ! lambda_hs_end_anion(start_z_index:end_z_index) = (1.0_dp / (beta * num_end_monomers_anion)) * (&
-       !      GetAEx(n_mbar(start_z_index:end_z_index), n_sbar(start_z_index:end_z_index), 2) + &
-       !      (n_hs_end_anion(start_z_index:end_z_index) * integrand2(start_z_index:end_z_index))) + &
-       !      (n_hs_nonend_anion(start_z_index:end_z_index) * (GetYMix(n_mbar(start_z_index:end_z_index), n_sbar(start_z_index:end_z_index), 'm', r_anion)/(r_anion - num_end_monomers_anion)) * &
-       !      (integrand2(start_z_index:end_z_index) - integrand1(start_z_index:end_z_index)))/beta
-
-       ! lambda_hs_nonend_anion(start_z_index:end_z_index) = (1.0_dp / (beta * num_end_monomers_anion)) * (&
-       !      (n_hs_end_anion(start_z_index:end_z_index) * integrand2(start_z_index:end_z_index))) + &
-       !      (n_hs_nonend_anion(start_z_index:end_z_index) * (GetYMix(n_mbar(start_z_index:end_z_index), n_sbar(start_z_index:end_z_index), 'm', r_anion)/(r_anion - num_end_monomers_anion)) * &
-       !      (integrand2(start_z_index:end_z_index) - integrand1(start_z_index:end_z_index)))/beta + &
-       !      ((GetYMix(n_mbar(start_z_index:end_z_index), n_sbar(start_z_index:end_z_index), 'm', r_anion)/(r_anion - num_end_monomers_anion)) * GetAEx(n_mbar(start_z_index:end_z_index), n_sbar(start_z_index:end_z_index), 2) - &
-       !      GetAEx(n_mbar(start_z_index:end_z_index), n_sbar(start_z_index:end_z_index), 1))/beta
 
        integrand1(start_z_index:end_z_index) = ((4.0_dp * pi * (hs_diameter**3))/3.0_dp) * &
             GetAExDerivIntegrand(n_s(start_z_index:end_z_index), n_sbar(start_z_index:end_z_index), 1)
@@ -165,13 +137,13 @@ contains
        lambda_hs_end_cation(start_z_index:end_z_index) = (1.0_dp / (beta * num_end_monomers_cation)) * (&
             GetAEx(n_s(start_z_index:end_z_index), n_sbar(start_z_index:end_z_index), 2) + &
             ((n_hs_end_cation(start_z_index:end_z_index) * integrand2(start_z_index:end_z_index)))) + &
-            ((GetYMix(n_s(start_z_index:end_z_index), n_sbar(start_z_index:end_z_index), 'm', r_cation)/(r_cation - num_end_monomers_cation)) * &
+            (n_hs_nonend_cation(start_z_index:end_z_index) * (GetYMix(n_s(start_z_index:end_z_index), n_sbar(start_z_index:end_z_index), 'm', r_cation)/(r_cation - num_end_monomers_cation)) * &
             ((integrand2(start_z_index:end_z_index) * n_hs_nonend_cation(start_z_index:end_z_index)) - &
             (integrand1(start_z_index:end_z_index) * n_hs_nonend_cation(start_z_index:end_z_index))))/beta
 
        lambda_hs_nonend_cation(start_z_index:end_z_index) = (1.0_dp / (beta * num_end_monomers_cation)) * (&
             ((n_hs_end_cation(start_z_index:end_z_index) * integrand2(start_z_index:end_z_index)))) + &
-            ((GetYMix(n_s(start_z_index:end_z_index), n_sbar(start_z_index:end_z_index), 'm', r_cation)/(r_cation - num_end_monomers_cation)) * &
+            (n_hs_nonend_cation(start_z_index:end_z_index) * (GetYMix(n_s(start_z_index:end_z_index), n_sbar(start_z_index:end_z_index), 'm', r_cation)/(r_cation - num_end_monomers_cation)) * &
             ((integrand2(start_z_index:end_z_index) * n_hs_nonend_cation(start_z_index:end_z_index)) - &
             (integrand1(start_z_index:end_z_index) * n_hs_nonend_cation(start_z_index:end_z_index))))/beta + &
             ((GetYMix(n_s(start_z_index:end_z_index), n_sbar(start_z_index:end_z_index), 'm', r_cation)/(r_cation - num_end_monomers_cation)) * GetAEx(n_s(start_z_index:end_z_index), n_sbar(start_z_index:end_z_index), 2) - &
@@ -181,13 +153,13 @@ contains
        lambda_hs_end_anion(start_z_index:end_z_index) = (1.0_dp / (beta * num_end_monomers_anion)) * (&
             GetAEx(n_s(start_z_index:end_z_index), n_sbar(start_z_index:end_z_index), 2) + &
             ((n_hs_end_anion(start_z_index:end_z_index) * integrand2(start_z_index:end_z_index)))) + &
-            ((GetYMix(n_s(start_z_index:end_z_index), n_sbar(start_z_index:end_z_index), 'm', r_anion)/(r_anion - num_end_monomers_anion)) * &
+            (n_hs_nonend_anion(start_z_index:end_z_index) * (GetYMix(n_s(start_z_index:end_z_index), n_sbar(start_z_index:end_z_index), 'm', r_anion)/(r_anion - num_end_monomers_anion)) * &
             ((integrand2(start_z_index:end_z_index) * n_hs_nonend_anion(start_z_index:end_z_index)) - &
             (integrand1(start_z_index:end_z_index) * n_hs_nonend_anion(start_z_index:end_z_index))))/beta
 
        lambda_hs_nonend_anion(start_z_index:end_z_index) = (1.0_dp / (beta * num_end_monomers_anion)) * (&
             ((n_hs_end_anion(start_z_index:end_z_index) * integrand2(start_z_index:end_z_index)))) + &
-            ((GetYMix(n_s(start_z_index:end_z_index), n_sbar(start_z_index:end_z_index), 'm', r_anion)/(r_anion - num_end_monomers_anion)) * &
+            (n_hs_nonend_anion(start_z_index:end_z_index) * (GetYMix(n_s(start_z_index:end_z_index), n_sbar(start_z_index:end_z_index), 'm', r_anion)/(r_anion - num_end_monomers_anion)) * &
             ((integrand2(start_z_index:end_z_index) * n_hs_nonend_anion(start_z_index:end_z_index)) - &
             (integrand1(start_z_index:end_z_index) * n_hs_nonend_anion(start_z_index:end_z_index))))/beta + &
             ((GetYMix(n_s(start_z_index:end_z_index), n_sbar(start_z_index:end_z_index), 'm', r_anion)/(r_anion - num_end_monomers_anion)) * GetAEx(n_s(start_z_index:end_z_index), n_sbar(start_z_index:end_z_index), 2) - &
@@ -248,10 +220,10 @@ contains
 
     end if
 
-    !lambda_hs_end_cation = 0.0_dp
-    !lambda_hs_nonend_cation = 0.0_dp
-    !lambda_hs_end_anion = 0.0_dp
-    !lambda_hs_nonend_anion = 0.0_dp
+    ! lambda_hs_end_cation = 0.0_dp
+    ! lambda_hs_nonend_cation = 0.0_dp
+    ! lambda_hs_end_anion = 0.0_dp
+    ! lambda_hs_nonend_anion = 0.0_dp
 
   end subroutine CalculateHSEndAndNonEndHSFunctionalDeriv
 

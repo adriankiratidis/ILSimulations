@@ -3158,37 +3158,37 @@ contains
     end if
 
     a1234 = integrate_phi_spherical(exp(lambda_minus + lambda_hs_end_anion))
-    a1234_lambda = integrate_phi_spherical(exp(lambda_minus + lambda_hs_end_anion) * lambda_minus)
+    a1234_lambda = integrate_phi_spherical(exp(lambda_minus + lambda_hs_end_anion) * (lambda_minus + lambda_hs_end_anion))
 
     anion_integrand = ( 4.0_dp*(a1234**3) * a1234_lambda ) + (a1234**4)*(log(bulk_density) - 1.0_dp + (beta*Donnan_potential*negative_oligomer_charge)) + ((a1234**4)*(lambda_minus+lambda_hs_nonend_anion))
     anion_contribution = (bulk_density/beta) * integrate_z_cylindrical(exp(lambda_minus + lambda_hs_nonend_anion) * anion_integrand, unity_function)*exp(beta*Donnan_potential*negative_oligomer_charge)
 
     c8 = integrate_phi_spherical(exp(lambda_neutral + lambda_hs_end_cation))
-    c8_lambda = integrate_phi_spherical(exp(lambda_neutral + lambda_hs_end_cation) * lambda_neutral)
+    c8_lambda = integrate_phi_spherical(exp(lambda_neutral + lambda_hs_end_cation) * (lambda_neutral + lambda_hs_end_cation))
 
     c7 = integrate_phi_spherical(exp(lambda_neutral + lambda_hs_nonend_cation) * c8)
-    c7_lambda = integrate_phi_spherical(exp(lambda_neutral + lambda_hs_nonend_cation) * (c8_lambda + c8*lambda_neutral))
+    c7_lambda = integrate_phi_spherical(exp(lambda_neutral + lambda_hs_nonend_cation) * (c8_lambda + c8*(lambda_neutral + lambda_hs_nonend_cation)))
 
     c6 = integrate_phi_spherical(exp(lambda_neutral + lambda_hs_nonend_cation) * c7)
-    c6_lambda = integrate_phi_spherical(exp(lambda_neutral + lambda_hs_nonend_cation) * (c7_lambda + c7*lambda_neutral))
+    c6_lambda = integrate_phi_spherical(exp(lambda_neutral + lambda_hs_nonend_cation) * (c7_lambda + c7*(lambda_neutral + lambda_hs_nonend_cation)))
 
     c5 = integrate_phi_spherical(exp(lambda_neutral + lambda_hs_nonend_cation) * c6)
-    c5_lambda = integrate_phi_spherical(exp(lambda_neutral + lambda_hs_nonend_cation) * (c6_lambda + c6*lambda_neutral))
+    c5_lambda = integrate_phi_spherical(exp(lambda_neutral + lambda_hs_nonend_cation) * (c6_lambda + c6*(lambda_neutral + lambda_hs_nonend_cation)))
 
     c4 = integrate_phi_spherical(exp(lambda_plus + lambda_hs_nonend_cation) * c5)
-    c4_lambda = integrate_phi_spherical(exp(lambda_plus + lambda_hs_nonend_cation) * (c5_lambda + c5*lambda_plus))
+    c4_lambda = integrate_phi_spherical(exp(lambda_plus + lambda_hs_nonend_cation) * (c5_lambda + c5*(lambda_plus + lambda_hs_nonend_cation)))
 
     c910 = integrate_phi_spherical(exp(lambda_plus + lambda_hs_end_cation))
-    c910_lambda = integrate_phi_spherical(exp(lambda_plus + lambda_hs_end_cation) * lambda_plus)
+    c910_lambda = integrate_phi_spherical(exp(lambda_plus + lambda_hs_end_cation) * (lambda_plus + lambda_hs_end_cation))
 
     c4p = c4*(c910**2)
     c4p_lambda = c4_lambda*(c910**2) + 2.0_dp * (c4*c910_lambda*c910)
 
     c3 = integrate_phi_spherical(exp(lambda_plus + lambda_hs_nonend_cation) * c4p)
-    c3_lambda = integrate_phi_spherical(exp(lambda_plus + lambda_hs_nonend_cation) * (c4p_lambda + c4p*lambda_plus))
+    c3_lambda = integrate_phi_spherical(exp(lambda_plus + lambda_hs_nonend_cation) * (c4p_lambda + c4p*(lambda_plus + lambda_hs_nonend_cation)))
 
     c2 = integrate_phi_spherical(exp(lambda_plus + lambda_hs_nonend_cation) * c3)
-    c2_lambda = integrate_phi_spherical(exp(lambda_plus + lambda_hs_nonend_cation) * (c3_lambda + c3*lambda_plus))
+    c2_lambda = integrate_phi_spherical(exp(lambda_plus + lambda_hs_nonend_cation) * (c3_lambda + c3*(lambda_plus + lambda_hs_nonend_cation)))
 
     cation_integrand = c2_lambda + c2*(log(bulk_density) - 1.0_dp + (beta*Donnan_potential*positive_oligomer_charge)) + c2*(lambda_neutral + lambda_hs_end_cation)
     cation_contribution = (bulk_density/beta) * integrate_z_cylindrical(exp(lambda_neutral + lambda_hs_end_cation) * cation_integrand, unity_function) * exp(beta*Donnan_potential*positive_oligomer_charge)
@@ -5259,7 +5259,7 @@ contains
        print *, "but they aren't, they are...(printed above)...aborting"
        call abort()
     end if
-    
+
     if(all(lambda_hs_end_anion(start_z_index:end_z_index) - lambda_hs_end_anion(start_z_index) < 0.000001_dp)) then
        lambda_hs_end_anion_bulk = lambda_hs_end_anion(start_z_index)
     else
@@ -5269,7 +5269,7 @@ contains
        print *, "but they aren't, they are...(printed above)...aborting"
        call abort()
     end if
-    
+
     if(all(lambda_hs_nonend_anion(start_z_index:end_z_index) - lambda_hs_nonend_anion(start_z_index) < 0.000001_dp)) then
        lambda_hs_nonend_anion_bulk = lambda_hs_nonend_anion(start_z_index)
     else
@@ -5296,12 +5296,18 @@ contains
          (log(bulk_density)*integrate_z_cylindrical(n_plus/5.0_dp, unity_function)) + &
          (log(bulk_density)*integrate_z_cylindrical(n_minus/5.0_dp, unity_function)) + &
          (lambda_plus_bulk*integrate_z_cylindrical(n_plus, unity_function)) + &
+         (lambda_neutral_bulk*integrate_z_cylindrical(n_plus, unity_function)) + &
          (lambda_neutral_bulk*integrate_z_cylindrical(n_neutral, unity_function)) + &
+         (lambda_plus_bulk*integrate_z_cylindrical(n_neutral, unity_function)) + &
          (lambda_minus_bulk*integrate_z_cylindrical(n_minus, unity_function)) + &
          (lambda_hs_end_cation_bulk*integrate_z_cylindrical(n_hs_end_cation, unity_function)) + &
          (lambda_hs_nonend_cation_bulk*integrate_z_cylindrical(n_hs_nonend_cation, unity_function)) + &
+         ((2.0_dp/3.0_dp) * lambda_hs_end_cation_bulk*integrate_z_cylindrical(n_hs_nonend_cation, unity_function)) + &
+         (1.5_dp * lambda_hs_nonend_cation_bulk*integrate_z_cylindrical(n_hs_end_cation, unity_function)) + &
          (lambda_hs_end_anion_bulk*integrate_z_cylindrical(n_hs_end_anion, unity_function)) + &
          (lambda_hs_nonend_anion_bulk*integrate_z_cylindrical(n_hs_nonend_anion, unity_function)) + &
+         (4.0_dp * lambda_hs_end_anion_bulk*integrate_z_cylindrical(n_hs_nonend_anion, unity_function)) + &
+         (0.25_dp * lambda_hs_nonend_anion_bulk*integrate_z_cylindrical(n_hs_end_anion, unity_function)) + &         
          ((positive_oligomer_charge*Donnan_potential)*integrate_z_cylindrical(n_plus/5.0_dp, unity_function)) + &
          ((negative_oligomer_charge*Donnan_potential)*integrate_z_cylindrical(n_minus/5.0_dp, unity_function)) &
          )
