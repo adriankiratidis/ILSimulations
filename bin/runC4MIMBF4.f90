@@ -14,13 +14,14 @@ program runSingleSphere
   !and l^{i}_{b} is the value in the bulk.
   real(dp), dimension(:), allocatable :: lambda_plus, lambda_neutral, lambda_minus
 
-  real(dp), dimension(:), allocatable :: lambda_hs_end_cation, lambda_hs_nonend_cation
-  real(dp), dimension(:), allocatable :: n_hs_end_cation, n_hs_nonend_cation
-
-  real(dp), dimension(:), allocatable :: lambda_hs_end_anion, lambda_hs_nonend_anion
-  real(dp), dimension(:), allocatable :: n_hs_end_anion, n_hs_nonend_anion
-
-
+  real(dp), dimension(:), allocatable :: n_plus_cation_end, n_neutral_cation_end, n_minus_cation_end
+  real(dp), dimension(:), allocatable :: n_plus_cation_nonend, n_neutral_cation_nonend, n_minus_cation_nonend
+  
+  real(dp), dimension(:), allocatable :: n_plus_anion_end, n_neutral_anion_end, n_minus_anion_end
+  !Note:  The anion nonend contributions can be derived from n_plus_anion_nonend = n_plus - n_plus_anion_end - n_plus_cation_end - n_plus_cation_nonend
+  !Note that in most cases all the positive beads will be on the cation, and negative beads on the anion.  Neutral beads may be on both.
+  !But this is written generaly so as to allow positive beads on the anion and visa versa.
+  
   real(dp), dimension(:), allocatable :: grand_potential_per_unit_area, grand_potential_per_unit_area_in_bulk
   real(dp), dimension(:), allocatable :: normal_pressure_left_wall, normal_pressure_right_wall
   real(dp), dimension(:), allocatable :: negative_deriv_of_potential
@@ -84,14 +85,14 @@ program runSingleSphere
      print *, ""
      print *, "Initialising/ReInitialising Discretistion and setting integration ansatz."
      print *, "Doing this for the densities"
-     call InitialiseDensityDiscretisationAndSetIntegrationAnsatz(ith_separation, n_plus, n_neutral, n_minus, n_hs_end_cation, n_hs_nonend_cation, n_hs_end_anion, n_hs_nonend_anion)
+     call InitialiseDensityDiscretisationAndSetIntegrationAnsatz(ith_separation, n_plus, n_neutral, n_minus, n_plus, n_plus_cation_end, n_neutral_cation_end, n_minus_cation_end, &
+          n_plus_cation_nonend, n_neutral_cation_nonend, n_minus_cation_nonend, n_plus_anion_end, n_neutral_anion_end, n_minus_anion_end)
 
      print *, "Initialise/ReInitialise Discretisation for all the temperary variables we need."
      call InitialiseVariableDiscretisation(ith_separation, n_plus_updated, lambda_plus, &
-          n_neutral_updated, lambda_neutral, n_minus_updated, lambda_minus, n_plus_previous, n_neutral_previous, n_minus_previous, &
-          lambda_hs_end_cation, lambda_hs_nonend_cation, lambda_hs_end_anion, lambda_hs_nonend_anion)
+          n_neutral_updated, lambda_neutral, n_minus_updated, lambda_minus, n_plus_previous, n_neutral_previous, n_minus_previous)
      call SetToZero(n_plus_updated, lambda_plus, n_neutral_updated, lambda_neutral, n_minus_updated, lambda_minus)
-     call SetToZero(lambda_hs_end_cation, lambda_hs_nonend_cation, lambda_hs_end_anion, lambda_hs_nonend_anion)
+
 
      if(ith_separation == 1) then
         !call ImposeChargeNeutrality(n_plus, n_neutral, n_minus, Donnan_potential, abort_now)
@@ -121,8 +122,8 @@ program runSingleSphere
            !print *, "n_neutral integral = ", n_neutral_updated
            !print *, "n_minus integral = ", integrate_z_cylindrical(negative_bead_charge*n_minus, "all_z")
 
-           call CalculateLambdasDifference(lambda_plus, n_plus, lambda_neutral, n_neutral, lambda_minus, n_minus, lambda_hs_end_cation, n_hs_end_cation, &
-                lambda_hs_nonend_cation, n_hs_nonend_cation, lambda_hs_end_anion, n_hs_end_anion, lambda_hs_nonend_anion, n_hs_nonend_anion, ith_separation)
+           call CalculateLambdasDifference(lambda_plus, n_plus, lambda_neutral, n_neutral, lambda_minus, n_minus, n_plus_cation_end, n_neutral_cation_end, n_minus_cation_end, &
+          n_plus_cation_nonend, n_neutral_cation_nonend, n_minus_cation_nonend, n_plus_anion_end, n_neutral_anion_end, n_minus_anion_end, ith_separation)
 
            !print *, "lambda_plus = ", lambda_plus
            !call abort()
@@ -147,17 +148,18 @@ program runSingleSphere
            ! lambda_hs_end_anion(:) = 0.0_dp
            ! lambda_hs_nonend_anion(:) = 0.0_dp
            
-           n_hs_end_cation(:) = 0.0_dp
-           n_hs_nonend_cation(:) = 0.0_dp
+           ! n_hs_end_cation(:) = 0.0_dp
+           ! n_hs_nonend_cation(:) = 0.0_dp
            
-           n_hs_end_anion(:) = 0.0_dp
-           n_hs_nonend_anion(:) = 0.0_dp
+           ! n_hs_end_anion(:) = 0.0_dp
+           ! n_hs_nonend_anion(:) = 0.0_dp
            
-           call UpdateDensities(n_plus, n_neutral, n_minus, lambda_plus, n_plus_updated, lambda_neutral, n_neutral_updated, lambda_minus, n_minus_updated, lambda_hs_end_cation, n_hs_end_cation, lambda_hs_nonend_cation, n_hs_nonend_cation, lambda_hs_end_anion, n_hs_end_anion, lambda_hs_nonend_anion, n_hs_nonend_anion, Donnan_potential, iteration, abort_now)
+           call UpdateDensities(n_plus, n_neutral, n_minus, lambda_plus, n_plus_updated, lambda_neutral, n_neutral_updated, lambda_minus, n_minus_updated, n_plus_cation_end, n_neutral_cation_end, n_minus_cation_end, &
+          n_plus_cation_nonend, n_neutral_cation_nonend, n_minus_cation_nonend, n_plus_anion_end, n_neutral_anion_end, n_minus_anion_end, n_Donnan_potential, iteration, abort_now)
 
            !Found some problem, but still want to print what we've calculated so far.
            if(abort_now) exit
-           !print *, "2"
+          !print *, "2"
            !print *, "n_plus_updated = ", n_plus_updated
            !print *, "n_plus_updated integral = ", integrate_z_cylindrical(positive_bead_charge*n_plus_updated, "all_z")
            !print *, "n_neutral integral = ", n_neutral_updated
@@ -363,17 +365,20 @@ contains
     if(allocated(n_plus_updated)) deallocate(n_plus_updated)
     if(allocated(n_neutral_updated)) deallocate(n_neutral_updated)
     if(allocated(n_minus_updated)) deallocate(n_minus_updated)
-    if(allocated(n_hs_end_cation)) deallocate(n_hs_end_cation)
-    if(allocated(n_hs_nonend_cation)) deallocate(n_hs_nonend_cation)
-    if(allocated(n_hs_end_anion)) deallocate(n_hs_end_anion)
-    if(allocated(n_hs_nonend_anion)) deallocate(n_hs_nonend_anion)    
+
+    if(allocated(n_plus_cation_end)) deallocate(n_plus_cation_end)
+    if(allocated(n_neutral_cation_end)) deallocate(n_neutral_cation_end)
+    if(allocated(n_minus_cation_end)) deallocate(n_minus_cation_end)
+    if(allocated(n_plus_cation_nonend)) deallocate(n_plus_cation_nonend)
+    if(allocated(n_neutral_cation_nonend)) deallocate(n_neutral_cation_nonend)
+    if(allocated(n_minus_cation_nonend)) deallocate(n_minus_cation_nonend)
+    if(allocated(n_plus_anion_end)) deallocate(n_plus_anion_end)
+    if(allocated(n_neutral_anion_end)) deallocate(n_neutral_anion_end)
+    if(allocated(n_minus_anion_end)) deallocate(n_minus_anion_end)
+
     if(allocated(lambda_plus)) deallocate(lambda_plus)
     if(allocated(lambda_neutral)) deallocate(lambda_neutral)
     if(allocated(lambda_minus)) deallocate(lambda_minus)
-    if(allocated(lambda_hs_end_cation)) deallocate(lambda_hs_end_cation)
-    if(allocated(lambda_hs_nonend_cation)) deallocate(lambda_hs_nonend_cation)
-    if(allocated(lambda_hs_end_anion)) deallocate(lambda_hs_end_anion)
-    if(allocated(lambda_hs_nonend_anion)) deallocate(lambda_hs_nonend_anion)    
     if(allocated(grand_potential_per_unit_area)) deallocate(grand_potential_per_unit_area)
     if(allocated(grand_potential_per_unit_area_in_bulk)) deallocate(grand_potential_per_unit_area_in_bulk)
     if(allocated(normal_pressure_left_wall)) deallocate(normal_pressure_left_wall)

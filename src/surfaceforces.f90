@@ -17,7 +17,7 @@ contains
 
   !Subroutine that calculates the 
   subroutine CalculateGrandPotentialValuePerUnitArea(ith_plate_separation, grand_potential_per_unit_area, &
-       size_of_ns_array, n_plus, n_neutral, n_minus, n_hs_end_cation, n_hs_nonend_cation, n_hs_end_anion, n_hs_nonend_anion, Donnan_potential)
+       size_of_ns_array, n_plus, n_neutral, n_minus, n_plus_end, n_neutral_end, n_minus_end, Donnan_potential)
     integer, intent(in)   :: ith_plate_separation
     real(dp), intent(out) :: grand_potential_per_unit_area
     integer, intent(in) :: size_of_ns_array
@@ -25,10 +25,9 @@ contains
     real(dp), dimension(:), intent(in) :: n_neutral
     real(dp), dimension(:), intent(in) :: n_minus
 
-    real(dp), dimension(:), intent(in) :: n_hs_end_cation
-    real(dp), dimension(:), intent(in) :: n_hs_nonend_cation
-    real(dp), dimension(:), intent(in) :: n_hs_end_anion
-    real(dp), dimension(:), intent(in) :: n_hs_nonend_anion
+    real(dp), dimension(:), intent(in) :: n_plus_end
+    real(dp), dimension(:), intent(in) :: n_neutral_end
+    real(dp), dimension(:), intent(in) :: n_minus_end
     
     real(dp), intent(in) :: Donnan_potential
 

@@ -167,40 +167,55 @@ contains
   !(i.e. ith_plate_separation = 1) they are initialised to be constant.  In the case of subsequent run throughs
   !(i.e. ith_plate_separation > 1) they are rescaled based on the previously converged value by the routine
   !'ReScaleArray'.
-  subroutine InitialiseDensityDiscretisationAndSetIntegrationAnsatz(ith_plate_separation, n_plus, n_neutral, n_minus, n_hs_end_cation, n_hs_nonend_cation, n_hs_end_anion, n_hs_nonend_anion)
+  subroutine InitialiseDensityDiscretisationAndSetIntegrationAnsatz(ith_plate_separation, n_plus, n_neutral, n_minus, n_plus_cation_end, n_neutral_cation_end, n_minus_cation_end, &
+       n_plus_cation_nonend, n_neutral_cation_nonend, n_minus_cation_nonend, n_plus_anion_end, n_neutral_anion_end, n_minus_anion_end)
     integer, intent(in) :: ith_plate_separation
     real(dp), dimension(:), allocatable, intent(inout) :: n_plus
     real(dp), dimension(:), allocatable, optional, intent(inout) :: n_neutral
     real(dp), dimension(:), allocatable, optional, intent(inout) :: n_minus
-    real(dp), dimension(:), allocatable, optional, intent(inout) :: n_hs_end_cation
-    real(dp), dimension(:), allocatable, optional, intent(inout) :: n_hs_nonend_cation
-    real(dp), dimension(:), allocatable, optional, intent(inout) :: n_hs_end_anion
-    real(dp), dimension(:), allocatable, optional, intent(inout) :: n_hs_nonend_anion
-    
+    real(dp), dimension(:), allocatable, optional, intent(inout) :: n_plus_cation_end
+    real(dp), dimension(:), allocatable, optional, intent(inout) :: n_neutral_cation_end
+    real(dp), dimension(:), allocatable, optional, intent(inout) :: n_minus_cation_end
+    real(dp), dimension(:), allocatable, optional, intent(inout) :: n_plus_cation_nonend
+    real(dp), dimension(:), allocatable, optional, intent(inout) :: n_neutral_cation_nonend
+    real(dp), dimension(:), allocatable, optional, intent(inout) :: n_minus_cation_nonend
+    real(dp), dimension(:), allocatable, optional, intent(inout) :: n_plus_anion_end
+    real(dp), dimension(:), allocatable, optional, intent(inout) :: n_neutral_anion_end
+    real(dp), dimension(:), allocatable, optional, intent(inout) :: n_minus_anion_end
 
     integer :: new_array_size
-    
+
     !Note we add on one to include values at both endpoints/the walls.
     new_array_size = nint(plate_separations(ith_plate_separation) *  n_discretised_points_z) + 1
 
     call UpdateArraySize(n_plus, new_array_size, rescale=allocated(n_plus), bead_type='+')
     if(present(n_neutral)) call UpdateArraySize(n_neutral, new_array_size, rescale=allocated(n_neutral), bead_type='0')
     if(present(n_minus)) call UpdateArraySize(n_minus, new_array_size, rescale=allocated(n_minus), bead_type='-')
-    
-    if(present(n_hs_end_cation)) call UpdateArraySize(n_hs_end_cation, new_array_size, rescale=allocated(n_hs_end_cation), bead_type='ce')
-    if(present(n_hs_nonend_cation)) call UpdateArraySize(n_hs_nonend_cation, new_array_size, rescale=allocated(n_hs_nonend_cation), bead_type='cne')
-    if(present(n_hs_end_anion)) call UpdateArraySize(n_hs_end_anion, new_array_size, rescale=allocated(n_hs_end_anion), bead_type='ae')
-    if(present(n_hs_nonend_anion)) call UpdateArraySize(n_hs_nonend_anion, new_array_size, rescale=allocated(n_hs_nonend_anion), bead_type='ane')
-    
+
+    if(present(n_plus_cation_end)) call UpdateArraySize(n_plus_cation_end, new_array_size, rescale=allocated(n_plus_cation_end), bead_type='pce')
+    if(present(n_neutral_cation_end)) call UpdateArraySize(n_neutral_cation_end, new_array_size, rescale=allocated(n_neutral_cation_end), bead_type='nce')
+    if(present(n_minus_cation_end)) call UpdateArraySize(n_minus_cation_end, new_array_size, rescale=allocated(n_minus_cation_end), bead_type='mce')
+    if(present(n_plus_cation_nonend)) call UpdateArraySize(n_plus_cation_nonend, new_array_size, rescale=allocated(n_plus_cation_nonend), bead_type='pcne')
+    if(present(n_neutral_cation_nonend)) call UpdateArraySize(n_neutral_cation_nonend, new_array_size, rescale=allocated(n_neutral_cation_nonend), bead_type='ncne')
+    if(present(n_minus_cation_nonend)) call UpdateArraySize(n_minus_cation_nonend, new_array_size, rescale=allocated(n_minus_cation_nonend), bead_type='mcne')
+    if(present(n_plus_anion_end)) call UpdateArraySize(n_plus_anion_end, new_array_size, rescale=allocated(n_plus_anion_end), bead_type='pae')
+    if(present(n_neutral_anion_end)) call UpdateArraySize(n_neutral_anion_end, new_array_size, rescale=allocated(n_neutral_anion_end), bead_type='nae')
+    if(present(n_minus_anion_end)) call UpdateArraySize(n_minus_anion_end, new_array_size, rescale=allocated(n_minus_anion_end), bead_type='mae')
+
     !We don't calculate with hs_diameter/2 of the wall.  Therefore set it zero.
     !This aids with plotting ease.
     call setNonCalculatedRegionToZero(n_plus)
     if(present(n_neutral)) call setNonCalculatedRegionToZero(n_neutral)
     if(present(n_minus)) call setNonCalculatedRegionToZero(n_minus)
-    if(present(n_hs_end_cation)) call setNonCalculatedRegionToZero(n_hs_end_cation)
-    if(present(n_hs_nonend_cation)) call setNonCalculatedRegionToZero(n_hs_nonend_cation)
-    if(present(n_hs_end_anion)) call setNonCalculatedRegionToZero(n_hs_end_anion)
-    if(present(n_hs_nonend_anion)) call setNonCalculatedRegionToZero(n_hs_nonend_anion)
+    if(present(n_plus_cation_end)) call setNonCalculatedRegionToZero(n_plus_cation_end)
+    if(present(n_neutral_cation_end)) call setNonCalculatedRegionToZero(n_neutral_cation_end)
+    if(present(n_minus_cation_end)) call setNonCalculatedRegionToZero(n_minus_cation_end)
+    if(present(n_plus_cation_nonend)) call setNonCalculatedRegionToZero(n_plus_cation_nonend)
+    if(present(n_neutral_cation_nonend)) call setNonCalculatedRegionToZero(n_neutral_cation_nonend)
+    if(present(n_minus_cation_nonend)) call setNonCalculatedRegionToZero(n_minus_cation_nonend)
+    if(present(n_plus_anion_end)) call setNonCalculatedRegionToZero(n_plus_anion_end)
+    if(present(n_neutral_anion_end)) call setNonCalculatedRegionToZero(n_neutral_anion_end)
+    if(present(n_minus_anion_end)) call setNonCalculatedRegionToZero(n_minus_anion_end)
     
   end subroutine InitialiseDensityDiscretisationAndSetIntegrationAnsatz
 
@@ -518,17 +533,32 @@ contains
           array(ij) = bulk_density_negative_beads - ((ij - midpoint)*hs_diameter/real(n_discretised_points_z, dp))*slope_for_initial_guess
        end do
 
-    else if(trim(bead_type) == 'ce') then !bead_type = cation end density
-       array(:) = n_end_cation_bulk
+    else if(trim(bead_type) == 'pce') then !bead_type = positive bead in cation end density
+       array(:) = n_plus_cation_end_bulk
 
-    else if(trim(bead_type) == 'cne') then !bead_type = cation nonend density
-       array(:) = n_nonend_cation_bulk
+    else if(trim(bead_type) == 'nce') then !bead_type = neutral bead in cation end density
+       array(:) = n_neutral_cation_end_bulk
 
-    else if(trim(bead_type) == 'ae') then !bead_type = anion end density
-       array(:) = n_end_anion_bulk
+    else if(trim(bead_type) == 'mce') then !bead_type = minus bead in cation end density
+       array(:) = n_minus_cation_end_bulk
 
-    else if(trim(bead_type) == 'ane') then !bead_type = anion nonend density
-       array(:) = n_nonend_anion_bulk
+    else if(trim(bead_type) == 'pcne') then !bead_type = positive bead in cation nonend density
+       array(:) = n_plus_cation_nonend_bulk
+
+    else if(trim(bead_type) == 'ncne') then !bead_type = neutral bead in cation nonend density
+       array(:) = n_neutral_cation_nonend_bulk
+
+    else if(trim(bead_type) == 'mcne') then !bead_type = minus bead in cation nonend density
+       array(:) = n_minus_cation_nonend_bulk
+
+    else if(trim(bead_type) == 'pae') then !bead_type = positive bead in anion end density
+       array(:) = n_plus_anion_end_bulk
+
+    else if(trim(bead_type) == 'nae') then !bead_type = neutral bead in anion end density
+       array(:) = n_neutral_anion_end_bulk
+
+    else if(trim(bead_type) == 'mae') then !bead_type = minus bead in anion end density
+       array(:) = n_minus_anion_end_bulk
 
     else
        print *, "iteration.f90: InitialiseIntegrationAnsatz"

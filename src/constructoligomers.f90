@@ -85,8 +85,7 @@ module constructoligomers
 
 contains
 
-  subroutine UpdateDensities(n1, n2, n3, lambda1, n1_updated, lambda2, n2_updated, lambda3, n3_updated, lambda_hs_end_cation, n_hs_end_cation, &
-       lambda_hs_nonend_cation, n_hs_nonend_cation, lambda_hs_end_anion, n_hs_end_anion, lambda_hs_nonend_anion, n_hs_nonend_anion, Donnan_potential, iteration, abort_now)
+  subroutine UpdateDensities(n1, n2, n3, lambda1, n1_updated, lambda2, n2_updated, lambda3, n3_updated, n_plus_end, n_neutral_end, n_minus_end, Donnan_potential, iteration, abort_now)
     real(dp), dimension(:), intent(in) :: n1
     real(dp), dimension(:), intent(in) :: n2
     real(dp), dimension(:), intent(in) :: n3

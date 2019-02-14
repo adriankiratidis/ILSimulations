@@ -54,10 +54,17 @@ module parameters
   public :: num_end_monomers_cation
   public :: num_end_monomers_anion
 
-  public :: n_end_cation_bulk
-  public :: n_nonend_cation_bulk
-  public :: n_end_anion_bulk
-  public :: n_nonend_anion_bulk
+  public :: n_plus_cation_end_bulk
+  public :: n_neutral_cation_end_bulk
+  public :: n_minus_cation_end_bulk
+
+  public :: n_plus_cation_nonend_bulk
+  public :: n_neutral_cation_nonend_bulk
+  public :: n_minus_cation_nonend_bulk
+
+  public :: n_plus_anion_end_bulk
+  public :: n_neutral_anion_end_bulk
+  public :: n_minus_anion_end_bulk
 
   character(len=256) :: ionic_liquid_name 
   real(dp) :: chi_parameter
@@ -100,10 +107,17 @@ module parameters
   integer :: num_end_monomers_cation
   integer :: num_end_monomers_anion
 
-  real(dp) :: n_end_cation_bulk
-  real(dp) :: n_nonend_cation_bulk
-  real(dp) :: n_end_anion_bulk
-  real(dp) :: n_nonend_anion_bulk
+  real(dp) :: n_plus_cation_end_bulk
+  real(dp) :: n_neutral_cation_end_bulk
+  real(dp) :: n_minus_cation_end_bulk
+
+  real(dp) :: n_plus_cation_nonend_bulk
+  real(dp) :: n_neutral_cation_nonend_bulk
+  real(dp) :: n_minus_cation_nonend_bulk
+
+  real(dp) :: n_plus_anion_end_bulk
+  real(dp) :: n_neutral_anion_end_bulk
+  real(dp) :: n_minus_anion_end_bulk
 
 contains
 
@@ -346,10 +360,18 @@ contains
     num_end_monomers_cation = 4
     num_end_monomers_anion = 4
 
-    n_end_cation_bulk = 4.0_dp * bulk_density
-    n_nonend_cation_bulk = 6.0_dp * bulk_density
-    n_end_anion_bulk = 4.0_dp * bulk_density
-    n_nonend_anion_bulk = 1.0_dp * bulk_density
+    n_plus_cation_end_bulk = 2.0_dp * bulk_density
+    n_neutral_cation_end_bulk = 2.0_dp * bulk_density
+    n_minus_cation_end_bulk = 0.0_dp
+
+    n_plus_cation_nonend_bulk = 3.0_dp * bulk_density
+    n_neutral_cation_nonend_bulk = 3.0_dp * bulk_density
+    n_minus_cation_nonend_bulk = 0.0_dp
+
+    n_plus_anion_end_bulk = 0.0_dp 
+    n_neutral_anion_end_bulk = 0.0_dp
+    n_minus_anion_end_bulk = 4.0_dp * bulk_density
+
 
   end subroutine SetC4MIN_BF4BeadDensityFromBulkIonDensity
 
