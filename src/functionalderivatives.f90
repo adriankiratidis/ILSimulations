@@ -8,6 +8,7 @@ module functionalderivatives
   use integratezcylindrical
   use io
   use excessenergyfunctionalparameters
+  use discretederivatives
   implicit none
   private
 
@@ -228,16 +229,216 @@ contains
 
   ! end subroutine CalculateHSEndAndNonEndHSFunctionalDeriv
 
-  function calculate_hard_sphere_functional_deriv(n_deriv_wrt, n_cation_end, n_cation_nonend, n_anion_end, n_anion_nonend)
+  function calculate_hard_sphere_functional_deriv(n_s, n_deriv_wrt, n_cation_end, n_cation_nonend, n_anion_end, n_anion_nonend, calculate_bulk)
+    real(dp), dimension(:), intent(in) :: n_s
     real(dp), dimension(:), intent(in) :: n_deriv_wrt
     real(dp), dimension(:), intent(in) :: n_cation_end
     real(dp), dimension(:), intent(in) :: n_cation_nonend
     real(dp), dimension(:), intent(in) :: n_anion_end
     real(dp), dimension(:), intent(in) :: n_anion_nonend
+    logical, intent(in)                :: calculate_bulk
     real(dp), dimension(size(n_deriv_wrt)) :: calculate_hard_sphere_functional_deriv
 
-    calculate_hard_sphere_functional_deriv = 0.0_dp
-    
+    real(dp), dimension(size(n_s)) :: n_mbar, n_sbar, n_mbar_bulk
+    real(dp), dimension(size(n_s)) :: integrand1, integrand2
+
+    real(dp), dimension(size(n_cation_end)) :: n_cation_end_bulk
+    real(dp), dimension(size(n_cation_nonend)) :: n_cation_nonend_bulk
+    real(dp), dimension(size(n_anion_end)) :: n_anion_end_bulk
+    real(dp), dimension(size(n_anion_nonend)) :: n_anion_nonend_bulk
+
+    real(dp), dimension(size(n_s)) :: ratio_cation_end, ratio_cation_nonend
+    real(dp), dimension(size(n_s)) :: ratio_anion_end, ratio_anion_nonend
+    real(dp), dimension(size(n_s)) :: deriv_wrt
+
+    integer :: start_z_index
+    integer :: end_z_index
+    integer :: ij
+
+    ratio_cation_end(:) = 0.0_dp
+    ratio_cation_nonend(:) = 0.0_dp
+    ratio_anion_end(:) = 0.0_dp
+    ratio_anion_nonend(:) = 0.0_dp
+
+    n_cation_end_bulk(:) = 0.0_dp
+    n_cation_nonend_bulk(:) = 0.0_dp
+    n_anion_end_bulk(:) = 0.0_dp
+    n_anion_nonend_bulk(:) = 0.0_dp
+
+    deriv_wrt(:) = 0.0_dp
+
+    n_mbar(:) = 0.0_dp
+    n_sbar(:) = 0.0_dp
+
+    n_mbar(:) = calculate_n_sbar(n_s(:))       
+
+    call get_allowed_z_values(start_z_index, end_z_index, size(n_s))
+
+    calculate_hard_sphere_functional_deriv(:) = 0.0_dp
+
+    if(calculate_bulk) then
+
+       !First calculate the bulk properties
+       n_cation_end_bulk(start_z_index:end_z_index) = n_plus_cation_end_bulk + n_neutral_cation_end_bulk + n_minus_cation_end_bulk
+       n_cation_nonend_bulk(start_z_index:end_z_index) = n_plus_cation_nonend_bulk + n_neutral_cation_nonend_bulk + n_minus_cation_nonend_bulk
+       n_anion_end_bulk(start_z_index:end_z_index) = n_plus_anion_end_bulk + n_neutral_anion_end_bulk + n_minus_anion_end_bulk
+       
+       n_anion_nonend_bulk(start_z_index:end_z_index) = bulk_density_positive_beads + bulk_density_neutral_beads + bulk_density_negative_beads
+       n_anion_nonend_bulk(start_z_index:end_z_index) = n_anion_nonend_bulk(start_z_index:end_z_index) - n_cation_end_bulk(start_z_index:end_z_index) - &
+            n_cation_nonend_bulk(start_z_index:end_z_index) - n_anion_end_bulk(start_z_index:end_z_index)
+
+       n_mbar_bulk(start_z_index:end_z_index) = bulk_density_positive_beads + bulk_density_neutral_beads + bulk_density_negative_beads
+
+       !Now calculate the functional derivative
+       calculate_hard_sphere_functional_deriv(start_z_index:end_z_index) = &
+            (n_cation_nonend_bulk(start_z_index:end_z_index) * &
+            GetYMix(n_mbar_bulk(start_z_index:end_z_index), n_sbar(start_z_index:end_z_index), 'm', r_cation)/(r_cation - num_end_monomers_cation) * &
+            (((4.0_dp * pi * (hs_diameter**3)/3.0_dp) * GetAExDerivIntegrand(n_mbar_bulk(start_z_index:end_z_index), n_sbar(start_z_index:end_z_index), 2)) - &
+            ((4.0_dp * pi * (hs_diameter**3)/3.0_dp) * GetAExDerivIntegrand(n_mbar_bulk(start_z_index:end_z_index), n_sbar(start_z_index:end_z_index), 1))))/beta + &
+                                !
+            (n_cation_end_bulk(start_z_index:end_z_index)/num_end_monomers_cation * &
+            ((4.0_dp * pi * (hs_diameter**3)/3.0_dp) * GetAExDerivIntegrand(n_mbar_bulk(start_z_index:end_z_index), n_sbar(start_z_index:end_z_index), 2)))/beta + &
+                                !
+                                !Now we've done the cation, we can do the anion.
+                                !
+            (n_anion_nonend_bulk(start_z_index:end_z_index) * &
+            GetYMix(n_mbar_bulk(start_z_index:end_z_index), n_sbar(start_z_index:end_z_index), 'm', r_anion)/(r_anion - num_end_monomers_anion) * &
+            (((4.0_dp * pi * (hs_diameter**3)/3.0_dp) * GetAExDerivIntegrand(n_mbar_bulk(start_z_index:end_z_index), n_sbar(start_z_index:end_z_index), 2)) - &
+            ((4.0_dp * pi * (hs_diameter**3)/3.0_dp) * GetAExDerivIntegrand(n_mbar_bulk(start_z_index:end_z_index), n_sbar(start_z_index:end_z_index), 1))))/beta + &
+                                !
+            (n_anion_end_bulk(start_z_index:end_z_index)/num_end_monomers_anion * &
+            ((4.0_dp * pi * (hs_diameter**3)/3.0_dp) * GetAExDerivIntegrand(n_mbar_bulk(start_z_index:end_z_index), n_sbar(start_z_index:end_z_index), 2)))/beta
+
+
+    else
+
+       integrand1(:) = calculate_n_sbar(GetAExDerivIntegrand(n_mbar(:), n_sbar(:), 1))
+       integrand2(:) = calculate_n_sbar(GetAExDerivIntegrand(n_mbar(:), n_sbar(:), 2))
+
+       !print *, "integrand1", integrand1
+       !print *, "integrand2", integrand2
+       !print *, "3", calculate_central_difference(n_cation_nonend(start_z_index:end_z_index), hs_diameter/n_discretised_points_z)
+       !call abort()
+
+       ratio_cation_end(start_z_index:end_z_index) = calculate_central_difference(n_cation_end(start_z_index:end_z_index), hs_diameter/n_discretised_points_z)
+       ratio_cation_nonend(start_z_index:end_z_index) = calculate_central_difference(n_cation_nonend(start_z_index:end_z_index), hs_diameter/n_discretised_points_z)
+       ratio_anion_end(start_z_index:end_z_index) = calculate_central_difference(n_anion_end(start_z_index:end_z_index), hs_diameter/n_discretised_points_z)
+       ratio_anion_nonend(start_z_index:end_z_index) = calculate_central_difference(n_anion_nonend(start_z_index:end_z_index), hs_diameter/n_discretised_points_z)
+       deriv_wrt(start_z_index:end_z_index) = calculate_central_difference(n_deriv_wrt(start_z_index:end_z_index), hs_diameter/n_discretised_points_z)
+
+
+       !if(all(ratio_cation_end(start_z_index:end_z_index) == 0.0_dp)) ratio_cation_end(start_z_index:end_z_index) = 1.0_dp
+       !if(all(ratio_cation_nonend(start_z_index:end_z_index) == 0.0_dp)) ratio_cation_nonend(start_z_index:end_z_index) = 1.0_dp
+       !if(all(ratio_anion_end(start_z_index:end_z_index) == 0.0_dp)) ratio_anion_end(start_z_index:end_z_index) = 1.0_dp
+       !if(all(ratio_anion_nonend(start_z_index:end_z_index) == 0.0_dp)) ratio_anion_nonend(start_z_index:end_z_index) = 1.0_dp
+
+       !This should only happen on the first iteration
+       if(all(deriv_wrt(start_z_index:end_z_index) == 0.0_dp)) deriv_wrt(start_z_index:end_z_index) = 1.0_dp
+
+       print *, "STARTING..."
+       print *, "n_deriv_wrt = ", n_deriv_wrt(start_z_index:end_z_index)
+       print *, ""
+       print *, "deriv_wrt = ", deriv_wrt
+       print *, ""
+       print *, "n_cation_end = ", n_cation_end
+       print *, ""
+       print *, "n_cation_nonend = ", n_cation_nonend
+       print *, ""
+       print *, "ratio_cation_end = ", ratio_cation_end
+       print *, ""
+       print *, "ratio_cation_nonend = ", ratio_cation_nonend
+       print *, ""
+
+       do ij = start_z_index, end_z_index
+          if(deriv_wrt(ij) == 0.0_dp) then
+             if(ij < size(deriv_wrt)/2) then
+                deriv_wrt(ij) = deriv_wrt(ij+1)
+             else
+                deriv_wrt(ij) = deriv_wrt(ij-1)
+             end if
+             !print *, "HELLLLLLLLLLLLLLLLLLLOOOOOOOOOOOO", ij
+
+          end if
+          ! if(ratio_cation_end(ij) == 0.0_dp) then
+          !    ratio_cation_end(ij) = ratio_cation_end(ij-1)
+          ! end if
+          ! if(ratio_cation_nonend(ij) == 0.0_dp) then
+          !    ratio_cation_nonend(ij) = ratio_cation_nonend(ij-1)
+          ! end if
+          ! if(ratio_anion_end(ij) == 0.0_dp) then
+          !    ratio_anion_end(ij) = ratio_anion_end(ij-1)
+          ! end if
+          ! if(ratio_anion_nonend(ij) == 0.0_dp) then
+          !    ratio_anion_nonend(ij) = ratio_anion_nonend(ij-1)
+          ! end if
+       end do
+
+       !print *, "deriv_wrt2 = ", deriv_wrt
+
+       !if(any(deriv_wrt(start_z_index:end_z_index) == 0.0_dp)) then
+
+       !print *, "***************************************"
+       !print *, "***************************************"
+       !print *, "**********WARNING - DENOMINATOR ZERO***"
+       !print *, "***************************************"
+       !print *, "***************************************"
+       !print *, "deriv_wrt(start_z_index:end_z_index) = ", deriv_wrt(start_z_index:end_z_index)
+       !print *, ""
+       !print *, ""
+       !print *, ""
+       !   ratio_cation_end(start_z_index:end_z_index) = 1.0_dp
+       !   ratio_cation_nonend(start_z_index:end_z_index) = 1.0_dp
+       !   ratio_anion_end(start_z_index:end_z_index) = 1.0_dp
+       !   ratio_anion_nonend(start_z_index:end_z_index) = 1.0_dp
+       !else
+       ratio_cation_end(start_z_index:end_z_index) = ratio_cation_end(start_z_index:end_z_index) / deriv_wrt(start_z_index:end_z_index)
+       ratio_cation_nonend(start_z_index:end_z_index) = ratio_cation_nonend(start_z_index:end_z_index) / deriv_wrt(start_z_index:end_z_index)
+       ratio_anion_end(start_z_index:end_z_index) = ratio_anion_end(start_z_index:end_z_index) / deriv_wrt(start_z_index:end_z_index)
+       ratio_anion_nonend(start_z_index:end_z_index) = ratio_anion_nonend(start_z_index:end_z_index) / deriv_wrt(start_z_index:end_z_index)
+       !end if
+
+
+       calculate_hard_sphere_functional_deriv(start_z_index:end_z_index) = &
+            (ratio_cation_nonend(start_z_index:end_z_index) * &
+            GetYMix(n_mbar(start_z_index:end_z_index), n_sbar(start_z_index:end_z_index), 'm', r_cation)/(r_cation - num_end_monomers_cation) * &
+            (GetAEx(n_mbar(start_z_index:end_z_index), n_sbar(start_z_index:end_z_index), 2) - GetAEx(n_mbar(start_z_index:end_z_index), n_sbar(start_z_index:end_z_index), 1)))/beta + &
+                                !
+            (ratio_cation_end(start_z_index:end_z_index) * &
+            (1.0_dp / num_end_monomers_cation) * &
+            (GetAEx(n_mbar(start_z_index:end_z_index), n_sbar(start_z_index:end_z_index), 2)))/beta + &
+                                !
+            (n_cation_nonend(start_z_index:end_z_index) * &
+            GetYMix(n_mbar(start_z_index:end_z_index), n_sbar(start_z_index:end_z_index), 'm', r_cation)/(r_cation - num_end_monomers_cation) * &
+            (((4.0_dp * pi * (hs_diameter**3)/3.0_dp) * integrand2(start_z_index:end_z_index)) - &
+            ((4.0_dp * pi * (hs_diameter**3)/3.0_dp) * integrand1(start_z_index:end_z_index))))/beta + &
+                                !
+            (n_cation_end(start_z_index:end_z_index)/num_end_monomers_cation * &
+            ((4.0_dp * pi * (hs_diameter**3)/3.0_dp) * integrand2(start_z_index:end_z_index)))/beta + &
+                                !
+                                !Now we've done the cation, we can do the anion.
+                                !
+            (ratio_anion_nonend(start_z_index:end_z_index) * &
+            GetYMix(n_mbar(start_z_index:end_z_index), n_sbar(start_z_index:end_z_index), 'm', r_anion)/(r_anion - num_end_monomers_anion) * &
+            (GetAEx(n_mbar(start_z_index:end_z_index), n_sbar(start_z_index:end_z_index), 2) - GetAEx(n_mbar(start_z_index:end_z_index), n_sbar(start_z_index:end_z_index), 1)))/beta + &
+                                !
+            (ratio_anion_end(start_z_index:end_z_index) * &
+            (1.0_dp / num_end_monomers_anion) * &
+            (GetAEx(n_mbar(start_z_index:end_z_index), n_sbar(start_z_index:end_z_index), 2)))/beta + &
+                                !
+            (n_anion_nonend(start_z_index:end_z_index) * &
+            GetYMix(n_mbar(start_z_index:end_z_index), n_sbar(start_z_index:end_z_index), 'm', r_anion)/(r_anion - num_end_monomers_anion) * &
+            (((4.0_dp * pi * (hs_diameter**3)/3.0_dp) * integrand2(start_z_index:end_z_index)) - &
+            ((4.0_dp * pi * (hs_diameter**3)/3.0_dp) * integrand1(start_z_index:end_z_index))))/beta + &
+                                !
+            (n_anion_end(start_z_index:end_z_index)/num_end_monomers_anion * &
+            ((4.0_dp * pi * (hs_diameter**3)/3.0_dp) * integrand2(start_z_index:end_z_index)))/beta
+
+
+    end if
+
+    !print *, "calculate_hard_sphere_functional_deriv = ", calculate_hard_sphere_functional_deriv
+    !calculate_hard_sphere_functional_deriv = 0.0_dp
+
   end function calculate_hard_sphere_functional_deriv
 
 
@@ -388,6 +589,8 @@ contains
        !print *, calculate_electrostatic_like_term_functional_deriv
        !call abort()
 
+       calculate_electrostatic_like_term_functional_deriv(:) = 0.0_dp
+       
     else
        calculate_electrostatic_like_term_functional_deriv(:) = (-1.0_dp / (2.0_dp * epsilon0 * epsilonr)) * (charge**2) * &
             integrate_z_cylindrical(n, electrostatic_like_integrand, "all_z")

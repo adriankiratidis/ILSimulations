@@ -4,6 +4,7 @@ import matplotlib.pyplot as plt
 from pylab import *
 from matplotlib import rc
 import math
+import matplotlib
 
 #Here we make use of the python plotting library matplotlib.
 #Documentation can be found here http://matplotlib.org/
@@ -11,6 +12,8 @@ import math
 #Set the rc parameters to fix the font and allow tex to be used.
 plt.rc('text', usetex=True)
 plt.rc('font', family='serif')
+
+matplotlib.rcParams.update({'font.size': 17})
 
 #Read in the data from "data.txt".  This will read in the whole file 
 #and if necessary arrange the data into a rank 2 array.
@@ -28,14 +31,14 @@ plt.rc('font', family='serif')
 
 
 
-charges=["charge"]
-ELJ_wall=["100"]
+charges=["unequalcharge4-12"]
+ELJ_wall=[""]
 ELJ_wall_index=[""]
 
 for j in range(len(charges)):
    for i in range(len(ELJ_wall)):
-       data_contactthm2 = np.loadtxt("../run_results/compare_epsilonLJ/"+charges[j]+"/100-100_C4MIM_BF4--TESTING-NEW-HS12/testing"+ELJ_wall_index[i]+"-a2-normal-pressure-left-wall.txt")
-       data_negativederiv2 = np.loadtxt("../run_results/compare_epsilonLJ/"+charges[j]+"/100-100_C4MIM_BF4--TESTING-NEW-HS12/testing"+ELJ_wall_index[i]+"-a2-negative_deriv_of_potential.txt")
+       data_contactthm2 = np.loadtxt("../run_results/compare_epsilonLJ/"+charges[j]+"/35.51-88.78_C4MIM+_TFSI-_model1_plus_zero/testing6"+ELJ_wall_index[i]+"-a2-normal-pressure-left-wall.txt")
+       data_negativederiv2 = np.loadtxt("../run_results/compare_epsilonLJ/"+charges[j]+"/35.51-88.78_C4MIM+_TFSI-_model1_plus_zero/testing6"+ELJ_wall_index[i]+"-a2-negative_deriv_of_potential.txt")
 
        #data_negativederiv2 = np.loadtxt("../run_results/compare_epsilonLJ/"+charges[j]+"/100.0-"+ELJ_wall[i]+"_C4MIM_BF4-TESTING_OSCILLATION_COMPARE/testing"+ELJ_wall_index[i]+"-a2-negative_deriv_of_potential.txt")
 
@@ -87,10 +90,10 @@ for j in range(len(charges)):
        plt.plot(x_negativederiv[2:], y_negativederiv[2:],'gs',label='Pressure from derivative of potential')
        
        #Set the axis labels.  Labelpad option controls the spacing between actual axis and axis label.  The r option tells python to interpret as a raw string literal.
-       plt.xlabel(r"$z/\sigma$",labelpad=10)
-       plt.ylabel(r"${P_{int}}(N/m^2)$",labelpad=5)
+       plt.xlabel(r"$z/\sigma$",labelpad=10, fontsize=20)
+       plt.ylabel(r"${P_{int}}(N/m^2)$",labelpad=5, fontsize=20)
        
-       plt.ticklabel_format(style='sci', axis='y', scilimits=(0,0))
+       plt.ticklabel_format(style='sci', axis='y', scilimits=(0,0), fontsize=20)
     
        #Set the axis limits if you want to specify a region of interest.
        #The default is auto zoom.
@@ -112,7 +115,7 @@ for j in range(len(charges)):
        #Uncomment if title is required
        #plt.title(r"Some Title")
        
-       
+       savefig("Contact_theorem_for_paper_35.51-53.17-charge4-12_C10MIM+_TFSI-_model2.pdf",bbox_inches='tight')
        #savefig("Contact_theorem_35.51-"+ELJ_wall[0]+"-"+charges[j]+IL[i]+"_density1_a2.pdf",bbox_inches='tight')
        #savefig("Contact_theorem_35.51-"+ELJ_wall[i]+"-"+charges[j]+"_C4MIM+_TFSI-_model1_density2_plus_halfplus.pdf",bbox_inches='tight')
        #savefig("Contact_theorem_for_paper_35.51-"+ELJ_wall[i]+"-"+charges[j]+"_C10MIM+_TFSI-_model2.pdf",bbox_inches='tight')

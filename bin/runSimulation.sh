@@ -27,15 +27,15 @@ mica_density=0.10611173748 #Mica density in particles/angstrom^3
 #surface_charge_density_left_wall=-312500000000000000
 #surface_charge_density_right_wall=-312500000000000000
 #hs_diameter=0.00000000024
-surface_charge_density_left_wall=-0.003125
-surface_charge_density_right_wall=-0.003125
+surface_charge_density_left_wall=0.003125
+surface_charge_density_right_wall=0.003125
 hs_diameter=2.4
 a_term_index=2
 bulk_density=0.04475			# ( =n_{b} * [hs_diameter**3] )
 #bulk_density=0.01467			# ( =n_{b} * [hs_diameter**3] )
 #bulk_density=0.005			# ( =n_{b} * [hs_diameter**3] )
 temp=294.0			        #Temperature in Kelvin
-alpha_mixing_for_update=0.005
+alpha_mixing_for_update=0.05
 slope_for_initial_guess=0.000
 #slope_for_initial_guess=0.0000
 n_charge_iterations=1
@@ -103,7 +103,7 @@ done
 $test_file_stub
 EOF
 
-write_dir="./run_results/compare_epsilonLJ/charge/${Epsilon_LJ_particle_particle}-${Epsilon_LJ_particle_wall}_${ionic_liquid_name}-TESTING-NEW-HS12"
+write_dir="./run_results/compare_epsilonLJ/charge/${Epsilon_LJ_particle_particle}-${Epsilon_LJ_particle_wall}_${ionic_liquid_name}-TESTING-NEW-HS13"
 mkdir -p ${write_dir}
 mv ${test_file_stub}* ${write_dir}
 

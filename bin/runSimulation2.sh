@@ -32,6 +32,7 @@ surface_charge_density_right_wall=-0.003125
 hs_diameter=2.4
 a_term_index=2
 bulk_density=0.04475			# ( =n_{b} * [hs_diameter**3] )
+#bulk_density=0.01467                   # ( =n_{b} * [hs_diameter**3] ) 
 #bulk_density=0.005			# ( =n_{b} * [hs_diameter**3] )
 temp=294.0			        #Temperature in Kelvin
 alpha_mixing_for_update=0.005
@@ -47,7 +48,7 @@ max_iteration_limit=25000
 iterative_tolerance=0.0000000000001
 
 starting_plate_separation=2
-number_of_separations=680  #The number of plate separations we'll calculate.
+number_of_separations=480  #The number of plate separations we'll calculate.
 number_of_plate_separations_in_hs_diameter=40
 
 params_file=$test_file_stub.params
@@ -100,7 +101,7 @@ done
 $test_file_stub
 EOF
 
-write_dir="./run_results/compare_epsilonLJ/charge/${Epsilon_LJ_particle_particle}-${Epsilon_LJ_particle_wall}_${ionic_liquid_name}-COMPAREWITHPAPER2-HSDONE"
+write_dir="./run_results/compare_epsilonLJ/charge/${Epsilon_LJ_particle_particle}-${Epsilon_LJ_particle_wall}_${ionic_liquid_name}-TESTING-NEW-HS9"
 mkdir -p ${write_dir}
 mv ${test_file_stub}* ${write_dir}
 

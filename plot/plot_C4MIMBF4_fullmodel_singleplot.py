@@ -4,6 +4,7 @@ import matplotlib.pyplot as plt
 from pylab import *
 from matplotlib import rc
 import math
+import matplotlib
 
 #Here we make use of the python plotting library matplotlib.
 #Documentation can be found here http://matplotlib.org/
@@ -12,8 +13,9 @@ import math
 plt.rc('text', usetex=True)
 plt.rc('font', family='serif')
 
-separation = 4
-charge = 1
+matplotlib.rcParams.update({'font.size': 17})
+#separation = 4
+#charge = 1
 
 #Read in the data from "data.txt".  This will read in the whole file 
 #and if necessary arrange the data into a rank 2 array.
@@ -28,9 +30,9 @@ charge = 1
 #data_0 = np.loadtxt("../testing-n_" + charge + "_separation" + str(separation) + ".00000.txt")
 
         
-data_1 = np.loadtxt("../run_results/compare_epsilonLJ/charge/35.51-35.51_C2MIM+_TFSI-_model2TEST_plus_minus/testing7-a2-n_plus_separation4.00000charge1.txt")
-data_2 = np.loadtxt("../run_results/compare_epsilonLJ/charge/35.51-35.51_C2MIM+_TFSI-_model2TEST_plus_minus/testing7-a2-n_neutral_separation4.00000charge1.txt")
-data_3 = np.loadtxt("../run_results/compare_epsilonLJ/charge/35.51-35.51_C2MIM+_TFSI-_model2TEST_plus_minus/testing7-a2-n_minus_separation4.00000charge1.txt")
+data_1 = np.loadtxt("../run_results/compare_epsilonLJ/nocharge4-12/35.51-53.27_C10MIM+_TFSI-_model2/testing4-a2-n_plus_separation10.00000charge1.txt")
+data_2 = np.loadtxt("../run_results/compare_epsilonLJ/nocharge4-12/35.51-53.27_C10MIM+_TFSI-_model2/testing4-a2-n_neutral_separation10.00000charge1.txt")
+data_3 = np.loadtxt("../run_results/compare_epsilonLJ/nocharge4-12/35.51-53.27_C10MIM+_TFSI-_model2/testing4-a2-n_minus_separation10.00000charge1.txt")
 
 
 x_1 = data_1[:,0]
@@ -66,8 +68,8 @@ plt.plot(x_3,y_3,'rs',label=r'$n_{-}$')
 # plt.plot(x_9,y_9,'bD',label='iteration 9')
 
 #Set the axis labels.  Labelpad option controls the spacing between actual axis and axis label.  The r option tells python to interpret as a raw string literal.
-plt.xlabel(r"$z/\sigma$",labelpad=10)
-plt.ylabel(r"$n\sigma^{3}$",labelpad=5)
+plt.xlabel(r"$z/\sigma$",labelpad=10, fontsize=20)
+plt.ylabel(r"$n\sigma^{3}$",labelpad=5, fontsize=20)
 
 #Set the axis limits if you want to specify a region of interest.
 #The default is auto zoom.
@@ -89,8 +91,9 @@ plt.legend(loc='best',ncol=1, numpoints=1, frameon=False)
 #Uncomment if title is required
 #plt.title(r"Some Title")
 
+savefig("Single_density_plot_35.51-53.27-nocharge_C10MIM+_TFSI-_model2_density1_a2.pdf", bbox_inches='tight')
 #savefig("C4MIM_TFSI_model2-35.51-35.51-charge_a2_TEST.pdf",bbox_inches='tight')
-savefig("C2MIM+_TFSI-_35.51-35.51_model2_TEST_plus_minus.pdf",bbox_inches='tight')
+#savefig("C2MIM+_TFSI-_35.51-35.51_model2_TEST_plus_minus.pdf",bbox_inches='tight')
 
 #Open a window and show the plot
 plt.show()

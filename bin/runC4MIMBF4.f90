@@ -16,12 +16,12 @@ program runSingleSphere
 
   real(dp), dimension(:), allocatable :: n_plus_cation_end, n_neutral_cation_end, n_minus_cation_end
   real(dp), dimension(:), allocatable :: n_plus_cation_nonend, n_neutral_cation_nonend, n_minus_cation_nonend
-  
+
   real(dp), dimension(:), allocatable :: n_plus_anion_end, n_neutral_anion_end, n_minus_anion_end
   !Note:  The anion nonend contributions can be derived from n_plus_anion_nonend = n_plus - n_plus_anion_end - n_plus_cation_end - n_plus_cation_nonend
   !Note that in most cases all the positive beads will be on the cation, and negative beads on the anion.  Neutral beads may be on both.
   !But this is written generaly so as to allow positive beads on the anion and visa versa.
-  
+
   real(dp), dimension(:), allocatable :: grand_potential_per_unit_area, grand_potential_per_unit_area_in_bulk
   real(dp), dimension(:), allocatable :: normal_pressure_left_wall, normal_pressure_right_wall
   real(dp), dimension(:), allocatable :: negative_deriv_of_potential
@@ -85,7 +85,7 @@ program runSingleSphere
      print *, ""
      print *, "Initialising/ReInitialising Discretistion and setting integration ansatz."
      print *, "Doing this for the densities"
-     call InitialiseDensityDiscretisationAndSetIntegrationAnsatz(ith_separation, n_plus, n_neutral, n_minus, n_plus, n_plus_cation_end, n_neutral_cation_end, n_minus_cation_end, &
+     call InitialiseDensityDiscretisationAndSetIntegrationAnsatz(ith_separation, n_plus, n_neutral, n_minus, n_plus_cation_end, n_neutral_cation_end, n_minus_cation_end, &
           n_plus_cation_nonend, n_neutral_cation_nonend, n_minus_cation_nonend, n_plus_anion_end, n_neutral_anion_end, n_minus_anion_end)
 
      print *, "Initialise/ReInitialise Discretisation for all the temperary variables we need."
@@ -121,9 +121,10 @@ program runSingleSphere
            !print *, "n_plus integral = ", integrate_z_cylindrical(positive_bead_charge*n_plus, "all_z")
            !print *, "n_neutral integral = ", n_neutral_updated
            !print *, "n_minus integral = ", integrate_z_cylindrical(negative_bead_charge*n_minus, "all_z")
+           print *, "ITERATION**********************************************", iteration
 
            call CalculateLambdasDifference(lambda_plus, n_plus, lambda_neutral, n_neutral, lambda_minus, n_minus, n_plus_cation_end, n_neutral_cation_end, n_minus_cation_end, &
-          n_plus_cation_nonend, n_neutral_cation_nonend, n_minus_cation_nonend, n_plus_anion_end, n_neutral_anion_end, n_minus_anion_end, ith_separation)
+                n_plus_cation_nonend, n_neutral_cation_nonend, n_minus_cation_nonend, n_plus_anion_end, n_neutral_anion_end, n_minus_anion_end, ith_separation)
 
            !print *, "lambda_plus = ", lambda_plus
            !call abort()
@@ -133,9 +134,13 @@ program runSingleSphere
            !lambda_minus = 0.0_dp
 
 
-           !print * , "lambda_plus = ", lambda_plus
-           !print * , "lambda_neutral = ", lambda_neutral
-           !print * , "lambda_minus = ", lambda_minus
+           print *, "lambda_plus = ", lambda_plus
+           print *, ""
+           print *, "lambda_neutral = ", lambda_neutral
+           print *, ""
+           print *, "lambda_minus = ", lambda_minus
+           print *, ""
+           print *, "" 
            !call abort()
 
 
@@ -147,19 +152,52 @@ program runSingleSphere
            ! lambda_hs_nonend_cation(:) = 0.0_dp
            ! lambda_hs_end_anion(:) = 0.0_dp
            ! lambda_hs_nonend_anion(:) = 0.0_dp
-           
+
            ! n_hs_end_cation(:) = 0.0_dp
            ! n_hs_nonend_cation(:) = 0.0_dp
-           
+
            ! n_hs_end_anion(:) = 0.0_dp
            ! n_hs_nonend_anion(:) = 0.0_dp
-           
-           call UpdateDensities(n_plus, n_neutral, n_minus, lambda_plus, n_plus_updated, lambda_neutral, n_neutral_updated, lambda_minus, n_minus_updated, n_plus_cation_end, n_neutral_cation_end, n_minus_cation_end, &
-          n_plus_cation_nonend, n_neutral_cation_nonend, n_minus_cation_nonend, n_plus_anion_end, n_neutral_anion_end, n_minus_anion_end, n_Donnan_potential, iteration, abort_now)
+
+           call UpdateDensities(n_plus, n_neutral, n_minus, lambda_plus, n_plus_updated, lambda_neutral, n_neutral_updated, lambda_minus, n_minus_updated, n_plus_cation_end, &
+                n_neutral_cation_end, n_minus_cation_end, n_plus_cation_nonend, n_neutral_cation_nonend, n_minus_cation_nonend, n_plus_anion_end, n_neutral_anion_end, &
+                n_minus_anion_end, Donnan_potential, iteration, abort_now)
+
+
+           print *, "n_plus = ", n_plus
+           print *, ""
+           print *, "n_plus_updated = ", n_plus_updated
+           print *, ""
+
+           print *, "n_neutral = ", n_neutral
+           print *, ""
+           print *, "n_neutral_updated = ", n_neutral_updated
+           print *, ""
+
+           print *, "n_minus = ", n_minus
+           print *, ""
+           print *, "n_minus_updated = ", n_minus_updated
+           print *, ""
+
+           print *, "n_plus_cation_end = ", n_plus_cation_end
+           print *, ""
+           print *, "n_neutral_cation_end = ", n_neutral_cation_end
+           print *, ""
+           print *, "n_minus_cation_end = ", n_minus_cation_end
+           print *, ""
+
+           print *, "n_plus_cation_nonend = ", n_plus_cation_nonend
+           print *, ""
+           print *, "n_neutral_cation_nonend = ", n_neutral_cation_nonend
+           print *, ""
+           print *, "n_minus_cation_nonend = ", n_minus_cation_nonend
+           print *, ""
+           !call abort()
+
 
            !Found some problem, but still want to print what we've calculated so far.
            if(abort_now) exit
-          !print *, "2"
+           !print *, "2"
            !print *, "n_plus_updated = ", n_plus_updated
            !print *, "n_plus_updated integral = ", integrate_z_cylindrical(positive_bead_charge*n_plus_updated, "all_z")
            !print *, "n_neutral integral = ", n_neutral_updated
@@ -246,7 +284,7 @@ program runSingleSphere
               n_neutral_previous = n_neutral
               n_minus_previous = n_minus
 
-              if(iteration < 3000) then
+              if(iteration < 50000) then
                  do ij = 1, size(n_plus)
                     if(n_plus_updated(ij) .gt. n_plus(ij)) then
                        intermediate = 2*n_plus(ij) - (n_plus(ij)**2)/n_plus_updated(ij)
@@ -299,7 +337,8 @@ program runSingleSphere
 
      print *, "Calculating grand potential per unit area value."
      call CalculateGrandPotentialValuePerUnitArea(ith_separation, grand_potential_per_unit_area(ith_separation), &
-          size(n_neutral_updated), n_plus_updated, n_neutral_updated, n_minus_updated, n_hs_end_cation, n_hs_nonend_cation, n_hs_end_anion, n_hs_nonend_anion, Donnan_potential)
+          size(n_neutral_updated), n_plus_updated, n_neutral_updated, n_minus_updated, n_plus_cation_end, n_neutral_cation_end, n_minus_cation_end, &
+          n_plus_cation_nonend, n_neutral_cation_nonend, n_minus_cation_nonend, n_plus_anion_end, n_neutral_anion_end, n_minus_anion_end, Donnan_potential)
 
      print *, "Calculating normal pressure from the contact theorem"
      call CalculateNormalPressureFromContactTheorem(n_plus_updated, n_neutral_updated, n_minus_updated, &

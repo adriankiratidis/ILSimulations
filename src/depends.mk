@@ -9,7 +9,7 @@ iteration.o: kinds.o parameters.o
 lambdas.o: kinds.o parameters.o helpers.o functionalderivatives.o
 normalisation.o: kinds.o lambdas.o helpers.o parameters.o
 surfaceforces.o: kinds.o integratezcylindrical.o parameters.o lambdas.o helpers.o functionalderivatives.o constructoligomers.o excessenergyfunctionalparameters.o
-functionalderivatives.o: kinds.o universalconstants.o parameters.o helpers.o integratezcylindrical.o io.o excessenergyfunctionalparameters.o
+functionalderivatives.o: kinds.o universalconstants.o parameters.o helpers.o integratezcylindrical.o io.o excessenergyfunctionalparameters.o discretederivatives.o
 constructoligomers.o: kinds.o integratephispherical.o parameters.o normalisation.o integratezcylindrical.o helpers.o lambdas.o charge.o functionalderivatives.o
 contacttheorem.o: kinds.o helpers.o parameters.o discretederivatives.o functionalderivatives.o
 discretederivatives.o: kinds.o parameters.o

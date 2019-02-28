@@ -84,8 +84,10 @@ module constructoligomers
 
 
 contains
-
-  subroutine UpdateDensities(n1, n2, n3, lambda1, n1_updated, lambda2, n2_updated, lambda3, n3_updated, n_plus_end, n_neutral_end, n_minus_end, Donnan_potential, iteration, abort_now)
+  
+  subroutine UpdateDensities(n1, n2, n3, lambda1, n1_updated, lambda2, n2_updated, lambda3, n3_updated, n_plus_cation_end, n_neutral_cation_end, &
+       n_minus_cation_end, n_plus_cation_nonend, n_neutral_cation_nonend, n_minus_cation_nonend, n_plus_anion_end, n_neutral_anion_end, n_minus_anion_end, &
+       Donnan_potential, iteration, abort_now)
     real(dp), dimension(:), intent(in) :: n1
     real(dp), dimension(:), intent(in) :: n2
     real(dp), dimension(:), intent(in) :: n3
@@ -99,20 +101,31 @@ contains
     real(dp), dimension(:), intent(in), optional :: lambda3
     real(dp), dimension(:), intent(out), optional :: n3_updated
 
-    !Need to store both the cation and the anion as there are terms for each in the hs functional
-    
-    real(dp), dimension(:), intent(in) :: lambda_hs_end_cation
-    real(dp), dimension(:), intent(out) :: n_hs_end_cation
+    real(dp), dimension(:), intent(out) :: n_plus_cation_end
+    real(dp), dimension(:), intent(out) :: n_neutral_cation_end
+    real(dp), dimension(:), intent(out) :: n_minus_cation_end
+    real(dp), dimension(:), intent(out) :: n_plus_cation_nonend
+    real(dp), dimension(:), intent(out) :: n_neutral_cation_nonend
+    real(dp), dimension(:), intent(out) :: n_minus_cation_nonend
+    real(dp), dimension(:), intent(out) :: n_plus_anion_end
+    real(dp), dimension(:), intent(out) :: n_neutral_anion_end
+    real(dp), dimension(:), intent(out) :: n_minus_anion_end
 
-    real(dp), dimension(:), intent(in) :: lambda_hs_nonend_cation
-    real(dp), dimension(:), intent(out) :: n_hs_nonend_cation
-    
-    real(dp), dimension(:), intent(in) :: lambda_hs_end_anion
-    real(dp), dimension(:), intent(out) :: n_hs_end_anion
 
-    real(dp), dimension(:), intent(in) :: lambda_hs_nonend_anion
-    real(dp), dimension(:), intent(out) :: n_hs_nonend_anion
-    
+
+    !!Need to store both the cation and the anion as there are terms for each in the hs functional    
+    ! real(dp), dimension(:), intent(in) :: lambda_hs_end_cation
+    ! real(dp), dimension(:), intent(out) :: n_hs_end_cation
+
+    ! real(dp), dimension(:), intent(in) :: lambda_hs_nonend_cation
+    ! real(dp), dimension(:), intent(out) :: n_hs_nonend_cation
+
+    ! real(dp), dimension(:), intent(in) :: lambda_hs_end_anion
+    ! real(dp), dimension(:), intent(out) :: n_hs_end_anion
+
+    ! real(dp), dimension(:), intent(in) :: lambda_hs_nonend_anion
+    ! real(dp), dimension(:), intent(out) :: n_hs_nonend_anion
+
     real(dp) :: Donnan_potential
     integer :: iteration
     logical :: abort_now
@@ -121,6 +134,16 @@ contains
     integer :: ij
 
     real(dp) :: Donnan_potential_previous
+
+    n_plus_cation_end(:) = 0.0_dp
+    n_neutral_cation_end(:) = 0.0_dp
+    n_minus_cation_end(:) = 0.0_dp
+    n_plus_cation_nonend(:) = 0.0_dp
+    n_neutral_cation_nonend(:) = 0.0_dp
+    n_minus_cation_nonend(:) = 0.0_dp
+    n_plus_anion_end(:) = 0.0_dp
+    n_neutral_anion_end(:) = 0.0_dp
+    n_minus_anion_end(:) = 0.0_dp
 
     if(trim(ionic_liquid_name) == "SingleNeutralSpheres") then
 
@@ -274,22 +297,34 @@ contains
           print *, "coding error...aborting..."
           call abort()
        else
-          
-          call UpdateC4MIMBF4PositiveBeadDensities(lambda1, lambda2, n1_updated, lambda_hs_end_cation, n_hs_end_cation, lambda_hs_nonend_cation, n_hs_nonend_cation)
-          call UpdateC4MIMBF4NeutralBeadDensities(lambda1, lambda2, n2_updated, lambda_hs_end_cation, n_hs_end_cation, lambda_hs_nonend_cation, n_hs_nonend_cation)
-          call UpdateC4MIMBF4NegativeBeadDensities(lambda3, n3_updated, lambda_hs_end_anion, n_hs_end_anion, lambda_hs_nonend_anion, n_hs_nonend_anion)
+
+          call UpdateC4MIMBF4PositiveBeadDensities(lambda1, lambda2, n1_updated, n_plus_cation_end, n_plus_cation_nonend)
+          call UpdateC4MIMBF4NeutralBeadDensities(lambda1, lambda2, n2_updated, n_neutral_cation_end, n_neutral_cation_nonend)
+          call UpdateC4MIMBF4NegativeBeadDensities(lambda3, n3_updated, n_minus_anion_end)
 
           Donnan_potential_previous = Donnan_potential
           n1_updated = n1_updated*exp(beta*Donnan_potential*positive_oligomer_charge)
           n2_updated = n2_updated*exp(beta*Donnan_potential*positive_oligomer_charge)
           n3_updated = n3_updated*exp(beta*Donnan_potential*negative_oligomer_charge)
-
+          
+          n_plus_cation_end = n_plus_cation_end*exp(beta*Donnan_potential*positive_oligomer_charge)
+          n_plus_cation_nonend = n_plus_cation_nonend*exp(beta*Donnan_potential*positive_oligomer_charge)
+          n_neutral_cation_end = n_neutral_cation_end*exp(beta*Donnan_potential*positive_oligomer_charge)
+          n_neutral_cation_nonend = n_neutral_cation_nonend*exp(beta*Donnan_potential*positive_oligomer_charge)
+          n_minus_anion_end = n_minus_anion_end*exp(beta*Donnan_potential*negative_oligomer_charge)
+          
           call CalculateDonnanPotential(n1_updated, n3_updated, Donnan_potential, abort_now)
 
           n1_updated = n1_updated*exp(beta*Donnan_potential*positive_oligomer_charge)
           n2_updated = n2_updated*exp(beta*Donnan_potential*positive_oligomer_charge)
           n3_updated = n3_updated*exp(beta*Donnan_potential*negative_oligomer_charge)
 
+          n_plus_cation_end = n_plus_cation_end*exp(beta*Donnan_potential*positive_oligomer_charge)
+          n_plus_cation_nonend = n_plus_cation_nonend*exp(beta*Donnan_potential*positive_oligomer_charge)
+          n_neutral_cation_end = n_neutral_cation_end*exp(beta*Donnan_potential*positive_oligomer_charge)
+          n_neutral_cation_nonend = n_neutral_cation_nonend*exp(beta*Donnan_potential*positive_oligomer_charge)
+          n_minus_anion_end = n_minus_anion_end*exp(beta*Donnan_potential*negative_oligomer_charge)
+          
           Donnan_potential = Donnan_potential + Donnan_potential_previous
 
 
@@ -308,7 +343,7 @@ contains
        else
           call UpdateC2MIMBF4PositiveBeadDensities(lambda1, lambda2, n1_updated)
           call UpdateC2MIMBF4NeutralBeadDensities(lambda1, lambda2, n2_updated)
-          call UpdateC4MIMBF4NegativeBeadDensities(lambda3, n3_updated, lambda_hs_end_anion, n_hs_end_anion, lambda_hs_nonend_anion, n_hs_nonend_anion)
+          call UpdateC4MIMBF4NegativeBeadDensities(lambda3, n3_updated, n_minus_anion_end)
 
           Donnan_potential_previous = Donnan_potential
           n1_updated = n1_updated*exp(beta*Donnan_potential*positive_oligomer_charge)
@@ -338,7 +373,7 @@ contains
        else
           call UpdateC6MIMBF4PositiveBeadDensities(lambda1, lambda2, n1_updated)
           call UpdateC6MIMBF4NeutralBeadDensities(lambda1, lambda2, n2_updated)
-          call UpdateC4MIMBF4NegativeBeadDensities(lambda3, n3_updated, lambda_hs_end_anion, n_hs_end_anion, lambda_hs_nonend_anion, n_hs_nonend_anion)
+          call UpdateC4MIMBF4NegativeBeadDensities(lambda3, n3_updated, n_minus_anion_end)
 
           Donnan_potential_previous = Donnan_potential
           n1_updated = n1_updated*exp(beta*Donnan_potential*positive_oligomer_charge)
@@ -368,7 +403,7 @@ contains
        else
           call UpdateC8MIMBF4PositiveBeadDensities(lambda1, lambda2, n1_updated)
           call UpdateC8MIMBF4NeutralBeadDensities(lambda1, lambda2, n2_updated)
-          call UpdateC4MIMBF4NegativeBeadDensities(lambda3, n3_updated, lambda_hs_end_anion, n_hs_end_anion, lambda_hs_nonend_anion, n_hs_nonend_anion)
+          call UpdateC4MIMBF4NegativeBeadDensities(lambda3, n3_updated, n_minus_anion_end)
 
           Donnan_potential_previous = Donnan_potential
           n1_updated = n1_updated*exp(beta*Donnan_potential*positive_oligomer_charge)
@@ -398,7 +433,7 @@ contains
        else
           call UpdateC10MIMBF4PositiveBeadDensities(lambda1, lambda2, n1_updated)
           call UpdateC10MIMBF4NeutralBeadDensities(lambda1, lambda2, n2_updated)
-          call UpdateC4MIMBF4NegativeBeadDensities(lambda3, n3_updated, lambda_hs_end_anion, n_hs_end_anion, lambda_hs_nonend_anion, n_hs_nonend_anion)
+          call UpdateC4MIMBF4NegativeBeadDensities(lambda3, n3_updated, n_minus_anion_end)
 
           Donnan_potential_previous = Donnan_potential
           n1_updated = n1_updated*exp(beta*Donnan_potential*positive_oligomer_charge)
@@ -537,7 +572,7 @@ contains
           print *, "coding error...aborting..."
           call abort()
        else
-          call UpdateC4MIMBF4PositiveBeadDensities(lambda1, lambda2, n1_updated, lambda_hs_end_cation, n_hs_end_cation, lambda_hs_nonend_cation, n_hs_nonend_cation)
+          call UpdateC4MIMBF4PositiveBeadDensities(lambda1, lambda2, n1_updated, n_plus_cation_end, n_plus_cation_nonend)
           call UpdateC4MIMTFSINegativeBeadDensities_model1(lambda2, lambda3, n3_updated)
 
 
@@ -597,7 +632,7 @@ contains
           print *, "coding error...aborting..."
           call abort()
        else
-          call UpdateC4MIMBF4PositiveBeadDensities(lambda1, lambda2, n1_updated, lambda_hs_end_cation, n_hs_end_cation, lambda_hs_nonend_cation, n_hs_nonend_cation)
+          call UpdateC4MIMBF4PositiveBeadDensities(lambda1, lambda2, n1_updated, n_plus_cation_end, n_plus_cation_nonend)
           call UpdateC4MIMTFSINegativeBeadDensities_model2(lambda2, lambda3, n3_updated)
 
           !if(iteration > 1) then
@@ -618,7 +653,7 @@ contains
 
        end if
 
-       
+
     else if(trim(ionic_liquid_name) == "C2MIM+_TFSI-_model2") then
 
        if( (.not. present(lambda2)) .or. (.not. present(n2_updated)) .or. &
@@ -727,7 +762,7 @@ contains
 
        end if
 
-       
+
     else
 
        print *, "constructoligomers.f90: UpdateDensities: "
@@ -1020,16 +1055,14 @@ contains
   end subroutine UpdatePositiveNeutralDoubleDimerMinusDimerDensities
 
 
-  subroutine UpdateC4MIMBF4PositiveBeadDensities(lambda_plus, lambda_neutral, n_plus_updated, lambda_hs_end_cation, n_hs_end_cation, lambda_hs_nonend_cation, n_hs_nonend_cation)
+  subroutine UpdateC4MIMBF4PositiveBeadDensities(lambda_plus, lambda_neutral, n_plus_updated, n_plus_cation_end, n_plus_cation_nonend)
     real(dp), dimension(:), intent(in) :: lambda_plus
     real(dp), dimension(:), intent(in) :: lambda_neutral
     real(dp), dimension(:), intent(out) :: n_plus_updated
 
-    real(dp), dimension(:) :: lambda_hs_end_cation
-    real(dp), dimension(:), intent(out) :: n_hs_end_cation
-    real(dp), dimension(:) :: lambda_hs_nonend_cation
-    real(dp), dimension(:), intent(out) :: n_hs_nonend_cation
-
+    real(dp), dimension(:), intent(out) :: n_plus_cation_end
+    real(dp), dimension(:), intent(out) :: n_plus_cation_nonend
+    
     real(dp), dimension(size(lambda_plus)) :: c8c1, c9c10, c7, c6, c5, c4, c2, c3p, c3pp, c3ppp
     integer :: array_size
     integer :: ij
@@ -1061,28 +1094,28 @@ contains
     !lambda_hs_end_cation = 0.0_dp
     !lambda_hs_nonend_cation = 0.0_dp
     
-    !print *, "lambda_plus + lambda_hs_end_cation"
-    !print *, lambda_plus + lambda_hs_end_cation
+    !print *, "lambda_plus"
+    !print *, lambda_plus
 
-    c9c10 = integrate_phi_spherical(exp(lambda_plus + lambda_hs_end_cation))
+    c9c10 = integrate_phi_spherical(exp(lambda_plus))
 
-    c8c1 = integrate_phi_spherical(exp(lambda_neutral + lambda_hs_end_cation))
+    c8c1 = integrate_phi_spherical(exp(lambda_neutral))
 
-    c7 = integrate_phi_spherical(exp(lambda_neutral + lambda_hs_nonend_cation) * c8c1)
+    c7 = integrate_phi_spherical(exp(lambda_neutral) * c8c1)
 
-    c6 = integrate_phi_spherical(exp(lambda_neutral + lambda_hs_nonend_cation) * c7)
+    c6 = integrate_phi_spherical(exp(lambda_neutral) * c7)
 
-    c5 = integrate_phi_spherical(exp(lambda_neutral + lambda_hs_nonend_cation) * c6)
+    c5 = integrate_phi_spherical(exp(lambda_neutral) * c6)
 
-    c4 = integrate_phi_spherical(exp(lambda_plus + lambda_hs_nonend_cation) * c5)
+    c4 = integrate_phi_spherical(exp(lambda_plus) * c5)
 
-    c3p = integrate_phi_spherical(exp(lambda_plus + lambda_hs_nonend_cation) * c4 * c9c10 * c9c10)
+    c3p = integrate_phi_spherical(exp(lambda_plus) * c4 * c9c10 * c9c10)
 
-    c2 = integrate_phi_spherical(exp(lambda_plus + lambda_hs_nonend_cation) * c8c1)
+    c2 = integrate_phi_spherical(exp(lambda_plus) * c8c1)
 
-    c3pp = integrate_phi_spherical(exp(lambda_plus + lambda_hs_nonend_cation) * c4 * c2 * c9c10)
+    c3pp = integrate_phi_spherical(exp(lambda_plus) * c4 * c2 * c9c10)
 
-    c3ppp = integrate_phi_spherical(exp(lambda_plus + lambda_hs_nonend_cation) * c2 * c9c10 * c9c10)
+    c3ppp = integrate_phi_spherical(exp(lambda_plus) * c2 * c9c10 * c9c10)
 
 
     !print *, 
@@ -1102,22 +1135,24 @@ contains
 
     !Calculate the resulting positive bead densities.
     !n_plus_updated = nc2 + nc3 + nc4 + nc9 + nc10 =  nc2 + nc3 + nc4 + 2*nc9
-    n_plus_updated = bulk_density * ( (exp(lambda_plus + lambda_hs_nonend_cation) * c8c1 * c3p) + (exp(lambda_plus + lambda_hs_nonend_cation) * c2 * c9c10 * c9c10 * c4) + &
-         (exp(lambda_plus + lambda_hs_nonend_cation) * c3ppp * c5) + (2.0_dp * (exp(lambda_plus + lambda_hs_end_cation) * c3pp)) )
+    n_plus_updated = bulk_density * ( (exp(lambda_plus) * c8c1 * c3p) + (exp(lambda_plus) * c2 * c9c10 * c9c10 * c4) + &
+         (exp(lambda_plus) * c3ppp * c5) + (2.0_dp * (exp(lambda_plus) * c3pp)) )
 
     !print *, "n_plus_updated", n_plus_updated(40)
     !call abort()
     !Now calculate the end and nonend densities for the hs term
-    n_hs_end_cation = n_hs_end_cation +  bulk_density * ( (2.0_dp * (exp(lambda_plus + lambda_hs_end_cation) * c3pp)) )
+    n_plus_cation_end = n_plus_cation_end +  bulk_density * ( (2.0_dp * (exp(lambda_plus) * c3pp)) )
 
-    n_hs_nonend_cation = n_hs_nonend_cation + bulk_density * ( (exp(lambda_plus + lambda_hs_nonend_cation) * c8c1 * c3p) + &
-         (exp(lambda_plus + lambda_hs_nonend_cation) * c2 * c9c10 * c9c10 * c4) + (exp(lambda_plus + lambda_hs_nonend_cation) * c3ppp * c5) )
+    n_plus_cation_nonend = n_plus_cation_nonend + bulk_density * ( (exp(lambda_plus) * c8c1 * c3p) + &
+         (exp(lambda_plus) * c2 * c9c10 * c9c10 * c4) + (exp(lambda_plus) * c3ppp * c5) )
 
     !do ij = 1, (size(n_plus_updated) - 1)/2
     !   n_plus_updated(ij) = n_plus_updated(size(n_plus_updated) - ij + 1)
     !end do
 
     call setNonCalculatedRegionToZero(n_plus_updated)
+    call setNonCalculatedRegionToZero(n_plus_cation_end)
+    call setNonCalculatedRegionToZero(n_plus_cation_nonend)
 
   end subroutine UpdateC4MIMBF4PositiveBeadDensities
 
@@ -1377,15 +1412,13 @@ contains
   end subroutine UpdateC10MIMBF4PositiveBeadDensities
 
 
-  subroutine UpdateC4MIMBF4NeutralBeadDensities(lambda_plus, lambda_neutral, n_neutral_updated, lambda_hs_end_cation, n_hs_end_cation, lambda_hs_nonend_cation, n_hs_nonend_cation)
+  subroutine UpdateC4MIMBF4NeutralBeadDensities(lambda_plus, lambda_neutral, n_neutral_updated, n_neutral_cation_end, n_neutral_cation_nonend)
     real(dp), dimension(:), intent(in) :: lambda_plus
     real(dp), dimension(:), intent(in) :: lambda_neutral
     real(dp), dimension(:), intent(out) :: n_neutral_updated
 
-    real(dp), dimension(:), intent(in) :: lambda_hs_end_cation
-    real(dp), dimension(:), intent(out) :: n_hs_end_cation
-    real(dp), dimension(:), intent(in) :: lambda_hs_nonend_cation
-    real(dp), dimension(:), intent(out) :: n_hs_nonend_cation
+    real(dp), dimension(:), intent(out) :: n_neutral_cation_end
+    real(dp), dimension(:), intent(out) :: n_neutral_cation_nonend
 
     real(dp), dimension(size(lambda_plus)) :: c3p, c3ppp, c9c10, c8c1, c7, c6, c5, c4, c2 !contributions also used in +ve beads.
     real(dp), dimension(size(lambda_plus)) :: c2p, c4p, c5p, c6p, c7p !extra contributions for -ve beads.
@@ -1402,63 +1435,61 @@ contains
        call abort()
     end if
 
-    c9c10 = integrate_phi_spherical(exp(lambda_plus + lambda_hs_end_cation))
+    c9c10 = integrate_phi_spherical(exp(lambda_plus))
 
-    c8c1 = integrate_phi_spherical(exp(lambda_neutral + lambda_hs_end_cation))
+    c8c1 = integrate_phi_spherical(exp(lambda_neutral))
 
-    c7 = integrate_phi_spherical(exp(lambda_neutral + lambda_hs_nonend_cation) * c8c1)
+    c7 = integrate_phi_spherical(exp(lambda_neutral) * c8c1)
 
-    c6 = integrate_phi_spherical(exp(lambda_neutral + lambda_hs_nonend_cation) * c7)
+    c6 = integrate_phi_spherical(exp(lambda_neutral) * c7)
 
-    c5 = integrate_phi_spherical(exp(lambda_neutral + lambda_hs_nonend_cation) * c6)
+    c5 = integrate_phi_spherical(exp(lambda_neutral) * c6)
 
-    c4 = integrate_phi_spherical(exp(lambda_plus + lambda_hs_nonend_cation) * c5)
+    c4 = integrate_phi_spherical(exp(lambda_plus) * c5)
 
-    c2 = integrate_phi_spherical(exp(lambda_plus + lambda_hs_nonend_cation) * c8c1)
+    c2 = integrate_phi_spherical(exp(lambda_plus) * c8c1)
 
-    c3p = integrate_phi_spherical(exp(lambda_plus + lambda_hs_nonend_cation) * c4 * c9c10 * c9c10)
+    c3p = integrate_phi_spherical(exp(lambda_plus) * c4 * c9c10 * c9c10)
 
-    c3ppp = integrate_phi_spherical(exp(lambda_plus + lambda_hs_nonend_cation) * c2 * c9c10 * c9c10)
+    c3ppp = integrate_phi_spherical(exp(lambda_plus) * c2 * c9c10 * c9c10)
 
-    c2p = integrate_phi_spherical(exp(lambda_plus + lambda_hs_nonend_cation) * c3p)
+    c2p = integrate_phi_spherical(exp(lambda_plus) * c3p)
 
-    c4p = integrate_phi_spherical(exp(lambda_plus + lambda_hs_nonend_cation) * c3ppp)
+    c4p = integrate_phi_spherical(exp(lambda_plus) * c3ppp)
 
-    c5p = integrate_phi_spherical(exp(lambda_neutral + lambda_hs_nonend_cation) * c4p)
+    c5p = integrate_phi_spherical(exp(lambda_neutral) * c4p)
 
-    c6p = integrate_phi_spherical(exp(lambda_neutral + lambda_hs_nonend_cation) * c5p)
+    c6p = integrate_phi_spherical(exp(lambda_neutral) * c5p)
 
-    c7p = integrate_phi_spherical(exp(lambda_neutral + lambda_hs_nonend_cation) * c6p)
+    c7p = integrate_phi_spherical(exp(lambda_neutral) * c6p)
 
     !Calculate the resulting neutral bead densities.
     !n_zero_updated = nc1 + nc5 + nc6 + nc7 + nc8
-    n_neutral_updated = bulk_density * ( (exp(lambda_neutral + lambda_hs_end_cation) * c2p) + (exp(lambda_neutral + lambda_hs_nonend_cation) * c4p * c6) + &
-         (exp(lambda_neutral + lambda_hs_nonend_cation) * c5p * c7) + (exp(lambda_neutral + lambda_hs_nonend_cation) * c6p * c8c1) + (exp(lambda_neutral + lambda_hs_end_cation) * c7p) )
+    n_neutral_updated = bulk_density * ( (exp(lambda_neutral) * c2p) + (exp(lambda_neutral) * c4p * c6) + &
+         (exp(lambda_neutral) * c5p * c7) + (exp(lambda_neutral) * c6p * c8c1) + (exp(lambda_neutral) * c7p) )
 
     !Now update the hs contribution for the cation end and nonend beads from the neutral beads.
-    n_hs_end_cation = n_hs_end_cation + bulk_density * ( (exp(lambda_neutral + lambda_hs_end_cation) * c2p) + (exp(lambda_neutral + lambda_hs_end_cation) * c7p) )
-    
-    n_hs_nonend_cation = n_hs_nonend_cation + bulk_density * ( (exp(lambda_neutral + lambda_hs_nonend_cation) * c4p * c6) + &
-         (exp(lambda_neutral + lambda_hs_nonend_cation) * c5p * c7) + (exp(lambda_neutral + lambda_hs_nonend_cation) * c6p * c8c1) )
+    n_neutral_cation_end = n_neutral_cation_end + bulk_density * ( (exp(lambda_neutral) * c2p) + (exp(lambda_neutral) * c7p) )
+
+    n_neutral_cation_nonend = n_neutral_cation_nonend + bulk_density * ( (exp(lambda_neutral) * c4p * c6) + &
+         (exp(lambda_neutral) * c5p * c7) + (exp(lambda_neutral) * c6p * c8c1) )
 
     ! do ij = 1, (size(n_neutral_updated) - 1)/2
     !    n_neutral_updated(ij) = n_neutral_updated(size(n_neutral_updated) - ij + 1)
     ! end do
 
-
     call setNonCalculatedRegionToZero(n_neutral_updated)
+    call setNonCalculatedRegionToZero(n_neutral_cation_end)
+    call setNonCalculatedRegionToZero(n_neutral_cation_nonend)
 
   end subroutine UpdateC4MIMBF4NeutralBeadDensities
 
 
-  subroutine UpdateC4MIMBF4NegativeBeadDensities(lambda_minus, n_minus_updated, lambda_hs_end_anion, n_hs_end_anion, lambda_hs_nonend_anion, n_hs_nonend_anion)
+  subroutine UpdateC4MIMBF4NegativeBeadDensities(lambda_minus, n_minus_updated, n_minus_anion_end)
     real(dp), dimension(:), intent(in) :: lambda_minus
     real(dp), dimension(:), intent(out) :: n_minus_updated
 
-    real(dp), dimension(:), intent(in) :: lambda_hs_end_anion
-    real(dp), dimension(:), intent(out) :: n_hs_end_anion
-    real(dp), dimension(:), intent(in) :: lambda_hs_nonend_anion
-    real(dp), dimension(:), intent(out) :: n_hs_nonend_anion
+    real(dp), dimension(:), intent(out) :: n_minus_anion_end
 
     real(dp), dimension(size(lambda_minus)) :: a1a2a3a4, a5p
     integer :: array_size
@@ -1474,23 +1505,22 @@ contains
 
     
     !Calculate the required contributions for the anion
-    a1a2a3a4 = integrate_phi_spherical(exp(lambda_minus + lambda_hs_end_anion))
+    a1a2a3a4 = integrate_phi_spherical(exp(lambda_minus))
     
-    a5p = integrate_phi_spherical(exp(lambda_minus + lambda_hs_nonend_anion) * (a1a2a3a4 ** 3.0_dp))
+    a5p = integrate_phi_spherical(exp(lambda_minus) * (a1a2a3a4 ** 3.0_dp))
 
     !Calculate the resulting negative bead densities.
     !n_minus_updated = na1 + na2 + na3 + na4 + na5 = 4*na1 + na5
-    n_minus_updated = bulk_density * ( 4.0_dp*(exp(lambda_minus + lambda_hs_end_anion) * a5p) + (exp(lambda_minus + lambda_hs_nonend_anion) * (a1a2a3a4**4.0_dp)) )
+    n_minus_updated = bulk_density * ( 4.0_dp*(exp(lambda_minus) * a5p) + (exp(lambda_minus) * (a1a2a3a4**4.0_dp)) )
 
-    n_hs_end_anion = n_hs_end_anion + bulk_density * ( 4.0_dp*(exp(lambda_minus + lambda_hs_end_anion) * a5p) )
-    n_hs_nonend_anion = n_hs_nonend_anion + bulk_density * ( (exp(lambda_minus + lambda_hs_nonend_anion) * (a1a2a3a4**4.0_dp)) )
+    n_minus_anion_end = n_minus_anion_end + bulk_density * ( 4.0_dp*(exp(lambda_minus) * a5p) )
     
     ! do ij = 1, (size(n_minus_updated) - 1)/2
     !    n_minus_updated(ij) = n_minus_updated(size(n_minus_updated) - ij + 1)
     ! end do
 
     call setNonCalculatedRegionToZero(n_minus_updated)
-
+    call setNonCalculatedRegionToZero(n_minus_anion_end)
 
   end subroutine UpdateC4MIMBF4NegativeBeadDensities
 
@@ -3112,15 +3142,10 @@ contains
   end function calculate_PositiveNeutralDoubleDimerMinusDimer_ideal_chain_term
 
 
-  function calculate_C4MIMBF4_ideal_chain_term(lambda_plus, lambda_neutral, lambda_minus, lambda_hs_end_cation, lambda_hs_nonend_cation, lambda_hs_end_anion, lambda_hs_nonend_anion, Donnan_potential)
+  function calculate_C4MIMBF4_ideal_chain_term(lambda_plus, lambda_neutral, lambda_minus, Donnan_potential)
     real(dp), dimension(:), intent(in) :: lambda_plus
     real(dp), dimension(:), intent(in) :: lambda_neutral
     real(dp), dimension(:), intent(in) :: lambda_minus
-
-    real(dp), dimension(:), intent(in) :: lambda_hs_end_cation
-    real(dp), dimension(:), intent(in) :: lambda_hs_nonend_cation
-    real(dp), dimension(:), intent(in) :: lambda_hs_end_anion
-    real(dp), dimension(:), intent(in) :: lambda_hs_nonend_anion
 
     real(dp), intent(in) :: Donnan_potential
 
@@ -3156,41 +3181,41 @@ contains
        call abort()
     end if
 
-    a1234 = integrate_phi_spherical(exp(lambda_minus + lambda_hs_end_anion))
-    a1234_lambda = integrate_phi_spherical(exp(lambda_minus + lambda_hs_end_anion) * (lambda_minus + lambda_hs_end_anion))
+    a1234 = integrate_phi_spherical(exp(lambda_minus))
+    a1234_lambda = integrate_phi_spherical(exp(lambda_minus) * (lambda_minus))
 
-    anion_integrand = ( 4.0_dp*(a1234**3) * a1234_lambda ) + (a1234**4)*(log(bulk_density) - 1.0_dp + (beta*Donnan_potential*negative_oligomer_charge)) + ((a1234**4)*(lambda_minus+lambda_hs_nonend_anion))
-    anion_contribution = (bulk_density/beta) * integrate_z_cylindrical(exp(lambda_minus + lambda_hs_nonend_anion) * anion_integrand, unity_function)*exp(beta*Donnan_potential*negative_oligomer_charge)
+    anion_integrand = ( 4.0_dp*(a1234**3) * a1234_lambda ) + (a1234**4)*(log(bulk_density) - 1.0_dp + (beta*Donnan_potential*negative_oligomer_charge)) + ((a1234**4)*(lambda_minus))
+    anion_contribution = (bulk_density/beta) * integrate_z_cylindrical(exp(lambda_minus) * anion_integrand, unity_function)*exp(beta*Donnan_potential*negative_oligomer_charge)
 
-    c8 = integrate_phi_spherical(exp(lambda_neutral + lambda_hs_end_cation))
-    c8_lambda = integrate_phi_spherical(exp(lambda_neutral + lambda_hs_end_cation) * (lambda_neutral + lambda_hs_end_cation))
+    c8 = integrate_phi_spherical(exp(lambda_neutral))
+    c8_lambda = integrate_phi_spherical(exp(lambda_neutral) * (lambda_neutral))
 
-    c7 = integrate_phi_spherical(exp(lambda_neutral + lambda_hs_nonend_cation) * c8)
-    c7_lambda = integrate_phi_spherical(exp(lambda_neutral + lambda_hs_nonend_cation) * (c8_lambda + c8*(lambda_neutral + lambda_hs_nonend_cation)))
+    c7 = integrate_phi_spherical(exp(lambda_neutral) * c8)
+    c7_lambda = integrate_phi_spherical(exp(lambda_neutral) * (c8_lambda + c8*(lambda_neutral)))
 
-    c6 = integrate_phi_spherical(exp(lambda_neutral + lambda_hs_nonend_cation) * c7)
-    c6_lambda = integrate_phi_spherical(exp(lambda_neutral + lambda_hs_nonend_cation) * (c7_lambda + c7*(lambda_neutral + lambda_hs_nonend_cation)))
+    c6 = integrate_phi_spherical(exp(lambda_neutral) * c7)
+    c6_lambda = integrate_phi_spherical(exp(lambda_neutral) * (c7_lambda + c7*(lambda_neutral)))
 
-    c5 = integrate_phi_spherical(exp(lambda_neutral + lambda_hs_nonend_cation) * c6)
-    c5_lambda = integrate_phi_spherical(exp(lambda_neutral + lambda_hs_nonend_cation) * (c6_lambda + c6*(lambda_neutral + lambda_hs_nonend_cation)))
+    c5 = integrate_phi_spherical(exp(lambda_neutral) * c6)
+    c5_lambda = integrate_phi_spherical(exp(lambda_neutral) * (c6_lambda + c6*(lambda_neutral)))
 
-    c4 = integrate_phi_spherical(exp(lambda_plus + lambda_hs_nonend_cation) * c5)
-    c4_lambda = integrate_phi_spherical(exp(lambda_plus + lambda_hs_nonend_cation) * (c5_lambda + c5*(lambda_plus + lambda_hs_nonend_cation)))
+    c4 = integrate_phi_spherical(exp(lambda_plus) * c5)
+    c4_lambda = integrate_phi_spherical(exp(lambda_plus) * (c5_lambda + c5*(lambda_plus)))
 
-    c910 = integrate_phi_spherical(exp(lambda_plus + lambda_hs_end_cation))
-    c910_lambda = integrate_phi_spherical(exp(lambda_plus + lambda_hs_end_cation) * (lambda_plus + lambda_hs_end_cation))
+    c910 = integrate_phi_spherical(exp(lambda_plus))
+    c910_lambda = integrate_phi_spherical(exp(lambda_plus) * (lambda_plus))
 
     c4p = c4*(c910**2)
     c4p_lambda = c4_lambda*(c910**2) + 2.0_dp * (c4*c910_lambda*c910)
 
-    c3 = integrate_phi_spherical(exp(lambda_plus + lambda_hs_nonend_cation) * c4p)
-    c3_lambda = integrate_phi_spherical(exp(lambda_plus + lambda_hs_nonend_cation) * (c4p_lambda + c4p*(lambda_plus + lambda_hs_nonend_cation)))
+    c3 = integrate_phi_spherical(exp(lambda_plus) * c4p)
+    c3_lambda = integrate_phi_spherical(exp(lambda_plus) * (c4p_lambda + c4p*(lambda_plus)))
 
-    c2 = integrate_phi_spherical(exp(lambda_plus + lambda_hs_nonend_cation) * c3)
-    c2_lambda = integrate_phi_spherical(exp(lambda_plus + lambda_hs_nonend_cation) * (c3_lambda + c3*(lambda_plus + lambda_hs_nonend_cation)))
+    c2 = integrate_phi_spherical(exp(lambda_plus) * c3)
+    c2_lambda = integrate_phi_spherical(exp(lambda_plus) * (c3_lambda + c3*(lambda_plus)))
 
-    cation_integrand = c2_lambda + c2*(log(bulk_density) - 1.0_dp + (beta*Donnan_potential*positive_oligomer_charge)) + c2*(lambda_neutral + lambda_hs_end_cation)
-    cation_contribution = (bulk_density/beta) * integrate_z_cylindrical(exp(lambda_neutral + lambda_hs_end_cation) * cation_integrand, unity_function) * exp(beta*Donnan_potential*positive_oligomer_charge)
+    cation_integrand = c2_lambda + c2*(log(bulk_density) - 1.0_dp + (beta*Donnan_potential*positive_oligomer_charge)) + c2*(lambda_neutral)
+    cation_contribution = (bulk_density/beta) * integrate_z_cylindrical(exp(lambda_neutral) * cation_integrand, unity_function) * exp(beta*Donnan_potential*positive_oligomer_charge)
 
     calculate_C4MIMBF4_ideal_chain_term =  cation_contribution + anion_contribution
     !print *, "calculate_C4MIMBF4_ideal_chain_term = ", calculate_C4MIMBF4_ideal_chain_term
@@ -4768,10 +4793,6 @@ contains
     real(dp), dimension(size(n_neutral)) :: lambda_neutral
     real(dp), dimension(size(n_minus)) :: lambda_minus
     
-    real(dp), dimension(size(n_neutral)) :: lambda_hs_end
-    real(dp), dimension(size(n_minus)) :: lambda_hs_nonend
-    real(dp), dimension(size(n_neutral)) :: n_hs_end
-    real(dp), dimension(size(n_minus)) :: n_hs_nonend
     
     real(dp) :: lambda
 
@@ -4779,7 +4800,7 @@ contains
 
     call get_allowed_z_values(start_z_index, end_z_index, size(lambda_neutral))
 
-    call CalculateLambdasBulk(lambda_plus, n_plus, lambda_neutral, n_neutral, lambda_minus, n_minus, lambda_hs_end, n_hs_end, lambda_hs_nonend, n_hs_nonend, ith_plate_separation)
+    call CalculateLambdasBulk(lambda_plus, n_plus, lambda_neutral, n_neutral, lambda_minus, n_minus, ith_plate_separation)
 
     !Check that lambda_bulk is the same everywhere.
     if(all(lambda_neutral(start_z_index:end_z_index) - lambda_neutral(start_z_index) < 0.000001_dp)) then
@@ -4813,18 +4834,13 @@ contains
     real(dp), dimension(size(n_neutral)) :: lambda_neutral
     real(dp), dimension(size(n_minus)) :: lambda_minus
 
-    real(dp), dimension(size(n_neutral)) :: lambda_hs_end
-    real(dp), dimension(size(n_minus)) :: lambda_hs_nonend
-    real(dp), dimension(size(n_neutral)) :: n_hs_end
-    real(dp), dimension(size(n_minus)) :: n_hs_nonend
-
     real(dp) :: lambda
 
     integer :: start_z_index, end_z_index
 
     call get_allowed_z_values(start_z_index, end_z_index, size(lambda_neutral))
 
-    call CalculateLambdasBulk(lambda_plus, n_plus, lambda_neutral, n_neutral, lambda_minus, n_minus, lambda_hs_end, n_hs_end, lambda_hs_nonend, n_hs_nonend, ith_plate_separation)
+    call CalculateLambdasBulk(lambda_plus, n_plus, lambda_neutral, n_neutral, lambda_minus, n_minus, ith_plate_separation)
 
     !Check that lambda_bulk is the same everywhere.
     if(all(lambda_neutral(start_z_index:end_z_index) - lambda_neutral(start_z_index) < 0.000001_dp)) then
@@ -4860,18 +4876,13 @@ contains
     real(dp), dimension(size(n_neutral)) :: lambda_neutral
     real(dp), dimension(size(n_minus)) :: lambda_minus
 
-    real(dp), dimension(size(n_neutral)) :: lambda_hs_end
-    real(dp), dimension(size(n_minus)) :: lambda_hs_nonend
-    real(dp), dimension(size(n_neutral)) :: n_hs_end
-    real(dp), dimension(size(n_minus)) :: n_hs_nonend
-
     real(dp) :: lambda_plus_bulk, lambda_minus_bulk
 
     integer :: start_z_index, end_z_index
 
     call get_allowed_z_values(start_z_index, end_z_index, size(lambda_neutral))
 
-    call CalculateLambdasBulk(lambda_plus, n_plus, lambda_neutral, n_neutral, lambda_minus, n_minus, lambda_hs_end, n_hs_end, lambda_hs_nonend, n_hs_nonend, ith_plate_separation)
+    call CalculateLambdasBulk(lambda_plus, n_plus, lambda_neutral, n_neutral, lambda_minus, n_minus, ith_plate_separation)
 
     !Check that lambda_bulk is the same everywhere.
     if(all(lambda_plus(start_z_index:end_z_index) - lambda_plus(start_z_index) < 0.000001_dp)) then
@@ -4915,18 +4926,13 @@ contains
     real(dp), dimension(size(n_neutral)) :: lambda_neutral
     real(dp), dimension(size(n_minus)) :: lambda_minus
 
-    real(dp), dimension(size(n_neutral)) :: lambda_hs_end
-    real(dp), dimension(size(n_minus)) :: lambda_hs_nonend
-    real(dp), dimension(size(n_neutral)) :: n_hs_end
-    real(dp), dimension(size(n_minus)) :: n_hs_nonend
-
     real(dp) :: lambda_plus_bulk, lambda_neutral_bulk, lambda_minus_bulk
 
     integer :: start_z_index, end_z_index
 
     call get_allowed_z_values(start_z_index, end_z_index, size(lambda_neutral))
 
-    call CalculateLambdasBulk(lambda_plus, n_plus, lambda_neutral, n_neutral, lambda_minus, n_minus, lambda_hs_end, n_hs_end, lambda_hs_nonend, n_hs_nonend, ith_plate_separation)
+    call CalculateLambdasBulk(lambda_plus, n_plus, lambda_neutral, n_neutral, lambda_minus, n_minus, ith_plate_separation)
 
     !Check that lambda_bulk is the same everywhere.
     if(all(lambda_plus(start_z_index:end_z_index) - lambda_plus(start_z_index) < 0.000001_dp)) then
@@ -4986,11 +4992,6 @@ contains
     real(dp), dimension(size(n_neutral)) :: lambda_neutral
     real(dp), dimension(size(n_minus)) :: lambda_minus
 
-    real(dp), dimension(size(n_neutral)) :: lambda_hs_end
-    real(dp), dimension(size(n_minus)) :: lambda_hs_nonend
-    real(dp), dimension(size(n_neutral)) :: n_hs_end
-    real(dp), dimension(size(n_minus)) :: n_hs_nonend
-
     real(dp), dimension(size(n_neutral)) :: integrand, integrand_with_lambda, c1, c2
 
     real(dp) :: lambda_plus_bulk, lambda_neutral_bulk, lambda_minus_bulk
@@ -5000,7 +5001,7 @@ contains
 
     call get_allowed_z_values(start_z_index, end_z_index, size(lambda_neutral))
 
-    call CalculateLambdasBulk(lambda_plus, n_plus, lambda_neutral, n_neutral, lambda_minus, n_minus, lambda_hs_end, n_hs_end, lambda_hs_nonend, n_hs_nonend, ith_plate_separation)
+    call CalculateLambdasBulk(lambda_plus, n_plus, lambda_neutral, n_neutral, lambda_minus, n_minus, ith_plate_separation)
 
     !Check that lambda_bulk is the same everywhere.
     if(all(lambda_plus(start_z_index:end_z_index) - lambda_plus(start_z_index) < 0.000001_dp)) then
@@ -5095,18 +5096,13 @@ contains
     real(dp), dimension(size(n_neutral)) :: lambda_neutral
     real(dp), dimension(size(n_minus)) :: lambda_minus
 
-    real(dp), dimension(size(n_neutral)) :: lambda_hs_end
-    real(dp), dimension(size(n_minus)) :: lambda_hs_nonend
-    real(dp), dimension(size(n_neutral)) :: n_hs_end
-    real(dp), dimension(size(n_minus)) :: n_hs_nonend
-
     real(dp) :: lambda_plus_bulk, lambda_neutral_bulk, lambda_minus_bulk
 
     integer :: start_z_index, end_z_index
 
     call get_allowed_z_values(start_z_index, end_z_index, size(lambda_neutral))
 
-    call CalculateLambdasBulk(lambda_plus, n_plus, lambda_neutral, n_neutral, lambda_minus, n_minus, lambda_hs_end, n_hs_end, lambda_hs_nonend, n_hs_nonend, ith_plate_separation)
+    call CalculateLambdasBulk(lambda_plus, n_plus, lambda_neutral, n_neutral, lambda_minus, n_minus, ith_plate_separation)
 
     !Check that lambda_bulk is the same everywhere.
     if(all(lambda_plus(start_z_index:end_z_index) - lambda_plus(start_z_index) < 0.000001_dp)) then
@@ -5167,15 +5163,10 @@ contains
   end function calculate_chem_potential_PositiveNeutralDoubleDimerMinusDimer
 
 
-  function calculate_chem_potential_C4MIMBF4(n_plus, n_neutral, n_minus, n_hs_end_cation, n_hs_nonend_cation, n_hs_end_anion, n_hs_nonend_anion, ith_plate_separation, Donnan_potential)
+  function calculate_chem_potential_C4MIMBF4(n_plus, n_neutral, n_minus, ith_plate_separation, Donnan_potential)
     real(dp), dimension(:), intent(in) :: n_plus
     real(dp), dimension(:), intent(in) :: n_neutral
     real(dp), dimension(:), intent(in) :: n_minus
-
-    real(dp), dimension(:), intent(in) :: n_hs_end_cation
-    real(dp), dimension(:), intent(in) :: n_hs_nonend_cation
-    real(dp), dimension(:), intent(in) :: n_hs_end_anion
-    real(dp), dimension(:), intent(in) :: n_hs_nonend_anion
 
     integer, intent(in) :: ith_plate_separation
     real(dp), intent(in) :: Donnan_potential
@@ -5186,24 +5177,13 @@ contains
     real(dp), dimension(size(n_neutral)) :: lambda_neutral
     real(dp), dimension(size(n_minus)) :: lambda_minus
 
-    real(dp), dimension(size(n_plus)) :: lambda_hs_end_cation
-    real(dp), dimension(size(n_plus)) :: lambda_hs_nonend_cation
-    real(dp), dimension(size(n_plus)) :: lambda_hs_end_anion
-    real(dp), dimension(size(n_plus)) :: lambda_hs_nonend_anion
-
-    real(dp) :: lambda_hs_end_cation_bulk
-    real(dp) :: lambda_hs_nonend_cation_bulk
-    real(dp) :: lambda_hs_end_anion_bulk
-    real(dp) :: lambda_hs_nonend_anion_bulk
-
     real(dp) :: lambda_plus_bulk, lambda_neutral_bulk, lambda_minus_bulk
 
     integer :: start_z_index, end_z_index
 
     call get_allowed_z_values(start_z_index, end_z_index, size(lambda_neutral))
 
-    call CalculateLambdasBulk(lambda_plus, n_plus, lambda_neutral, n_neutral, lambda_minus, n_minus, lambda_hs_end_cation, lambda_hs_nonend_cation, &
-         lambda_hs_end_anion, lambda_hs_nonend_anion, ith_plate_separation)
+    call CalculateLambdasBulk(lambda_plus, n_plus, lambda_neutral, n_neutral, lambda_minus, n_minus, ith_plate_separation)
 
     !Check that lambda_bulk is the same everywhere.
     if(all(lambda_plus(start_z_index:end_z_index) - lambda_plus(start_z_index) < 0.000001_dp)) then
@@ -5239,46 +5219,6 @@ contains
        call abort()
     end if
 
-    if(all(lambda_hs_end_cation(start_z_index:end_z_index) - lambda_hs_end_cation(start_z_index) < 0.000001_dp)) then
-       lambda_hs_end_cation_bulk = lambda_hs_end_cation(start_z_index)
-    else
-       print *, "lambda_hs_end_cation = ", lambda_hs_end_cation
-       print *, "constructoligomers.f90: calculate_chem_potential_C4MIMBF4: "
-       print *, "When calculating lambda bulk all the values of lambda should be the same"
-       print *, "but they aren't, they are...(printed above)...aborting"
-       call abort()
-    end if
-
-    if(all(lambda_hs_nonend_cation(start_z_index:end_z_index) - lambda_hs_nonend_cation(start_z_index) < 0.000001_dp)) then
-       lambda_hs_nonend_cation_bulk = lambda_hs_nonend_cation(start_z_index)
-    else
-       print *, "lambda_hs_nonend_cation = ", lambda_hs_nonend_cation
-       print *, "constructoligomers.f90: calculate_chem_potential_C4MIMBF4: "
-       print *, "When calculating lambda bulk all the values of lambda should be the same"
-       print *, "but they aren't, they are...(printed above)...aborting"
-       call abort()
-    end if
-
-    if(all(lambda_hs_end_anion(start_z_index:end_z_index) - lambda_hs_end_anion(start_z_index) < 0.000001_dp)) then
-       lambda_hs_end_anion_bulk = lambda_hs_end_anion(start_z_index)
-    else
-       print *, "lambda_hs_end_anion = ", lambda_hs_end_anion
-       print *, "constructoligomers.f90: calculate_chem_potential_C4MIMBF4: "
-       print *, "When calculating lambda bulk all the values of lambda should be the same"
-       print *, "but they aren't, they are...(printed above)...aborting"
-       call abort()
-    end if
-
-    if(all(lambda_hs_nonend_anion(start_z_index:end_z_index) - lambda_hs_nonend_anion(start_z_index) < 0.000001_dp)) then
-       lambda_hs_nonend_anion_bulk = lambda_hs_nonend_anion(start_z_index)
-    else
-       print *, "lambda_hs_nonend_anion = ", lambda_hs_nonend_anion
-       print *, "constructoligomers.f90: calculate_chem_potential_C4MIMBF4: "
-       print *, "When calculating lambda bulk all the values of lambda should be the same"
-       print *, "but they aren't, they are...(printed above)...aborting"
-       call abort()
-    end if
-
 
     !call CalculateLambdasDifference(lambda_plus, n_plus, lambda_neutral, n_neutral, lambda_minus, n_minus, ith_plate_separation, lambda_hs_end, lambda_hs_nonend)
 
@@ -5295,18 +5235,18 @@ contains
          (log(bulk_density)*integrate_z_cylindrical(n_plus/5.0_dp, unity_function)) + &
          (log(bulk_density)*integrate_z_cylindrical(n_minus/5.0_dp, unity_function)) + &
          (lambda_plus_bulk*integrate_z_cylindrical(n_plus, unity_function)) + &
-         (lambda_neutral_bulk*integrate_z_cylindrical(n_plus, unity_function)) + &
+         !(lambda_neutral_bulk*integrate_z_cylindrical(n_plus, unity_function)) + &
          (lambda_neutral_bulk*integrate_z_cylindrical(n_neutral, unity_function)) + &
-         (lambda_plus_bulk*integrate_z_cylindrical(n_neutral, unity_function)) + &
+         !(lambda_plus_bulk*integrate_z_cylindrical(n_neutral, unity_function)) + &
          (lambda_minus_bulk*integrate_z_cylindrical(n_minus, unity_function)) + &
-         (lambda_hs_end_cation_bulk*integrate_z_cylindrical(n_hs_end_cation, unity_function)) + &
-         (lambda_hs_nonend_cation_bulk*integrate_z_cylindrical(n_hs_nonend_cation, unity_function)) + &
-         ((2.0_dp/3.0_dp) * lambda_hs_end_cation_bulk*integrate_z_cylindrical(n_hs_nonend_cation, unity_function)) + &
-         (1.5_dp * lambda_hs_nonend_cation_bulk*integrate_z_cylindrical(n_hs_end_cation, unity_function)) + &
-         (lambda_hs_end_anion_bulk*integrate_z_cylindrical(n_hs_end_anion, unity_function)) + &
-         (lambda_hs_nonend_anion_bulk*integrate_z_cylindrical(n_hs_nonend_anion, unity_function)) + &
-         (4.0_dp * lambda_hs_end_anion_bulk*integrate_z_cylindrical(n_hs_nonend_anion, unity_function)) + &
-         (0.25_dp * lambda_hs_nonend_anion_bulk*integrate_z_cylindrical(n_hs_end_anion, unity_function)) + &         
+         !(lambda_hs_end_cation_bulk*integrate_z_cylindrical(n_hs_end_cation, unity_function)) + &
+         !(lambda_hs_nonend_cation_bulk*integrate_z_cylindrical(n_hs_nonend_cation, unity_function)) + &
+         !((2.0_dp/3.0_dp) * lambda_hs_end_cation_bulk*integrate_z_cylindrical(n_hs_nonend_cation, unity_function)) + &
+         !(1.5_dp * lambda_hs_nonend_cation_bulk*integrate_z_cylindrical(n_hs_end_cation, unity_function)) + &
+         !(lambda_hs_end_anion_bulk*integrate_z_cylindrical(n_hs_end_anion, unity_function)) + &
+         !(lambda_hs_nonend_anion_bulk*integrate_z_cylindrical(n_hs_nonend_anion, unity_function)) + &
+         !(4.0_dp * lambda_hs_end_anion_bulk*integrate_z_cylindrical(n_hs_nonend_anion, unity_function)) + &
+         !(0.25_dp * lambda_hs_nonend_anion_bulk*integrate_z_cylindrical(n_hs_end_anion, unity_function)) + &         
          ((positive_oligomer_charge*Donnan_potential)*integrate_z_cylindrical(n_plus/5.0_dp, unity_function)) + &
          ((negative_oligomer_charge*Donnan_potential)*integrate_z_cylindrical(n_minus/5.0_dp, unity_function)) &
          )
@@ -5360,18 +5300,13 @@ contains
     real(dp), dimension(size(n_neutral)) :: lambda_neutral
     real(dp), dimension(size(n_minus)) :: lambda_minus
 
-    real(dp), dimension(size(n_neutral)) :: lambda_hs_end
-    real(dp), dimension(size(n_minus)) :: lambda_hs_nonend
-    real(dp), dimension(size(n_neutral)) :: n_hs_end
-    real(dp), dimension(size(n_minus)) :: n_hs_nonend
-
     real(dp) :: lambda_plus_bulk, lambda_neutral_bulk, lambda_minus_bulk
 
     integer :: start_z_index, end_z_index
 
     call get_allowed_z_values(start_z_index, end_z_index, size(lambda_neutral))
 
-    call CalculateLambdasBulk(lambda_plus, n_plus, lambda_neutral, n_neutral, lambda_minus, n_minus, lambda_hs_end, n_hs_end, lambda_hs_nonend, n_hs_nonend, ith_plate_separation)
+    call CalculateLambdasBulk(lambda_plus, n_plus, lambda_neutral, n_neutral, lambda_minus, n_minus, ith_plate_separation)
 
     !Check that lambda_bulk is the same everywhere.
     if(all(lambda_plus(start_z_index:end_z_index) - lambda_plus(start_z_index) < 0.000001_dp)) then
@@ -5443,18 +5378,13 @@ contains
     real(dp), dimension(size(n_neutral)) :: lambda_neutral
     real(dp), dimension(size(n_minus)) :: lambda_minus
 
-    real(dp), dimension(size(n_neutral)) :: lambda_hs_end
-    real(dp), dimension(size(n_minus)) :: lambda_hs_nonend
-    real(dp), dimension(size(n_neutral)) :: n_hs_end
-    real(dp), dimension(size(n_minus)) :: n_hs_nonend
-
     real(dp) :: lambda_plus_bulk, lambda_neutral_bulk, lambda_minus_bulk
 
     integer :: start_z_index, end_z_index
 
     call get_allowed_z_values(start_z_index, end_z_index, size(lambda_neutral))
 
-    call CalculateLambdasBulk(lambda_plus, n_plus, lambda_neutral, n_neutral, lambda_minus, n_minus, lambda_hs_end, n_hs_end, lambda_hs_nonend, n_hs_nonend, ith_plate_separation)
+    call CalculateLambdasBulk(lambda_plus, n_plus, lambda_neutral, n_neutral, lambda_minus, n_minus, ith_plate_separation)
 
     !Check that lambda_bulk is the same everywhere.
     if(all(lambda_plus(start_z_index:end_z_index) - lambda_plus(start_z_index) < 0.000001_dp)) then
