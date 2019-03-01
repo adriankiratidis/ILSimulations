@@ -27,6 +27,7 @@ chargenum = 1
 #then data[2,1] = 7.4 that is the 2+1 row and the 1+1 coloumn.
 #(Default python array indicies start at 0 unlike fortran which starts at 1.)
 #data_0 = np.loadtxt("../testing-n_" + charge + "_separation" + str(separation) + ".00000.txt")
+
 # ".00000charge" + str(chargenum) + 
 # data_1 = np.loadtxt("../bin/test-n_" + charge + "_separation" + str(separation) + "iteration31.txt")
 # data_2 = np.loadtxt("../bin/test-n_" + charge + "_separation" + str(separation) + "iteration32.txt")
@@ -87,11 +88,12 @@ y_4 = data_4[:,1]
 x_5 = data_5[:,0]
 y_5 = data_5[:,1]
 
+
 x_6 = data_6[:,0]
 y_6 = data_6[:,1]
 
-#x_7 = data_7[:,0]
-#y_7 = data_7[:,1]
+x_7 = data_7[:,0]
+y_7 = data_7[:,1]
 
 # x_8 = data_8[:,0]
 # y_8 = data_8[:,1]
