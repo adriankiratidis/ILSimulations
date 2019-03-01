@@ -581,7 +581,7 @@ contains
     unit_array(:) = 1.0_dp
 
     if(calculate_bulk) then
-       !calculate_electrostatic_like_term_functional_deriv(:) = 0.0_dp
+       calculate_electrostatic_like_term_functional_deriv(:) = 0.0_dp
 
        !calculate_electrostatic_like_term_functional_deriv(:) = (-1.0_dp / (2.0_dp * epsilon0 * epsilonr)) * (charge**2) * &
        !     CURRENT_BULK_BEAD_DENSITY * integrate_z_cylindrical(unit_array, electrostatic_like_integrand, "all_z")
@@ -593,7 +593,7 @@ contains
        
     else
        calculate_electrostatic_like_term_functional_deriv(:) = (-1.0_dp / (2.0_dp * epsilon0 * epsilonr)) * (charge**2) * &
-            integrate_z_cylindrical(n, electrostatic_like_integrand, "all_z")
+            integrate_z_cylindrical(n, electrostatic_unlike_integrand, "all_z")
 
        !print *, "n = ", n
        !print *, "integrate_z_cylindrical(n, electrostatic_unlike_integrand, 'all_z') = ", integrate_z_cylindrical(n, electrostatic_unlike_integrand, "all_z")
@@ -641,10 +641,10 @@ contains
 
 
     if(calculate_bulk) then
-       !calculate_electrostatic_unlike_term_functional_deriv(:) = 0.0_dp
+       calculate_electrostatic_unlike_term_functional_deriv(:) = 0.0_dp
 
-       calculate_electrostatic_unlike_term_functional_deriv(:) = (-1.0_dp / (2.0_dp * epsilon0 * epsilonr)) * charge1 * charge2 * &
-            CURRENT_BULK_BEAD_DENSITY * ( d**2 )
+       !calculate_electrostatic_unlike_term_functional_deriv(:) = (-1.0_dp / (2.0_dp * epsilon0 * epsilonr)) * charge1 * charge2 * &
+       !     CURRENT_BULK_BEAD_DENSITY * ( d**2 )
 
     else
 
