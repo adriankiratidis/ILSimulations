@@ -14,6 +14,9 @@ program runSingleSphere
   !and l^{i}_{b} is the value in the bulk.
   real(dp), dimension(:), allocatable :: lambda_plus, lambda_neutral, lambda_minus
 
+  real(dp), dimension(:), allocatable :: lambda_cation_centre, lambda_anion_centre
+  real(dp), dimension(:), allocatable :: n_cation_centre, n_anion_centre
+
   real(dp), dimension(:), allocatable :: grand_potential_per_unit_area, grand_potential_per_unit_area_in_bulk
   real(dp), dimension(:), allocatable :: normal_pressure_left_wall, normal_pressure_right_wall
   real(dp), dimension(:), allocatable :: negative_deriv_of_potential
@@ -77,12 +80,12 @@ program runSingleSphere
      print *, ""
      print *, "Initialising/ReInitialising Discretistion and setting integration ansatz."
      print *, "Doing this for the densities"
-     call InitialiseDensityDiscretisationAndSetIntegrationAnsatz(ith_separation, n_plus, n_neutral, n_minus)
+     call InitialiseDensityDiscretisationAndSetIntegrationAnsatz(ith_separation, n_plus, n_neutral, n_minus, n_cation_centre, n_anion_centre)
 
      print *, "Initialise/ReInitialise Discretisation for all the temperary variables we need."
      call InitialiseVariableDiscretisation(ith_separation, n_plus_updated, lambda_plus, &
-          n_neutral_updated, lambda_neutral, n_minus_updated, lambda_minus, n_plus_previous, n_neutral_previous, n_minus_previous)
-     call SetToZero(n_plus_updated, lambda_plus, n_neutral_updated, lambda_neutral, n_minus_updated, lambda_minus)
+          n_neutral_updated, lambda_neutral, n_minus_updated, lambda_minus, n_plus_previous, n_neutral_previous, n_minus_previous, lambda_cation_centre, lambda_anion_centre)
+     call SetToZero(n_plus_updated, lambda_plus, n_neutral_updated, lambda_neutral, n_minus_updated, lambda_minus, lambda_cation_centre, lambda_anion_centre)
 
      if(ith_separation == 1) then
         call ImposeChargeNeutrality(n_plus, n_neutral, n_minus, Donnan_potential, abort_now)
@@ -112,7 +115,8 @@ program runSingleSphere
            !print *, "n_neutral integral = ", n_neutral_updated
            !print *, "n_minus integral = ", integrate_z_cylindrical(negative_bead_charge*n_minus, "all_z")
 
-           call CalculateLambdasDifference(lambda_plus, n_plus, lambda_neutral, n_neutral, lambda_minus, n_minus, ith_separation)
+           call CalculateLambdasDifference(lambda_plus, n_plus, lambda_neutral, n_neutral, lambda_minus, n_minus, &
+                lambda_cation_centre, n_cation_centre, lambda_anion_centre, n_anion_centre, ith_separation)
 
            !print *, "lambda_plus = ", lambda_plus
            !call abort()
@@ -128,19 +132,13 @@ program runSingleSphere
            !call abort()
 
 
-           !print *, "n_minus = ", n_minus
-           !print *, "lambda_plus = ", lambda_plus
-           !print *, "1"
-           call UpdateDensities(n_plus, n_neutral, n_minus, lambda_plus, n_plus_updated, lambda_neutral, n_neutral_updated, lambda_minus, n_minus_updated, Donnan_potential, iteration, abort_now)
+           call UpdateDensities(n_plus, n_neutral, n_minus, lambda_plus, n_plus_updated, lambda_neutral, n_neutral_updated, lambda_minus, n_minus_updated, &
+                lambda_cation_centre, n_cation_centre, lambda_anion_centre, n_anion_centre, Donnan_potential, iteration, abort_now)
 
            !Found some problem, but still want to print what we've calculated so far.
            if(abort_now) exit
-           !print *, "2"
-           !print *, "n_plus_updated = ", n_plus_updated
-           !print *, "n_plus_updated integral = ", integrate_z_cylindrical(positive_bead_charge*n_plus_updated, "all_z")
-           !print *, "n_neutral integral = ", n_neutral_updated
-           !print *, "n_minus_updated integral = ", integrate_z_cylindrical(negative_bead_charge*n_minus_updated, "all_z")
-           !call abort()
+
+
            do ij = 1, size(n_plus_updated)
               if(isnan((n_plus_updated(ij)))) then
                  print *, "n_plus_updated = ", n_plus_updated
@@ -272,10 +270,10 @@ program runSingleSphere
      !call CalculateDonnanPotential(n_plus, n_minus, Donnan_potential)
 
      if(abort_now) exit
-     
+
      print *, "Calculating grand potential per unit area value."
      call CalculateGrandPotentialValuePerUnitArea(ith_separation, grand_potential_per_unit_area(ith_separation), &
-          size(n_neutral_updated), n_plus_updated, n_neutral_updated, n_minus_updated, Donnan_potential)
+          size(n_neutral_updated), n_plus_updated, n_neutral_updated, n_minus_updated, n_cation_centre, n_anion_centre, Donnan_potential)
 
      print *, "Calculating normal pressure from the contact theorem"
      call CalculateNormalPressureFromContactTheorem(n_plus_updated, n_neutral_updated, n_minus_updated, &
@@ -297,7 +295,7 @@ program runSingleSphere
      end_size = size(plate_separations)
   end if
 
-     
+
   negative_deriv_of_potential(1:end_size) = CalculateNegativeDerivOfPotentialPerUnitAreaWRTSeparation(grand_potential_per_unit_area(1:end_size))
 
   do ith_separation = 1, end_size
@@ -344,6 +342,10 @@ contains
     if(allocated(lambda_plus)) deallocate(lambda_plus)
     if(allocated(lambda_neutral)) deallocate(lambda_neutral)
     if(allocated(lambda_minus)) deallocate(lambda_minus)
+    if(allocated(lambda_cation_centre)) deallocate(lambda_cation_centre)
+    if(allocated(lambda_anion_centre)) deallocate(lambda_anion_centre)
+    if(allocated(n_cation_centre)) deallocate(n_cation_centre)
+    if(allocated(n_anion_centre)) deallocate(n_anion_centre)
     if(allocated(grand_potential_per_unit_area)) deallocate(grand_potential_per_unit_area)
     if(allocated(grand_potential_per_unit_area_in_bulk)) deallocate(grand_potential_per_unit_area_in_bulk)
     if(allocated(normal_pressure_left_wall)) deallocate(normal_pressure_left_wall)

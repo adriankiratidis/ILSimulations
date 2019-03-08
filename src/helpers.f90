@@ -167,13 +167,15 @@ contains
     str_real_sp = adjustl(str_real_sp)
   end function str_real_sp
 
-  subroutine SetToZero(array1, array2, array3, array4, array5, array6)
+  subroutine SetToZero(array1, array2, array3, array4, array5, array6, array7, array8)
     real(dp), dimension(:) :: array1
     real(dp), dimension(:), optional :: array2
     real(dp), dimension(:), optional :: array3
     real(dp), dimension(:), optional :: array4
     real(dp), dimension(:), optional :: array5
     real(dp), dimension(:), optional :: array6
+    real(dp), dimension(:), optional :: array7
+    real(dp), dimension(:), optional :: array8
 
     array1(:) = 0.0_dp
     if(present(array2)) array2(:) = 0.0_dp
@@ -181,6 +183,8 @@ contains
     if(present(array4)) array4(:) = 0.0_dp
     if(present(array5)) array5(:) = 0.0_dp
     if(present(array6)) array6(:) = 0.0_dp
+    if(present(array7)) array7(:) = 0.0_dp
+    if(present(array8)) array8(:) = 0.0_dp
 
   end subroutine SetToZero
 

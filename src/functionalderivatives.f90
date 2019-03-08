@@ -15,16 +15,83 @@ module functionalderivatives
   public :: calculate_surface_dispersion_functional_deriv
   public :: calculate_hardsphere_functional_deriv
   public :: calculate_surface_electrostatic_functional_deriv
-
+  PUBLIC :: calculate_centre_to_centre_functional_deriv
+  
   public :: calculate_electrostatic_like_term_functional_deriv
   public :: calculate_electrostatic_unlike_term_functional_deriv
-
+  
   public :: calculate_n_sbar
 
   real(dp) :: CURRENT_BULK_BEAD_DENSITY
 
 contains
+  
+  function calculate_centre_to_centre_functional_deriv(calculate_bulk, size_of_terms, cation_or_anion, n_s, n_cation_centre, n_anion_centre)
+    logical, intent(in) :: calculate_bulk
+    integer, intent(in) :: size_of_terms
+    character(len=*), intent(in) :: cation_or_anion
+    real(dp), dimension(:), intent(in), optional :: n_s
+    real(dp), dimension(:), intent(in), optional :: n_cation_centre
+    real(dp), dimension(:), intent(in), optional :: n_anion_centre
 
+    real(dp), dimension(size_of_terms) :: calculate_centre_to_centre_functional_deriv
+
+    real(dp), dimension(size_of_terms) :: ns_bulk
+
+    calculate_centre_to_centre_functional_deriv = 0.0_dp
+
+    if(calculate_bulk) then
+
+       if(present(n_s) .or. present(n_cation_centre) .or. present(n_anion_centre)) then
+          print *, "functionalderivatives.f90: calculate_centre_to_centre_functional_deriv"
+          print *, "If we're calculating the value in the bulk we don't need to pass in density variables.  Coding bug."
+          call abort()
+       end if
+
+       if(trim(cation_or_anion) == 'c' .or. trim(cation_or_anion) == 'a') then
+
+       ns_bulk(:) = bulk_density
+       calculate_centre_to_centre_functional_deriv(:) = (-1.0_dp * epsilon_eighth_power_const * beta * (hs_diameter**8) * 2.0_dp * pi * ns_bulk(:)) * ( &
+            (6.0_dp/(15.0_dp*(hs_diameter**6))))
+       else
+          print *, "functionalderivatives.f90: calculate_centre_to_centre_functional_deriv"
+          print *, "Invalid value of trim(cation_or_anion) = ", trim(cation_or_anion)
+          print *, "Must be 'c' or 'a'"
+          call abort()
+       end if
+
+    else
+
+       if((.not. present(n_s)) .or. (.not. present(n_cation_centre)) .or. (.not. present(n_anion_centre))) then
+          print *, "functionalderivatives.f90: calculate_centre_to_centre_functional_deriv"
+          print *, "If we're calculating the value NOT in the bulk we need to pass in density variables.  Coding bug."
+          call abort()
+       end if
+
+       if(trim(cation_or_anion) == 'c') then
+
+          calculate_centre_to_centre_functional_deriv = -1.0_dp * epsilon_eighth_power_const * beta * (hs_diameter**8.0_dp) * (1.0_dp) * &
+               2.0_dp * pi * integrate_z_cylindrical(n_anion_centre, van_der_waals_density_indept_integrand_centre_to_centre, "all_z")
+
+       else if(trim(cation_or_anion) == 'a') then
+
+          calculate_centre_to_centre_functional_deriv = -1.0_dp * epsilon_eighth_power_const * beta * (hs_diameter**8.0_dp) * (1.0_dp) * &
+               2.0_dp * pi * integrate_z_cylindrical(n_cation_centre, van_der_waals_density_indept_integrand_centre_to_centre, "all_z")
+
+       else
+          print *, "functionalderivatives.f90: calculate_centre_to_centre_functional_deriv"
+          print *, "Invalid value of trim(cation_or_anion) = ", trim(cation_or_anion)
+          print *, "Must be 'c' or 'a'"
+          call abort()
+       end if
+
+    end if
+
+    call setNonCalculatedRegionToZero(calculate_centre_to_centre_functional_deriv)
+
+  end function calculate_centre_to_centre_functional_deriv
+  
+  
   function calculate_hardsphere_functional_deriv(n_s, calculate_bulk)
     real(dp), dimension(:), intent(in) :: n_s
     logical, intent(in)                :: calculate_bulk
@@ -410,6 +477,29 @@ contains
     return
   end function van_der_waals_density_indept_integrand
 
+    function van_der_waals_density_indept_integrand_centre_to_centre(z, xi_in)
+    integer, intent(in) :: z
+    integer, intent(in) :: xi_in
+    real(dp)             :: van_der_waals_density_indept_integrand_centre_to_centre
+
+    integer :: xi_int
+    real(dp) :: xi_real
+
+    xi_int = xi_in - z ! centre xi on z
+    xi_real = real(xi_int,dp) * hs_diameter / real(n_discretised_points_z,dp)
+
+    if(abs(xi_int) >= n_discretised_points_z) then
+       van_der_waals_density_indept_integrand_centre_to_centre = 1.0_dp / (6.0_dp * (real(xi_real,dp)**6.0_dp))
+    else
+       ! van_der_waals_density_indept_integrand = 1.0_dp / &
+       !      (4.0_dp * ( (real(hs_diameter,dp) * cos(asin(real(xi_real,dp)/real(hs_diameter,dp))))**2.0_dp &
+       !      + real(xi_real,dp)**2.0_dp )**2.0_dp)
+       van_der_waals_density_indept_integrand_centre_to_centre = 1.0_dp / (6.0_dp * (hs_diameter**6.0_dp))
+    end if
+
+    return
+  end function van_der_waals_density_indept_integrand_centre_to_centre
+  
   function calculate_n_sbar(array_to_integrate)
     real(dp), dimension(:), intent(in) :: array_to_integrate ! typically n_s, but sometime n_s / n_sbar
     real(dp), dimension(size(array_to_integrate)) :: calculate_n_sbar
