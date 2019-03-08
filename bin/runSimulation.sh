@@ -45,7 +45,7 @@ Donan_potential_intial_guess=0.0
 string_length=1.2			#
 n_points_per_hs_diameter=50			#number of discretised points
 max_iteration_limit=25000
-iterative_tolerance=0.0000000000001
+iterative_tolerance=0.000000000000001
 
 starting_plate_separation=4
 number_of_separations=50  #The number of plate separations we'll calculate.

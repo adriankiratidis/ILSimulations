@@ -22,6 +22,7 @@ module parameters
   public :: epsilonr
   public :: epsilon_LJ_particle_particle
   public :: epsilon_LJ_particle_wall
+  public :: epsilon_eighth_power_const
   public :: mica_density
   public :: surface_charge_density_left_wall
   public :: surface_charge_density_right_wall
@@ -39,7 +40,6 @@ module parameters
   public :: max_iteration_limit
   public :: beta
   public :: alpha_mixing_for_update
-
 
   public :: bulk_density_positive_beads
   public :: bulk_density_neutral_beads
@@ -72,6 +72,7 @@ module parameters
   real(dp) :: epsilonr
   real(dp) :: epsilon_LJ_particle_particle
   real(dp) :: epsilon_LJ_particle_wall
+  real(dp) :: epsilon_eighth_power_const
   real(dp) :: mica_density
   real(dp) :: surface_charge_density_left_wall
   real(dp) :: surface_charge_density_right_wall
@@ -137,6 +138,7 @@ contains
     read(file_unit, *) epsilonr
     read(file_unit, *) epsilon_LJ_particle_particle !
     read(file_unit, *) epsilon_LJ_particle_wall !
+    read(file_unit, *) epsilon_eighth_power_const
     read(file_unit, *) mica_density
     read(file_unit, *) surface_charge_density_left_wall
     read(file_unit, *) surface_charge_density_right_wall
@@ -185,6 +187,7 @@ contains
     print *,  "epsilonr = ", epsilonr
     print *,  "epsilon_LJ particle_particle interaction = ", epsilon_LJ_particle_particle
     print *,  "epsilon_LJ particle_wall interaction = ", epsilon_LJ_particle_wall
+    print *,  "epsilon_eighth_power_const = ", epsilon_eighth_power_const
     print *,  "mica density = ", mica_density
     print *,  "surface_charge_density_left_wall = ", surface_charge_density_left_wall
     print *,  "surface_charge_density_right_wall = ", surface_charge_density_right_wall

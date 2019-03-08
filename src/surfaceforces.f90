@@ -17,26 +17,15 @@ contains
 
   !Subroutine that calculates the 
   subroutine CalculateGrandPotentialValuePerUnitArea(ith_plate_separation, grand_potential_per_unit_area, &
-       size_of_ns_array, n_plus, n_neutral, n_minus, n_plus_cation_end, n_neutral_cation_end, n_minus_cation_end, &
-       n_plus_cation_nonend, n_neutral_cation_nonend, n_minus_cation_nonend, n_plus_anion_end, n_neutral_anion_end, n_minus_anion_end, Donnan_potential)
+       size_of_ns_array, n_plus, n_neutral, n_minus, n_cation_centre, n_anion_centre, Donnan_potential)
     integer, intent(in)   :: ith_plate_separation
     real(dp), intent(out) :: grand_potential_per_unit_area
     integer, intent(in) :: size_of_ns_array
     real(dp), dimension(:), intent(in) :: n_plus
     real(dp), dimension(:), intent(in) :: n_neutral
     real(dp), dimension(:), intent(in) :: n_minus
-    
-    real(dp), dimension(:), intent(in) :: n_plus_cation_end
-    real(dp), dimension(:), intent(in) :: n_neutral_cation_end
-    real(dp), dimension(:), intent(in) :: n_minus_cation_end
-    real(dp), dimension(:), intent(in) :: n_plus_cation_nonend
-    real(dp), dimension(:), intent(in) :: n_neutral_cation_nonend
-    real(dp), dimension(:), intent(in) :: n_minus_cation_nonend
-    real(dp), dimension(:), intent(in) :: n_plus_anion_end
-    real(dp), dimension(:), intent(in) :: n_neutral_anion_end
-    real(dp), dimension(:), intent(in) :: n_minus_anion_end
-    
-
+    real(dp), dimension(:), intent(in) :: n_cation_centre
+    real(dp), dimension(:), intent(in) :: n_anion_centre
     real(dp), intent(in) :: Donnan_potential
 
     real(dp), dimension(size_of_ns_array) :: n_s
@@ -60,6 +49,8 @@ contains
     real(dp) :: F_electric_like
     real(dp) :: F_electric_unlike
 
+    real(dp) :: F_centre_to_centre_potential_correction
+
     F_ideal_chain = 0.0_dp
     F_van_der_waals = 0.0_dp
     F_hard_sphere = 0.0_dp
@@ -79,12 +70,11 @@ contains
     F_surface_disp = integrate_z_cylindrical(n_s * &
          calculate_surface_dispersion_functional_deriv(ith_plate_separation, size(n_s)), unity_function) !J
 
-    F_ideal_chain = calculate_ideal_chain_term_per_unit_area(size(n_plus_input), n_plus_input, n_neutral_input, n_minus_input, n_plus_cation_end, n_neutral_cation_end, &
-         n_minus_cation_end, n_plus_cation_nonend, n_neutral_cation_nonend, n_minus_cation_nonend, n_plus_anion_end, n_neutral_anion_end, n_minus_anion_end, ith_plate_separation, Donnan_potential)
+    F_ideal_chain = calculate_ideal_chain_term_per_unit_area(n_plus_input, n_neutral_input, n_minus_input, n_cation_centre, n_anion_centre, ith_plate_separation, Donnan_potential)
 
-    !F_hard_sphere = calculate_hardsphere_term_per_unit_area(n_s, n_sbar)
-    !F_hard_sphere = calculate_hardsphere_term_per_unit_area_end_and_nonend(n_sbar, n_hs_end_cation, n_hs_nonend_cation, n_hs_end_anion, n_hs_nonend_anion)
-
+    F_centre_to_centre_potential_correction = calcalate_centre_to_centre_term_per_unit_area(n_s, n_cation_centre, n_anion_centre)
+    
+    F_hard_sphere = calculate_hardsphere_term_per_unit_area(n_s, n_sbar)
     F_van_der_waals = 0.5_dp * integrate_z_cylindrical(n_s * calculate_vanderWaals_functional_deriv(n_s), unity_function) !J
 
     F_surface_electro = integrate_z_cylindrical(n_plus_input(:) * calculate_surface_electrostatic_functional_deriv(size(n_plus_input), positive_bead_charge), unity_function) +&
@@ -106,7 +96,7 @@ contains
     !call abort()
 
     potential_per_unit_area_not_in_bulk = (F_ideal_chain + F_van_der_waals + F_surface_disp + F_hard_sphere + &
-         F_surface_electro + F_electric_like + F_electric_unlike)
+         F_surface_electro + F_electric_like + F_electric_unlike + F_centre_to_centre_potential_correction)
 
 
     !potential_per_unit_area_not_in_bulk = 0.0_dp
@@ -218,30 +208,21 @@ contains
   !In the case that none are present then calculate the bulk value. (by setting lambda_b - lambda = 0).
   !In the case that they're all present calulculate the value based on the input densities.
   !In any other case, abort.
-  function calculate_ideal_chain_term_per_unit_area(n_points, n_plus, n_neutral, n_minus, n_plus_cation_end, n_neutral_cation_end, n_minus_cation_end, &
-       n_plus_cation_nonend, n_neutral_cation_nonend, n_minus_cation_nonend, n_plus_anion_end, n_neutral_anion_end, n_minus_anion_end, ith_plate_separation, Donnan_potential)
-    integer, intent(in) :: n_points !Number of points to calculate
-    real(dp), dimension(:), intent(in), optional :: n_plus
-    real(dp), dimension(:), intent(in), optional :: n_neutral
-    real(dp), dimension(:), intent(in), optional :: n_minus
-
-    real(dp), dimension(:), intent(in) :: n_plus_cation_end
-    real(dp), dimension(:), intent(in) :: n_neutral_cation_end
-    real(dp), dimension(:), intent(in) :: n_minus_cation_end
-    real(dp), dimension(:), intent(in) :: n_plus_cation_nonend
-    real(dp), dimension(:), intent(in) :: n_neutral_cation_nonend
-    real(dp), dimension(:), intent(in) :: n_minus_cation_nonend
-    real(dp), dimension(:), intent(in) :: n_plus_anion_end
-    real(dp), dimension(:), intent(in) :: n_neutral_anion_end
-    real(dp), dimension(:), intent(in) :: n_minus_anion_end
+  function calculate_ideal_chain_term_per_unit_area(n_plus, n_neutral, n_minus, n_cation_centre, n_anion_centre, ith_plate_separation, Donnan_potential)
+    real(dp), dimension(:), intent(in) :: n_plus
+    real(dp), dimension(:), intent(in) :: n_neutral
+    real(dp), dimension(:), intent(in) :: n_minus
+    real(dp), dimension(:), intent(in) :: n_cation_centre
+    real(dp), dimension(:), intent(in) :: n_anion_centre
 
     integer, intent(in), optional :: ith_plate_separation
     real(dp), intent(in) :: Donnan_potential
 
     real(dp) :: calculate_ideal_chain_term_per_unit_area
 
-    real(dp), dimension(n_points) :: lambda_plus, lambda_neutral, lambda_minus
-    real(dp), dimension(n_points) :: n_plus_input, n_neutral_input, n_minus_input
+    real(dp), dimension(size(n_plus)) :: lambda_plus, lambda_neutral, lambda_minus
+    real(dp), dimension(size(n_plus)) :: n_plus_input, n_neutral_input, n_minus_input
+    real(dp), dimension(size(n_plus)) :: lambda_cation_centre, lambda_anion_centre
 
 
     calculate_ideal_chain_term_per_unit_area = 0.0_dp
@@ -250,38 +231,39 @@ contains
     lambda_neutral(:) = 0.0_dp
     lambda_minus(:) = 0.0_dp
 
-    if(present(n_plus) .and. present(n_neutral) .and. present(n_minus) .and. present(ith_plate_separation)) then
+    ! if(present(n_plus) .and. present(n_neutral) .and. present(n_minus) .and. present(ith_plate_separation)) then
 
-       if((size(n_plus) /= size(n_neutral)) .or. (size(n_plus) /= size(n_minus))) then
-          print *, "surfaceforces.f90.f90: calculate_ideal_chain_term_per_unit_area"
-          print *, "Size mismatch..."
-          print *, "(size(n_plus) /= size(n_neutral)) .or. (size(n_plus) /= size(n_minus))"
-          print *, "coding error...aborting..."
-          call abort()
-       end if
+    !    if((size(n_plus) /= size(n_neutral)) .or. (size(n_plus) /= size(n_minus))) then
+    !       print *, "surfaceforces.f90.f90: calculate_ideal_chain_term_per_unit_area"
+    !       print *, "Size mismatch..."
+    !       print *, "(size(n_plus) /= size(n_neutral)) .or. (size(n_plus) /= size(n_minus))"
+    !       print *, "coding error...aborting..."
+    !       call abort()
+    !    end if
 
-       call CalculateLambdasDifference(lambda_plus, n_plus, lambda_neutral, n_neutral, lambda_minus, n_minus, n_plus_cation_end, n_neutral_cation_end, n_minus_cation_end, &
-            n_plus_cation_nonend, n_neutral_cation_nonend, n_minus_cation_nonend, n_plus_anion_end, n_neutral_anion_end, n_minus_anion_end, ith_plate_separation)
-       n_plus_input(:) = n_plus(:)
-       n_neutral_input(:) = n_neutral(:)
-       n_minus_input(:) = n_minus(:)
-    else if(present(n_plus) .or. present(n_neutral) .or. present(n_minus) .or. present(ith_plate_separation)) then
-       print *, "surfaceforces.f90: calculate_ideal_chain_term_per_unit_area"
-       print *, "routine has optional argument list.  They must be all present or all not present."
-       print *, "This rule has been violated...coding error...aborting..."
-       call abort()
-    else !else we want to calculate the value in the bulk so we leave lambda_b - lambda = 0
-       n_plus_input(:) = bulk_density_positive_beads
-       n_neutral_input(:) = bulk_density_neutral_beads
-       n_minus_input(:) = bulk_density_negative_beads
-    end if
+    call CalculateLambdasDifference(lambda_plus, n_plus, lambda_neutral, n_neutral, lambda_minus, n_minus, lambda_cation_centre, n_cation_centre, &
+         lambda_anion_centre, n_anion_centre, ith_plate_separation)
+    n_plus_input(:) = n_plus(:)
+    n_neutral_input(:) = n_neutral(:)
+    n_minus_input(:) = n_minus(:)
+
+    ! else if(present(n_plus) .or. present(n_neutral) .or. present(n_minus) .or. present(ith_plate_separation)) then
+    !    print *, "surfaceforces.f90: calculate_ideal_chain_term_per_unit_area"
+    !    print *, "routine has optional argument list.  They must be all present or all not present."
+    !    print *, "This rule has been violated...coding error...aborting..."
+    !    call abort()
+    ! else !else we want to calculate the value in the bulk so we leave lambda_b - lambda = 0
+    !    n_plus_input(:) = bulk_density_positive_beads
+    !    n_neutral_input(:) = bulk_density_neutral_beads
+    !    n_minus_input(:) = bulk_density_negative_beads
+    ! end if
 
     if(trim(ionic_liquid_name) == "SingleNeutralSpheres") then
        calculate_ideal_chain_term_per_unit_area = calculate_single_neutral_sphere_ideal_chain_term(n_neutral_input)
     else if(trim(ionic_liquid_name) == "NeutralDimers") then
        calculate_ideal_chain_term_per_unit_area = calculate_neutral_dimers_ideal_chain_term(lambda_neutral)
     else if(trim(ionic_liquid_name) == "C4MIM_BF4-") then
-       calculate_ideal_chain_term_per_unit_area = calculate_C4MIMBF4_ideal_chain_term(lambda_plus, lambda_neutral, lambda_minus, Donnan_potential)
+       calculate_ideal_chain_term_per_unit_area = calculate_C4MIMBF4_ideal_chain_term(lambda_plus, lambda_neutral, lambda_minus, lambda_cation_centre, lambda_anion_centre, Donnan_potential)
     else if(trim(ionic_liquid_name) == "C2MIM_BF4-") then
        calculate_ideal_chain_term_per_unit_area = calculate_C2MIMBF4_ideal_chain_term(lambda_plus, lambda_neutral, lambda_minus, Donnan_potential)
     else if(trim(ionic_liquid_name) == "C6MIM_BF4-") then
@@ -324,6 +306,18 @@ contains
     end if
 
   end function calculate_ideal_chain_term_per_unit_area
+
+
+  function calcalate_centre_to_centre_term_per_unit_area(n_s, n_cation_centre, n_anion_centre)
+    real(dp), dimension(:), intent(in) :: n_s
+    real(dp), dimension(:), intent(in) :: n_cation_centre
+    real(dp), dimension(:), intent(in) :: n_anion_centre
+    real(dp) :: calcalate_centre_to_centre_term_per_unit_area
+
+    calcalate_centre_to_centre_term_per_unit_area = 0.0_dp
+
+  end function calcalate_centre_to_centre_term_per_unit_area
+
 
   !Calculates the hard sphere contribution to the grand potential.
   !Note that the integration over the angle and radial directions in cylindrical
