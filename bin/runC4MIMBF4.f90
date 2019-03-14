@@ -346,16 +346,6 @@ contains
     if(allocated(n_neutral_updated)) deallocate(n_neutral_updated)
     if(allocated(n_minus_updated)) deallocate(n_minus_updated)
 
-    if(allocated(n_plus_cation_end)) deallocate(n_plus_cation_end)
-    if(allocated(n_neutral_cation_end)) deallocate(n_neutral_cation_end)
-    if(allocated(n_minus_cation_end)) deallocate(n_minus_cation_end)
-    if(allocated(n_plus_cation_nonend)) deallocate(n_plus_cation_nonend)
-    if(allocated(n_neutral_cation_nonend)) deallocate(n_neutral_cation_nonend)
-    if(allocated(n_minus_cation_nonend)) deallocate(n_minus_cation_nonend)
-    if(allocated(n_plus_anion_end)) deallocate(n_plus_anion_end)
-    if(allocated(n_neutral_anion_end)) deallocate(n_neutral_anion_end)
-    if(allocated(n_minus_anion_end)) deallocate(n_minus_anion_end)
-
     if(allocated(lambda_plus)) deallocate(lambda_plus)
     if(allocated(lambda_neutral)) deallocate(lambda_neutral)
     if(allocated(lambda_minus)) deallocate(lambda_minus)

@@ -115,16 +115,6 @@ contains
 
     real(dp) :: Donnan_potential_previous
 
-    n_plus_cation_end(:) = 0.0_dp
-    n_neutral_cation_end(:) = 0.0_dp
-    n_minus_cation_end(:) = 0.0_dp
-    n_plus_cation_nonend(:) = 0.0_dp
-    n_neutral_cation_nonend(:) = 0.0_dp
-    n_minus_cation_nonend(:) = 0.0_dp
-    n_plus_anion_end(:) = 0.0_dp
-    n_neutral_anion_end(:) = 0.0_dp
-    n_minus_anion_end(:) = 0.0_dp
-
     if(trim(ionic_liquid_name) == "SingleNeutralSpheres") then
 
        if(present(lambda2) .or. present(n2_updated) .or. present(lambda3) .or. present(n3_updated)) then
@@ -285,24 +275,13 @@ contains
           n1_updated = n1_updated*exp(beta*Donnan_potential*positive_oligomer_charge)
           n2_updated = n2_updated*exp(beta*Donnan_potential*positive_oligomer_charge)
           n3_updated = n3_updated*exp(beta*Donnan_potential*negative_oligomer_charge)
-          
-          n_plus_cation_end = n_plus_cation_end*exp(beta*Donnan_potential*positive_oligomer_charge)
-          n_plus_cation_nonend = n_plus_cation_nonend*exp(beta*Donnan_potential*positive_oligomer_charge)
-          n_neutral_cation_end = n_neutral_cation_end*exp(beta*Donnan_potential*positive_oligomer_charge)
-          n_neutral_cation_nonend = n_neutral_cation_nonend*exp(beta*Donnan_potential*positive_oligomer_charge)
-          n_minus_anion_end = n_minus_anion_end*exp(beta*Donnan_potential*negative_oligomer_charge)
-          
+                    
           call CalculateDonnanPotential(n1_updated, n3_updated, Donnan_potential, abort_now)
 
           n1_updated = n1_updated*exp(beta*Donnan_potential*positive_oligomer_charge)
           n2_updated = n2_updated*exp(beta*Donnan_potential*positive_oligomer_charge)
           n3_updated = n3_updated*exp(beta*Donnan_potential*negative_oligomer_charge)
 
-          n_plus_cation_end = n_plus_cation_end*exp(beta*Donnan_potential*positive_oligomer_charge)
-          n_plus_cation_nonend = n_plus_cation_nonend*exp(beta*Donnan_potential*positive_oligomer_charge)
-          n_neutral_cation_end = n_neutral_cation_end*exp(beta*Donnan_potential*positive_oligomer_charge)
-          n_neutral_cation_nonend = n_neutral_cation_nonend*exp(beta*Donnan_potential*positive_oligomer_charge)
-          n_minus_anion_end = n_minus_anion_end*exp(beta*Donnan_potential*negative_oligomer_charge)
           
           Donnan_potential = Donnan_potential + Donnan_potential_previous
 
@@ -1039,10 +1018,7 @@ contains
     real(dp), dimension(:), intent(in) :: lambda_cation_centre
     real(dp), dimension(:), intent(out) :: n_plus_updated
     real(dp), dimension(:), intent(out) :: n_cation_centre
-
-    real(dp), dimension(:), intent(out) :: n_plus_cation_end
-    real(dp), dimension(:), intent(out) :: n_plus_cation_nonend
-    
+   
     real(dp), dimension(size(lambda_plus)) :: c8c1, c9c10, c7, c6, c5, c4, c2, c3p, c3pp, c3ppp
     integer :: array_size
     integer :: ij
@@ -1387,13 +1363,10 @@ contains
   end subroutine UpdateC10MIMBF4PositiveBeadDensities
 
 
-  subroutine UpdateC4MIMBF4NeutralBeadDensities(lambda_plus, lambda_neutral, n_neutral_updated, n_neutral_cation_end, n_neutral_cation_nonend)
+  subroutine UpdateC4MIMBF4NeutralBeadDensities(lambda_plus, lambda_neutral, n_neutral_updated)
     real(dp), dimension(:), intent(in) :: lambda_plus
     real(dp), dimension(:), intent(in) :: lambda_neutral
     real(dp), dimension(:), intent(out) :: n_neutral_updated
-
-    real(dp), dimension(:), intent(out) :: n_neutral_cation_end
-    real(dp), dimension(:), intent(out) :: n_neutral_cation_nonend
 
     real(dp), dimension(size(lambda_plus)) :: c3p, c3ppp, c9c10, c8c1, c7, c6, c5, c4, c2 !contributions also used in +ve beads.
     real(dp), dimension(size(lambda_plus)) :: c2p, c4p, c5p, c6p, c7p !extra contributions for -ve beads.
@@ -1444,18 +1417,12 @@ contains
          (exp(lambda_neutral) * c5p * c7) + (exp(lambda_neutral) * c6p * c8c1) + (exp(lambda_neutral) * c7p) )
 
     !Now update the hs contribution for the cation end and nonend beads from the neutral beads.
-    n_neutral_cation_end = n_neutral_cation_end + bulk_density * ( (exp(lambda_neutral) * c2p) + (exp(lambda_neutral) * c7p) )
-
-    n_neutral_cation_nonend = n_neutral_cation_nonend + bulk_density * ( (exp(lambda_neutral) * c4p * c6) + &
-         (exp(lambda_neutral) * c5p * c7) + (exp(lambda_neutral) * c6p * c8c1) )
 
     ! do ij = 1, (size(n_neutral_updated) - 1)/2
     !    n_neutral_updated(ij) = n_neutral_updated(size(n_neutral_updated) - ij + 1)
     ! end do
 
     call setNonCalculatedRegionToZero(n_neutral_updated)
-    call setNonCalculatedRegionToZero(n_neutral_cation_end)
-    call setNonCalculatedRegionToZero(n_neutral_cation_nonend)
 
   end subroutine UpdateC4MIMBF4NeutralBeadDensities
 
@@ -1465,8 +1432,6 @@ contains
     real(dp), dimension(:), intent(in) :: lambda_anion_centre
     real(dp), dimension(:), intent(out) :: n_minus_updated
     real(dp), dimension(:), intent(out) :: n_anion_centre
-
-    real(dp), dimension(:), intent(out) :: n_minus_anion_end
 
     real(dp), dimension(size(lambda_minus)) :: a1a2a3a4, a5p
     integer :: array_size
