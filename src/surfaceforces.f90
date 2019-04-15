@@ -72,7 +72,9 @@ contains
 
     F_ideal_chain = calculate_ideal_chain_term_per_unit_area(n_plus_input, n_neutral_input, n_minus_input, n_cation_centre, n_anion_centre, ith_plate_separation, Donnan_potential)
 
-    F_centre_to_centre_potential_correction = calcalate_centre_to_centre_term_per_unit_area(n_s, n_cation_centre, n_anion_centre)
+    F_centre_to_centre_potential_correction = integrate_z_cylindrical(n_cation_centre * calculate_centre_to_centre_functional_deriv(.false., size(n_cation_centre), 'c', &
+         n_cation_centre, n_anion_centre), unity_function) !J
+    !calcalate_centre_to_centre_term_per_unit_area(n_s, n_cation_centre, n_anion_centre)
     
     F_hard_sphere = calculate_hardsphere_term_per_unit_area(n_s, n_sbar)
     F_van_der_waals = 0.5_dp * integrate_z_cylindrical(n_s * calculate_vanderWaals_functional_deriv(n_s), unity_function) !J
@@ -125,7 +127,7 @@ contains
 
 
 
-    chemical_potential_term = calculate_chem_potential_term(n_plus_input, n_neutral_input, n_minus_input, ith_plate_separation, Donnan_potential)
+    chemical_potential_term = calculate_chem_potential_term(n_plus_input, n_neutral_input, n_minus_input, n_cation_centre, n_anion_centre, ith_plate_separation, Donnan_potential)
 
     !F_van_der_waals = integrate_z_cylindrical(0.5_dp * n_s * calculate_vanderWaals_functional_deriv(n_s), unity_function)
 
@@ -143,10 +145,13 @@ contains
   end subroutine CalculateGrandPotentialValuePerUnitArea
 
 
-  function calculate_chem_potential_term(n_plus, n_neutral, n_minus, ith_plate_separation, Donnan_potential)
+  function calculate_chem_potential_term(n_plus, n_neutral, n_minus, n_cation_centre, n_anion_centre, ith_plate_separation, Donnan_potential)
     real(dp), dimension(:), intent(in) :: n_plus
     real(dp), dimension(:), intent(in) :: n_neutral
     real(dp), dimension(:), intent(in) :: n_minus
+
+    real(dp), dimension(:), intent(in) :: n_cation_centre
+    real(dp), dimension(:), intent(in) :: n_anion_centre
     
     integer, intent(in) :: ith_plate_separation
 
@@ -159,15 +164,15 @@ contains
     else if(trim(ionic_liquid_name) == "NeutralDimers") then
        calculate_chem_potential_term = calculate_chem_potential_term_neutral_dimers(n_plus, n_neutral, n_minus, ith_plate_separation)
     else if(trim(ionic_liquid_name) == "C4MIM_BF4-") then
-       calculate_chem_potential_term = calculate_chem_potential_C4MIMBF4(n_plus, n_neutral, n_minus, ith_plate_separation, Donnan_potential)
+       calculate_chem_potential_term = calculate_chem_potential_C4MIMBF4(n_plus, n_neutral, n_minus, n_cation_centre, n_anion_centre, ith_plate_separation, Donnan_potential)
     else if(trim(ionic_liquid_name) == "C2MIM_BF4-") then !Chemical potential is the same functional form as C4MIM_BF4-
-       calculate_chem_potential_term = calculate_chem_potential_C4MIMBF4(n_plus, n_neutral, n_minus, ith_plate_separation, Donnan_potential)
+       calculate_chem_potential_term = calculate_chem_potential_C4MIMBF4(n_plus, n_neutral, n_minus, n_cation_centre, n_anion_centre, ith_plate_separation, Donnan_potential)
     else if(trim(ionic_liquid_name) == "C6MIM_BF4-") then !Chemical potential is the same functional form as C4MIM_BF4-
-       calculate_chem_potential_term = calculate_chem_potential_C4MIMBF4(n_plus, n_neutral, n_minus, ith_plate_separation, Donnan_potential)
+       calculate_chem_potential_term = calculate_chem_potential_C4MIMBF4(n_plus, n_neutral, n_minus, n_cation_centre, n_anion_centre, ith_plate_separation, Donnan_potential)
     else if(trim(ionic_liquid_name) == "C8MIM_BF4-") then !Chemical potential is the same functional form as C4MIM_BF4-
-       calculate_chem_potential_term = calculate_chem_potential_C4MIMBF4(n_plus, n_neutral, n_minus, ith_plate_separation, Donnan_potential)
+       calculate_chem_potential_term = calculate_chem_potential_C4MIMBF4(n_plus, n_neutral, n_minus, n_cation_centre, n_anion_centre, ith_plate_separation, Donnan_potential)
     else if(trim(ionic_liquid_name) == "C10MIM_BF4-") then !Chemical potential is the same functional form as C4MIM_BF4-
-       calculate_chem_potential_term = calculate_chem_potential_C4MIMBF4(n_plus, n_neutral, n_minus, ith_plate_separation, Donnan_potential)
+       calculate_chem_potential_term = calculate_chem_potential_C4MIMBF4(n_plus, n_neutral, n_minus, n_cation_centre, n_anion_centre, ith_plate_separation, Donnan_potential)
     else if(trim(ionic_liquid_name) == "C4MIM+_TFSI-_model1") then
        calculate_chem_potential_term = calculate_chem_potential_C4MIMTFSI_model1(n_plus, n_neutral, n_minus, ith_plate_separation, Donnan_potential)
     else if(trim(ionic_liquid_name) == "C2MIM+_TFSI-_model1") then !Chemical potential is the same functional form as C4MIM+_TFSI-_model1.
@@ -308,15 +313,15 @@ contains
   end function calculate_ideal_chain_term_per_unit_area
 
 
-  function calcalate_centre_to_centre_term_per_unit_area(n_s, n_cation_centre, n_anion_centre)
-    real(dp), dimension(:), intent(in) :: n_s
-    real(dp), dimension(:), intent(in) :: n_cation_centre
-    real(dp), dimension(:), intent(in) :: n_anion_centre
-    real(dp) :: calcalate_centre_to_centre_term_per_unit_area
+  ! function calcalate_centre_to_centre_term_per_unit_area(n_s, n_cation_centre, n_anion_centre)
+  !   real(dp), dimension(:), intent(in) :: n_s
+  !   real(dp), dimension(:), intent(in) :: n_cation_centre
+  !   real(dp), dimension(:), intent(in) :: n_anion_centre
+  !   real(dp) :: calcalate_centre_to_centre_term_per_unit_area
 
-    calcalate_centre_to_centre_term_per_unit_area = 0.0_dp
+  !   calcalate_centre_to_centre_term_per_unit_area = 0.0_dp
 
-  end function calcalate_centre_to_centre_term_per_unit_area
+  ! end function calcalate_centre_to_centre_term_per_unit_area
 
 
   !Calculates the hard sphere contribution to the grand potential.

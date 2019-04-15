@@ -241,7 +241,9 @@ contains
           if(Donnan_func_to_solve(a,b,c,xip1) > 1.0E-4_dp) then
              print *, "helpers.f90:SolveWithNewtonsMethod: Converged to wrong solution"
              print *, "in calculation of the Donnan potential."
+             print *, "1"
              print *, "Function value (which should be zero) = ", Donnan_func_to_solve(a,b,c,xip1)
+             print *, "2"
              !Found a problem, but still want to print out what we've calculated so far.
              abort_now = .true.
              !call abort()

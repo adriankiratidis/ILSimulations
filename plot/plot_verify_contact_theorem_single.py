@@ -26,8 +26,8 @@ plt.rc('font', family='serif')
 #data_contactthm = np.loadtxt("../run_results/testing-normal-pressure-left-wall.txt5-6")
 #data_negativederiv = np.loadtxt("../run_results/testing-negative_deriv_of_potential.txt5-6")=
 
-data_contactthm2 = np.loadtxt("../run_results/compare_epsilonLJ/charge/35.51-35.51_C2MIM+_TFSI-_model2TEST_plus_minus/testing7-a2-normal-pressure-left-wall.txt")
-data_negativederiv2 = np.loadtxt("../run_results/compare_epsilonLJ/charge/35.51-35.51_C2MIM+_TFSI-_model2TEST_plus_minus/testing7-a2-negative_deriv_of_potential.txt")
+data_contactthm2 = np.loadtxt("../run_results/compare_epsilonLJ/charge4-12/35.51-53.27_C10MIM+_TFSI-_model2/testing4-a2-normal-pressure-left-wall.txt")
+data_negativederiv2 = np.loadtxt("../run_results/compare_epsilonLJ/charge4-12/35.51-53.27_C10MIM+_TFSI-_model2/testing4-a2-negative_deriv_of_potential.txt")
 
 #data_contactthm2 = np.loadtxt("../run_results/testing-potential-per-unit-area.txt5-15")
 
@@ -74,7 +74,7 @@ plt.plot(x_contactthm[2:],y_contactthm[2:],'bo',label='Pressure from contact the
 plt.plot(x_negativederiv[2:], y_negativederiv[2:],'gs',label='Pressure from derivative of potential')
 
 #Set the axis labels.  Labelpad option controls the spacing between actual axis and axis label.  The r option tells python to interpret as a raw string literal.
-plt.xlabel(r"$z/\sigma$",labelpad=10)
+plt.xlabel(r"$h/\sigma$",labelpad=10)
 plt.ylabel(r"${P_{int}}(N/m^2)$",labelpad=5)
 
 plt.ticklabel_format(style='sci', axis='y', scilimits=(0,0))
@@ -100,7 +100,7 @@ plt.legend(loc='best',ncol=1, numpoints=1, frameon=False)
 #plt.title(r"Some Title")
 
 #savefig("Contact_theorem_35.51-35.51-charge_a2_TEST_C4MIMTFSI_model2.pdf",bbox_inches='tight')
-savefig("Contact_theorem_C2MIM+_TFSI-_35.51-35.51_model2_TEST_plus_minus.pdf",bbox_inches='tight')
+#savefig("Contact_theorem_C2MIM+_TFSI-_35.51-35.51_model2_TEST_plus_minus.pdf",bbox_inches='tight')
 
 #Open a window and show the plot
 plt.show()

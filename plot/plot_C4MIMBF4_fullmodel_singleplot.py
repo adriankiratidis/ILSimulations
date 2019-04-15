@@ -29,10 +29,10 @@ matplotlib.rcParams.update({'font.size': 17})
 #(Default python array indicies start at 0 unlike fortran which starts at 1.)
 #data_0 = np.loadtxt("../testing-n_" + charge + "_separation" + str(separation) + ".00000.txt")
 
-        
-data_1 = np.loadtxt("../run_results/compare_epsilonLJ/nocharge4-12/35.51-53.27_C10MIM+_TFSI-_model2/testing4-a2-n_plus_separation10.00000charge1.txt")
-data_2 = np.loadtxt("../run_results/compare_epsilonLJ/nocharge4-12/35.51-53.27_C10MIM+_TFSI-_model2/testing4-a2-n_neutral_separation10.00000charge1.txt")
-data_3 = np.loadtxt("../run_results/compare_epsilonLJ/nocharge4-12/35.51-53.27_C10MIM+_TFSI-_model2/testing4-a2-n_minus_separation10.00000charge1.txt")
+#../run_results/compare_epsilonLJ/nocharge4-12/35.51-53.27_C4MIM_BF4-
+data_1 = np.loadtxt("../run_results/compare_epsilonLJ/CentreCentrePotential/35.51-53.27_C4MIM_BF4--0.01467-10--0.003125/testing-a2-n_plus_separation6.00000charge1.txt")
+data_2 = np.loadtxt("../run_results/compare_epsilonLJ/CentreCentrePotential/35.51-53.27_C4MIM_BF4--0.01467-10--0.003125/testing-a2-n_neutral_separation6.00000charge1.txt")
+data_3 = np.loadtxt("../run_results/compare_epsilonLJ/CentreCentrePotential/35.51-53.27_C4MIM_BF4--0.01467-10--0.003125/testing-a2-n_minus_separation6.00000charge1.txt")
 
 
 x_1 = data_1[:,0]
@@ -91,7 +91,7 @@ plt.legend(loc='best',ncol=1, numpoints=1, frameon=False)
 #Uncomment if title is required
 #plt.title(r"Some Title")
 
-savefig("Single_density_plot_35.51-53.27-nocharge_C10MIM+_TFSI-_model2_density1_a2.pdf", bbox_inches='tight')
+#savefig("Single_density_plot_35.51-53.27-nocharge_C10MIM+_TFSI-_model2_density1_a2.pdf", bbox_inches='tight')
 #savefig("C4MIM_TFSI_model2-35.51-35.51-charge_a2_TEST.pdf",bbox_inches='tight')
 #savefig("C2MIM+_TFSI-_35.51-35.51_model2_TEST_plus_minus.pdf",bbox_inches='tight')
 

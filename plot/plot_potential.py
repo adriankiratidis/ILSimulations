@@ -24,19 +24,19 @@ plt.rc('font', family='serif')
 #(Default python array indicies start at 0 unlike fortran which starts at 1.)
 
 
-charges=["charge"]
+charges=["CentreCentrePotential"]
+#charges=["nocharge4-12"]
 ELJ_wall=["100"]
 ELJ_wall_index=[""]
 
 for j in range(len(charges)):
     for i in range(len(ELJ_wall)):
-        data_contactthm2 = np.loadtxt("../run_results/compare_epsilonLJ/"+charges[j]+"/100-"+ELJ_wall[i]+"_C4MIM_BF4--TESTING-NEW-HS/testing"+ELJ_wall_index[i]+"-a2-potential-per-unit-area.txt")
+        #data_contactthm2 = np.loadtxt("../run_results/compare_epsilonLJ/"+charges[j]+"/100-"+ELJ_wall[i]+"_C4MIM_BF4--TESTING-NEW-HS/testing"+ELJ_wall_index[i]+"-a2-potential-per-unit-area.txt")
+        #data_contactthm2 = np.loadtxt("../run_results/compare_epsilonLJ/"+charges[j]+"/35.51-53.27_C4MIM_BF4--0.005-0-0.00-LongTEST10/testing"+ELJ_wall_index[i]+"-a2-potential-per-unit-area.txt")
+        data_contactthm2 = np.loadtxt("../run_results/compare_epsilonLJ/"+charges[j]+"/35.51-53.27_C4MIM_BF4--0.005-0-0.00-LongLong/testing2"+ELJ_wall_index[i]+"-a2-potential-per-unit-area.txt")
 
-# charges=["charge", "nocharge"]
-# ELJ_wall=["53.27"]
-# IL=["_C2MIM+_TFSI-_model2", "_C6MIM+_TFSI-_model2", "_C8MIM+_TFSI-_model2", "_C10MIM+_TFSI-_model2", "_C2MIM_BF4-", "_C6MIM_BF4-", "_C8MIM_BF4-", "_C10MIM_BF4-"]
-# IL_index=["", "2", "3", "4", "", "2", "3", "4"]
 
+        
 
 # for j in range(len(charges)):
 #     for i in range(len(IL)):

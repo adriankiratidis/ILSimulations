@@ -81,6 +81,13 @@ contains
     !print *, "lambda_plus after= ", lambda_plus
     !print *, "lambda_minus after = ", lambda_minus(100)
     !call abort()
+
+    !print *, "lambda_plus = ", lambda_plus
+    !print *, "lambda_neutral = ", lambda_neutral
+    !print *, "lambda_minus = ", lambda_minus
+    !print *, "lambda_cation_centre = ", lambda_cation_centre
+    !print *, "lambda_anion_centre = ", lambda_anion_centre
+    
   end subroutine CalculateLambdasDifference
 
 
@@ -136,12 +143,14 @@ contains
     lambda_neutral = beta * (lambda_common_terms + CalculateLambaNeutralSpecificTerms(.false., size(lambda_neutral), n_plus, n_neutral, n_minus))
     lambda_minus = beta * (lambda_common_terms + CalculateLambdaMinusSpecificTerms(.false., size(lambda_minus), n_plus, n_minus))
 
-    lambda_cation_centre = beta * CalculateLambdaCentreToCentreCorrection(.false., size(lambda_cation_centre), 'c', n_s, n_cation_centre, n_anion_centre)
-    lambda_anion_centre = beta * CalculateLambdaCentreToCentreCorrection(.false., size(lambda_anion_centre), 'a', n_s, n_cation_centre, n_anion_centre)
+    lambda_cation_centre = beta * CalculateLambdaCentreToCentreCorrection(.false., size(lambda_cation_centre), 'c', n_cation_centre, n_anion_centre)
+    lambda_anion_centre = beta * CalculateLambdaCentreToCentreCorrection(.false., size(lambda_anion_centre), 'a', n_cation_centre, n_anion_centre)
 
     !print *, "lambda_plus = ", lambda_plus
     !print *, "lambda_neutral = ", lambda_neutral
     !print *, "lambda_minus = ", lambda_minus
+    !print *, "lambda_cation_centre = ", lambda_cation_centre
+    !print *, "lambda_anion_centre = ", lambda_anion_centre
     !call abort()
 
   end subroutine CalculateLambdas
@@ -193,11 +202,10 @@ contains
   !It is written such that the lambda can be added to lambda_plus (for example) for the
   !positive bead on the cation and it will add on the different potential and subtract off the bit that
   !isn't applicable for that bead, but is for all other beads.  This improves code readability.
-  function CalculateLambdaCentreToCentreCorrection(calculate_bulk, size_of_terms, cation_or_anion, n_s, n_cation_centre, n_anion_centre)
+  function CalculateLambdaCentreToCentreCorrection(calculate_bulk, size_of_terms, cation_or_anion, n_cation_centre, n_anion_centre)
     logical, intent(in) :: calculate_bulk
     integer, intent(in) :: size_of_terms
     character(len=*), intent(in) :: cation_or_anion
-    real(dp), dimension(:), intent(in), optional :: n_s
     real(dp), dimension(:), intent(in), optional :: n_cation_centre
     real(dp), dimension(:), intent(in), optional :: n_anion_centre
 
@@ -207,7 +215,7 @@ contains
     real(dp), dimension(size_of_terms) :: van_der_waals_term
     
     if(calculate_bulk) then
-       if(present(n_s) .or. present(n_cation_centre) .or. present(n_cation_centre)) then
+       if(present(n_cation_centre) .or. present(n_cation_centre)) then
           print *, "lambdas.f90:CalculateLambdaCationCentreCorrection:"
           print *, "if we're calculating the value in the bulk then NO need to included densities."
           call abort()
@@ -217,7 +225,7 @@ contains
             calculate_centre_to_centre_functional_deriv(calculate_bulk, size_of_terms, trim(cation_or_anion))
 
     else
-       if((.not. present(n_s)) .or. (.not. present(n_cation_centre)) .or. (.not. present(n_cation_centre))) then
+       if((.not. present(n_cation_centre)) .or. (.not. present(n_cation_centre))) then
           print *, "lambdas.f90:CalculateLambdaCationCentreCorrection:"
           print *, "if we're calculating the value NOT in the bulk then need to included densities."
           call abort()
@@ -227,11 +235,11 @@ contains
        !van_der_waals_term = calculate_vanderWaals_functional_deriv(n_s)
 
        CalculateLambdaCentreToCentreCorrection = &!-1.0_dp * (hs_term + van_der_waals_term) + &
-            calculate_centre_to_centre_functional_deriv(calculate_bulk, size_of_terms, trim(cation_or_anion), n_s, n_cation_centre, n_anion_centre)
+            calculate_centre_to_centre_functional_deriv(calculate_bulk, size_of_terms, trim(cation_or_anion), n_cation_centre, n_anion_centre)
 
     end if
 
-    CalculateLambdaCentreToCentreCorrection = 0.0_dp
+    !CalculateLambdaCentreToCentreCorrection = 0.0_dp
   end function CalculateLambdaCentreToCentreCorrection
   
   ! subroutine CalculateLambdasDifference_old(lambda_plus, n_plus, lambda_neutral, n_neutral, lambda_minus, n_minus, ith_plate_separation)
@@ -591,7 +599,7 @@ contains
     ! print *, ""
     !call abort()
 
-    CalculateLambdaMinusSpecificTerms = surface_electrostatic_term + like_electrostatic_term + unlike_electrostatic_term! + hs_term
+    CalculateLambdaMinusSpecificTerms = surface_electrostatic_term + like_electrostatic_term + unlike_electrostatic_term ! + hs_term
 
   end function CalculateLambdaMinusSpecificTerms
 

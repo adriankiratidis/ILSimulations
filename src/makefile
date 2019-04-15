@@ -20,7 +20,9 @@ OBJS =   \
 	contacttheorem.o \
 	discretederivatives.o \
 	excessenergyfunctionalparameters.o \
-	charge.o
+	charge.o \
+	diagnostics.o \
+	pairmetrics.o
 
 all:
 	make ILsimulationssrclib.o

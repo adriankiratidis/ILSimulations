@@ -28,11 +28,10 @@ module functionalderivatives
 
 contains
   
-  function calculate_centre_to_centre_functional_deriv(calculate_bulk, size_of_terms, cation_or_anion, n_s, n_cation_centre, n_anion_centre)
+  function calculate_centre_to_centre_functional_deriv(calculate_bulk, size_of_terms, cation_or_anion, n_cation_centre, n_anion_centre)
     logical, intent(in) :: calculate_bulk
     integer, intent(in) :: size_of_terms
     character(len=*), intent(in) :: cation_or_anion
-    real(dp), dimension(:), intent(in), optional :: n_s
     real(dp), dimension(:), intent(in), optional :: n_cation_centre
     real(dp), dimension(:), intent(in), optional :: n_anion_centre
 
@@ -44,17 +43,17 @@ contains
 
     if(calculate_bulk) then
 
-       if(present(n_s) .or. present(n_cation_centre) .or. present(n_anion_centre)) then
+       if(present(n_cation_centre) .or. present(n_anion_centre)) then
           print *, "functionalderivatives.f90: calculate_centre_to_centre_functional_deriv"
           print *, "If we're calculating the value in the bulk we don't need to pass in density variables.  Coding bug."
           call abort()
        end if
 
        if(trim(cation_or_anion) == 'c' .or. trim(cation_or_anion) == 'a') then
-
-       ns_bulk(:) = bulk_density
-       calculate_centre_to_centre_functional_deriv(:) = (-1.0_dp * epsilon_eighth_power_const * beta * (hs_diameter**8) * 2.0_dp * pi * ns_bulk(:)) * ( &
-            (6.0_dp/(15.0_dp*(hs_diameter**6))))
+          
+          ns_bulk(:) = bulk_density
+          calculate_centre_to_centre_functional_deriv(:) = (-1.0_dp * epsilon_eighth_power_const * (1.0 / beta) * (hs_diameter**8) * 2.0_dp * pi * ns_bulk(:)) * ( &
+               (6.0_dp/(15.0_dp*(hs_diameter**5))))
        else
           print *, "functionalderivatives.f90: calculate_centre_to_centre_functional_deriv"
           print *, "Invalid value of trim(cation_or_anion) = ", trim(cation_or_anion)
@@ -64,7 +63,7 @@ contains
 
     else
 
-       if((.not. present(n_s)) .or. (.not. present(n_cation_centre)) .or. (.not. present(n_anion_centre))) then
+       if((.not. present(n_cation_centre)) .or. (.not. present(n_anion_centre))) then
           print *, "functionalderivatives.f90: calculate_centre_to_centre_functional_deriv"
           print *, "If we're calculating the value NOT in the bulk we need to pass in density variables.  Coding bug."
           call abort()
@@ -72,14 +71,15 @@ contains
 
        if(trim(cation_or_anion) == 'c') then
 
-          calculate_centre_to_centre_functional_deriv = -1.0_dp * epsilon_eighth_power_const * beta * (hs_diameter**8.0_dp) * (1.0_dp) * &
+          calculate_centre_to_centre_functional_deriv = -1.0_dp * epsilon_eighth_power_const * (1.0_dp / beta) * (hs_diameter**8.0_dp) * (1.0_dp) * &
                2.0_dp * pi * integrate_z_cylindrical(n_anion_centre, van_der_waals_density_indept_integrand_centre_to_centre, "all_z")
 
        else if(trim(cation_or_anion) == 'a') then
 
-          calculate_centre_to_centre_functional_deriv = -1.0_dp * epsilon_eighth_power_const * beta * (hs_diameter**8.0_dp) * (1.0_dp) * &
+          calculate_centre_to_centre_functional_deriv = -1.0_dp * epsilon_eighth_power_const * (1.0_dp / beta) * (hs_diameter**8.0_dp) * (1.0_dp) * &
                2.0_dp * pi * integrate_z_cylindrical(n_cation_centre, van_der_waals_density_indept_integrand_centre_to_centre, "all_z")
 
+          
        else
           print *, "functionalderivatives.f90: calculate_centre_to_centre_functional_deriv"
           print *, "Invalid value of trim(cation_or_anion) = ", trim(cation_or_anion)

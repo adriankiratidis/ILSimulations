@@ -84,13 +84,14 @@ contains
   end subroutine CalculateNormalPressureFromContactTheorem
 
   subroutine InitialisePotentialAndContactTheoremVariables(grand_potential_per_unit_area, grand_potential_per_unit_area_in_bulk, &
-       normal_pressure_left_wall, normal_pressure_right_wall, negative_deriv_of_potential, dispersion_particle_particle_adjust_to_contact_thm)
+       normal_pressure_left_wall, normal_pressure_right_wall, negative_deriv_of_potential, dispersion_particle_particle_adjust_to_contact_thm, Centre_Separation_Metric)
     real(dp), dimension(:), allocatable :: grand_potential_per_unit_area
     real(dp), dimension(:), allocatable :: grand_potential_per_unit_area_in_bulk
     real(dp), dimension(:), allocatable :: normal_pressure_left_wall
     real(dp), dimension(:), allocatable :: normal_pressure_right_wall
     real(dp), dimension(:), allocatable :: negative_deriv_of_potential
     real(dp), dimension(:), allocatable :: dispersion_particle_particle_adjust_to_contact_thm
+    real(dp), dimension(:), allocatable :: Centre_Separation_Metric
 
     allocate(grand_potential_per_unit_area(size(plate_separations)))
     allocate(grand_potential_per_unit_area_in_bulk(size(plate_separations)))
@@ -98,14 +99,16 @@ contains
     allocate(normal_pressure_right_wall(size(plate_separations)))
     allocate(negative_deriv_of_potential(size(plate_separations)))
     allocate(dispersion_particle_particle_adjust_to_contact_thm(size(plate_separations)))
-
+    allocate(Centre_Separation_Metric(size(plate_separations)))
+    
     grand_potential_per_unit_area(:) = 0.0_dp
     grand_potential_per_unit_area_in_bulk(:) = 0.0_dp
     normal_pressure_left_wall(:) = 0.0_dp
     normal_pressure_right_wall(:) = 0.0_dp
     negative_deriv_of_potential(:) = 0.0_dp
     dispersion_particle_particle_adjust_to_contact_thm(:) = 0.0_dp
-
+    Centre_Separation_Metric(:) = 0.0_dp
+    
   end subroutine InitialisePotentialAndContactTheoremVariables
 
   function CalculateNegativeDerivOfPotentialPerUnitAreaWRTSeparation(grand_potential_per_unit_area)

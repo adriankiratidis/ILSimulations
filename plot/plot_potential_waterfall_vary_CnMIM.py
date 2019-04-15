@@ -15,24 +15,24 @@ plt.rc('font', family='serif')
 
 #35.51-53.27_C4MIM+_TFSI-_model2_density2
 #C4MIM_BF4-_density2
-charges = ["nocharge"]
+charges = ["charge_minuswalls"]
 #list_of_particles=["MIM+_TFSI-_model2"]#, "MIM_BF4-"]
 #list_of_particles=["MIM_BF4-"]
-#list_of_particles=["MIM_BF4-_minus_minus","MIM_BF4-_density2_minus_minus", "MIM+_TFSI-_model1_minus_minus", "MIM+_TFSI-_model2_density2_minus_minus"]
+#list_of_particles=["MIM_BF4-_minus_minus","MIM_BF4-_density2_minus_minus"]#, "MIM+_TFSI-_model1_minus_minus", "MIM+_TFSI-_model2_density2_minus_minus"]
 #list_of_particles=["MIM+_TFSI-_model1"]
-#list_of_particles=["MIM+_TFSI-_model1_density2_minus_minus", "MIM+_TFSI-_model2_minus_minus"]
+list_of_particles=["MIM+_TFSI-_model2_density2_minus_minus", "MIM+_TFSI-_model2_minus_minus"]
 #list_of_particles=["MIM+_TFSI-_model2_density2"]
 #list_of_particles=["MIM_BF4-"]
-list_of_particles=["MIM+_TFSI-_model1"]
+#list_of_particles=["MIM+_TFSI-_model1"]
 
 for i in range(len(charges)):
     for j in range(len(list_of_particles)):
 
         data_contactthm1 = np.loadtxt("../run_results/compare_epsilonLJ/"+charges[i]+"4-12/35.51-53.27_C2"+list_of_particles[j]+"/testing-a2-potential-per-unit-area.txt")
-        data_contactthm2 = np.loadtxt("../run_results/compare_epsilonLJ/"+charges[i]+"4-12/35.51-53.27_C4"+list_of_particles[j]+"/testing4-potential-per-unit-area.txt")
-        data_contactthm3 = np.loadtxt("../run_results/compare_epsilonLJ/"+charges[i]+"4-12/35.51-53.27_C6"+list_of_particles[j]+"/testing2-a2-potential-per-unit-area.txt")
-        data_contactthm4 = np.loadtxt("../run_results/compare_epsilonLJ/"+charges[i]+"4-12/35.51-53.27_C8"+list_of_particles[j]+"/testing3-a2-potential-per-unit-area.txt")
-        data_contactthm5 = np.loadtxt("../run_results/compare_epsilonLJ/"+charges[i]+"4-12/35.51-53.27_C10"+list_of_particles[j]+"/testing4-a2-potential-per-unit-area.txt")
+        data_contactthm2 = np.loadtxt("../run_results/compare_epsilonLJ/"+charges[i]+"4-12/35.51-53.27_C4"+list_of_particles[j]+"/testing2-a2-potential-per-unit-area.txt")
+        data_contactthm3 = np.loadtxt("../run_results/compare_epsilonLJ/"+charges[i]+"4-12/35.51-53.27_C6"+list_of_particles[j]+"/testing3-a2-potential-per-unit-area.txt")
+        data_contactthm4 = np.loadtxt("../run_results/compare_epsilonLJ/"+charges[i]+"4-12/35.51-53.27_C8"+list_of_particles[j]+"/testing4-a2-potential-per-unit-area.txt")
+        data_contactthm5 = np.loadtxt("../run_results/compare_epsilonLJ/"+charges[i]+"4-12/35.51-53.27_C10"+list_of_particles[j]+"/testing5-a2-potential-per-unit-area.txt")
 
 
 # for i in range(len(charges)):
@@ -191,7 +191,7 @@ for i in range(len(charges)):
 
         
         
-        ax.set_xlabel(r'$z/\sigma$', labelpad=1.5, fontsize=17)
+        ax.set_xlabel(r'$h/\sigma$', labelpad=1.5, fontsize=17)
         ax.set_xlim3d(4, 12)
         ax.tick_params(axis='x', which='major', pad=-2)
         
@@ -207,7 +207,7 @@ for i in range(len(charges)):
         
         #plt.ticklabel_format(style='sci', axis='z', scilimits=(0,0))
         
-        savefig("WATERFALL_PLOT_POTENTIAL_VARY_CNMIM_"+charges[i]+"_"+list_of_particles[j]+".pdf",bbox_inches='tight')
+        savefig("paper_revision_plots/WATERFALL_PLOT_POTENTIAL_VARY_CNMIM_"+charges[i]+"_"+list_of_particles[j]+".pdf",bbox_inches='tight')
         
         plt.show()
         

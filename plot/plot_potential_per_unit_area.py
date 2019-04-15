@@ -75,7 +75,7 @@ plt.legend(loc='best',ncol=1, numpoints=1, frameon=False)
 #Uncomment if title is required
 #plt.title(r"Some Title")
 
-savefig("potential_per_unit_area.pdf",bbox_inches='tight')
+#savefig("potential_per_unit_area.pdf",bbox_inches='tight')
 
 #Open a window and show the plot
 plt.show()

@@ -1,13 +1,13 @@
 #### Shell script to run runSingleSphere.csh
 #!/bin/bash
 
-declare -a epsilons=(35.51)
+declare -a epsilons=(53.27)
 
 for i in "${epsilons[@]}"
 do
 Epsilon_LJ_particle_wall="$i"
 
-test_file_stub="testing8-a2"
+test_file_stub="testing12-a2"
 
 #ionic_liquid_name="NeutralDimers"
 #ionic_liquid_name="SingleNeutralSpheres"
@@ -21,7 +21,7 @@ ionic_liquid_name="C4MIM_BF4-"
 chi_parameter=0.71
 Epsilon_r=14.0
 Epsilon_LJ_particle_particle=35.51 # ( = epsilon_LJ * k_{B})
-epsilon_eighth_power_const=19.0476
+epsilon_eighth_power_const=304.762
 #Epsilon_LJ_particle_wall=100
 #mica_density=0.00505293988 #Mica density in particles/angstrom^3
 mica_density=0.10611173748 #Mica density in particles/angstrom^3
@@ -44,13 +44,13 @@ positive_bead_charge=0.2
 negative_bead_charge=-0.2
 Donan_potential_intial_guess=0.0
 string_length=1.2			#
-n_points_per_hs_diameter=50			#number of discretised points
+n_points_per_hs_diameter=40			#number of discretised points
 max_iteration_limit=25000
 iterative_tolerance=0.000000000000001
 
 starting_plate_separation=2
-number_of_separations=400  #The number of plate separations we'll calculate.
-number_of_plate_separations_in_hs_diameter=50
+number_of_separations=320  #The number of plate separations we'll calculate.
+number_of_plate_separations_in_hs_diameter=40
 
 params_file=$test_file_stub.params
 

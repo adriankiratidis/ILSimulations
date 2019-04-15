@@ -13,8 +13,8 @@ plt.rc('font', family='serif')
 #35.51-53.27_C4MIM+_TFSI-_model2_density2
 #C4MIM_BF4-_density2
 charges = ["charge4-12"]
-#list_of_particles=["_C4MIM+_TFSI-_model2_density2", "_C4MIM+_TFSI-_model2"]
 #list_of_particles=["_C4MIM+_TFSI-_model2"]
+#list_of_particles=["_C4MIM+_TFSI-_model2_density2"]
 #list_of_particles=["_C4MIM_BF4-_density2", "_C4MIMBF4"]
 list_of_particles=["_C4MIM_BF4-_density2"]
 
@@ -155,7 +155,7 @@ for i in range(len(charges)):
         ax.add_collection3d(poly6, zs=zs6, zdir='y')
         
         
-        ax.set_xlabel(r'$z/\sigma$', labelpad=1.5, fontsize=17)
+        ax.set_xlabel(r'$h/\sigma$', labelpad=1.5, fontsize=17)
         ax.set_xlim3d(4, 12)
         ax.tick_params(axis='x', which='major', pad=-2)
         
@@ -171,7 +171,7 @@ for i in range(len(charges)):
         
         #plt.ticklabel_format(style='sci', axis='z', scilimits=(0,0))
         
-        savefig("WATERFALL_PLOT_POTENTIAL_"+charges[i]+"_"+list_of_particles[j]+".pdf",bbox_inches='tight')
+        savefig("paper_revision_plots/WATERFALL_PLOT_POTENTIAL_"+charges[i]+"_"+list_of_particles[j]+".pdf",bbox_inches='tight')
         
         plt.show()
         

@@ -22,7 +22,8 @@ program runSingleSphere
   real(dp), dimension(:), allocatable :: negative_deriv_of_potential
 
   real(dp), dimension(:), allocatable :: dispersion_particle_particle_adjust_to_contact_thm
-
+  real(dp), dimension(:), allocatable :: Centre_Separation_Metric
+  
   integer :: ij
   integer :: icharge
   real(dp) :: intermediate
@@ -69,7 +70,7 @@ program runSingleSphere
 
   print *, "Initialisiong grand potential and variables for contact theorem check."
   call InitialisePotentialAndContactTheoremVariables(grand_potential_per_unit_area, grand_potential_per_unit_area_in_bulk, &
-       normal_pressure_left_wall, normal_pressure_right_wall, negative_deriv_of_potential, dispersion_particle_particle_adjust_to_contact_thm)
+       normal_pressure_left_wall, normal_pressure_right_wall, negative_deriv_of_potential, dispersion_particle_particle_adjust_to_contact_thm, Centre_Separation_Metric)
 
   do ith_separation = 1, size(plate_separations)
 
@@ -115,7 +116,7 @@ program runSingleSphere
            !print *, "n_plus integral = ", integrate_z_cylindrical(positive_bead_charge*n_plus, "all_z")
            !print *, "n_neutral integral = ", n_neutral_updated
            !print *, "n_minus integral = ", integrate_z_cylindrical(negative_bead_charge*n_minus, "all_z")
-           print *, "ITERATION**********************************************", iteration
+           !print *, "ITERATION**********************************************", iteration
 
            call CalculateLambdasDifference(lambda_plus, n_plus, lambda_neutral, n_neutral, lambda_minus, n_minus, &
                 lambda_cation_centre, n_cation_centre, lambda_anion_centre, n_anion_centre, ith_separation)
@@ -128,25 +129,28 @@ program runSingleSphere
            !lambda_minus = 0.0_dp
 
 
-           print *, "lambda_plus = ", lambda_plus
-           print *, ""
-           print *, "lambda_neutral = ", lambda_neutral
-           print *, ""
-           print *, "lambda_minus = ", lambda_minus
-           print *, ""
-           print *, "" 
-           !call abort()
+           ! print *, "lambda_plus = ", lambda_plus
+           ! print *, ""
+           ! print *, "lambda_neutral = ", lambda_neutral
+           ! print *, ""
+           ! print *, "lambda_minus = ", lambda_minus
+           ! print *, ""
+           ! print *, "" 
+           ! call abort()
 
 
            call UpdateDensities(n_plus, n_neutral, n_minus, lambda_plus, n_plus_updated, lambda_neutral, n_neutral_updated, lambda_minus, n_minus_updated, &
                 lambda_cation_centre, n_cation_centre, lambda_anion_centre, n_anion_centre, Donnan_potential, iteration, abort_now)
 
+           
            !Found some problem, but still want to print what we've calculated so far.
            if(abort_now) exit
 
 
            do ij = 1, size(n_plus_updated)
               if(isnan((n_plus_updated(ij)))) then
+                 print *, "n_plus = ", n_plus
+                 print *, ""
                  print *, "n_plus_updated = ", n_plus_updated
                  print *, "iteration = ", iteration
                  print *, "DENSITY HAS A NAN......ABORTING..."
@@ -168,12 +172,15 @@ program runSingleSphere
               print *, ""
               print *, "charge = ", positive_bead_charge, negative_bead_charge
 
+
+              !call GetLambdaContributionsByTerm(ith_separation, n_plus, n_neutral, n_minus, lambda_plus, lambda_neutral, lambda_minus, lambda_cation_centre, lambda_anion_centre)
+              
               !Perform this update if we get the solution in one iteration.
               !Possible in principle because we rescale the solution at the previous separation.
               n_plus = n_plus_updated
               n_neutral = n_neutral_updated
               n_minus = n_minus_updated
-
+              
               !call CalculateDonnanPotential(n_plus, n_minus, Donnan_potential)
 
               call WriteOutputFormattedAsFunctionOfPosition(n_plus_updated, trim(file_stub), &
@@ -182,7 +189,13 @@ program runSingleSphere
                    "n_neutral_separation"//trim(str(plate_separations(ith_separation)))//"charge"//trim(str(icharge)))
               call WriteOutputFormattedAsFunctionOfPosition(n_minus_updated, trim(file_stub), &
                    "n_minus_separation"//trim(str(plate_separations(ith_separation)))//"charge"//trim(str(icharge)))
+              call WriteOutputFormattedAsFunctionOfPosition(n_cation_centre, trim(file_stub), &
+                   "n_cation_centre"//trim(str(plate_separations(ith_separation)))//"charge"//trim(str(icharge)))
+              call WriteOutputFormattedAsFunctionOfPosition(n_anion_centre, trim(file_stub), &
+                   "n_anion_centre"//trim(str(plate_separations(ith_separation)))//"charge"//trim(str(icharge)))
+              
 
+              
               ! !Also print out the sum, n_s
               ! call WriteOutputFormattedAsFunctionOfPosition(n_plus_updated + n_neutral_updated + n_minus_updated, trim(file_stub), &
               !      "n_s_separation"//trim(str(plate_separations(ith_separation)))//"charge"//trim(str(icharge)))
@@ -277,6 +290,10 @@ program runSingleSphere
 
      if(abort_now) exit
 
+
+     print *, "Calculating cation-anion centre length difference"
+     call CalculateCentreLengthDifference(Centre_Separation_Metric(ith_separation), n_cation_centre, n_anion_centre)
+     
      print *, "Calculating grand potential per unit area value."
      call CalculateGrandPotentialValuePerUnitArea(ith_separation, grand_potential_per_unit_area(ith_separation), &
           size(n_neutral_updated), n_plus_updated, n_neutral_updated, n_minus_updated, n_cation_centre, n_anion_centre, Donnan_potential)
@@ -293,6 +310,9 @@ program runSingleSphere
 
   end do !end loop over plate separation
 
+  print *, "Separations...."
+  print *, Centre_Separation_Metric
+  
   !call MakeContactTheoremAdjustmentFromParticleParticleDispersion(normal_pressure_left_wall, normal_pressure_right_wall, dispersion_particle_particle_adjust_to_contact_thm)  
 
   if(abort_now) then
@@ -322,7 +342,7 @@ program runSingleSphere
   call WriteOutputFormattedAsFunctionOfPlateSeparation(normal_pressure_left_wall, trim(file_stub), "normal-pressure-left-wall")
   call WriteOutputFormattedAsFunctionOfPlateSeparation(normal_pressure_right_wall, trim(file_stub), "normal-pressure-right-wall")
   call WriteOutputFormattedAsFunctionOfPlateSeparation(negative_deriv_of_potential, trim(file_stub), "negative_deriv_of_potential")
-
+  
   call DeAllocateModelParams()
   call DeAllocateLocalVariables()
 
@@ -359,6 +379,7 @@ contains
     if(allocated(normal_pressure_right_wall)) deallocate(normal_pressure_right_wall)
     if(allocated(negative_deriv_of_potential)) deallocate(negative_deriv_of_potential)
     if(allocated(dispersion_particle_particle_adjust_to_contact_thm)) deallocate(dispersion_particle_particle_adjust_to_contact_thm)
+    if(allocated(Centre_Separation_Metric)) deallocate(Centre_Separation_Metric)
     if(allocated(n_plus_previous)) deallocate(n_plus_previous)
     if(allocated(n_neutral_previous)) deallocate(n_neutral_previous)
     if(allocated(n_minus_previous)) deallocate(n_minus_previous)

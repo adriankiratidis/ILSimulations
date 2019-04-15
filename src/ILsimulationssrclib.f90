@@ -18,5 +18,7 @@ module ILsimulationssrclib
   use excessenergyfunctionalparameters
   use charge
   use functionalderivatives
+  use diagnostics
+  use pairmetrics
   implicit none
 end module ILsimulationssrclib
