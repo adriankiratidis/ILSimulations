@@ -194,13 +194,13 @@ contains
     else if(trim(ionic_liquid_name) == "C10MIM+_TFSI-_model2") then !Chemical potential is the same functional form as C4MIM+_TFSI-_model2.
        calculate_chem_potential_term = calculate_chem_potential_C4MIMTFSI_model2(n_plus, n_neutral, n_minus, ith_plate_separation, Donnan_potential)
     else if(trim(ionic_liquid_name) == "PositiveMinusSpheres") then
-       calculate_chem_potential_term = calculate_chem_potential_PositiveMinusSpheres(n_plus, n_neutral, n_minus, ith_plate_separation)
+       calculate_chem_potential_term = calculate_chem_potential_PositiveMinusSpheres(n_plus, n_neutral, n_minus, n_cation_centre, n_anion_centre, ith_plate_separation)
     else if(trim(ionic_liquid_name) == "PositiveNeutralMinusSpheres") then
        calculate_chem_potential_term = calculate_chem_potential_PositiveNeutralMinusSpheres(n_plus, n_neutral, n_minus, ith_plate_separation, Donnan_potential)
     else if(trim(ionic_liquid_name) == "PositiveNeutralDimerMinusSpheres") then
        calculate_chem_potential_term = calculate_chem_potential_PositiveNeutralDimerMinusSpheres(n_plus, n_neutral, n_minus, ith_plate_separation, Donnan_potential)
     else if(trim(ionic_liquid_name) == "PositiveNeutralDoubleDimerMinusDimer") then
-       calculate_chem_potential_term = calculate_chem_potential_PositiveNeutralDoubleDimerMinusDimer(n_plus, n_neutral, n_minus, ith_plate_separation)
+       calculate_chem_potential_term = calculate_chem_potential_PositiveNeutralDoubleDimerMinusDimer(n_plus, n_neutral, n_minus, n_cation_centre, n_anion_centre, ith_plate_separation)
     else
        print *, "surfaceforces.f90: CalculateChemicalPotentialTerm:"
        print *, "Unsupported 'ionic_liquid_name' of ", trim(ionic_liquid_name)
@@ -304,7 +304,7 @@ contains
     else if(trim(ionic_liquid_name) == "PositiveNeutralDimerMinusSpheres") then
        calculate_ideal_chain_term_per_unit_area = calculate_PositiveNeutralDimerMinusSpheres_ideal_chain_term(lambda_plus, lambda_neutral, lambda_minus, n_minus_input, Donnan_potential)
     else if(trim(ionic_liquid_name) == "PositiveNeutralDoubleDimerMinusDimer") then
-       calculate_ideal_chain_term_per_unit_area = calculate_PositiveNeutralDoubleDimerMinusDimer_ideal_chain_term(lambda_plus, lambda_neutral, lambda_minus)
+       calculate_ideal_chain_term_per_unit_area = calculate_PositiveNeutralDoubleDimerMinusDimer_ideal_chain_term(lambda_plus, lambda_neutral, lambda_minus, lambda_cation_centre, lambda_anion_centre)
     else
        print *, "surfaceforces.f90: calculate_ideal_chain_term_per_unit_area:"
        print *, "Unsupported 'ionic_liquid_name' of ", trim(ionic_liquid_name)
