@@ -12,7 +12,8 @@ module integratezcylindrical
   private
 
   public :: integrate_z_cylindrical
-
+  public :: apply_trapezoidal_rule
+  
   interface integrate_z_cylindrical
      module procedure integrate_z_cylindrical_with_range_array
      module procedure integrate_z_cylindrical_with_range_real

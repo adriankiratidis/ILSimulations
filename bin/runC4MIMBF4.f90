@@ -307,6 +307,8 @@ program runSingleSphere
      print *, "integral_neutral = ", integrate_z_cylindrical(n_neutral_updated * (hs_diameter**2), unity_function)
      print *, "integral_minus = ", integrate_z_cylindrical(n_minus_updated * (hs_diameter**2), unity_function)
 
+     print *, "Calculating Potential for Differential Capacitance"
+     call CalculateAndWriteElectricPotential(trim(file_stub), plate_separations(ith_separation), n_plus_updated, n_minus_updated)
 
   end do !end loop over plate separation
 

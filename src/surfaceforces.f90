@@ -12,7 +12,8 @@ module surfaceforces
   private
 
   public :: CalculateGrandPotentialValuePerUnitArea
-
+  public :: CalculateAndWriteElectricPotential
+  
 contains
 
   !Subroutine that calculates the 
@@ -395,5 +396,44 @@ contains
     calculate_hardsphere_term_per_unit_area_end_and_nonend = integrate_z_cylindrical(hs_integrand, unity_function)
 
   end function calculate_hardsphere_term_per_unit_area_end_and_nonend
-  
+
+  subroutine CalculateAndWriteElectricPotential(input_file_name, separation, n_plus, n_minus)
+    character(len=*), intent(in) :: input_file_name
+    real(dp), intent(in) :: separation
+    real(dp), dimension(:), intent(inout) :: n_plus
+    real(dp), dimension(:), intent(inout) :: n_minus
+
+    integer :: z_coordinate !Integer number of jumps from the wall
+    real(dp) :: Potential
+    integer :: file_unit
+
+    file_unit = 177
+    
+    call setNonCalculatedRegionToZero(n_plus)
+    call setNonCalculatedRegionToZero(n_minus)
+    z_coordinate = 0
+
+    Potential = - (1.0_dp/(2.0_dp * epsilon0 * epsilonr)) * ((positive_bead_charge * apply_trapezoidal_rule(n_plus, linear_z_dependence, z_coordinate)) &
+         + (negative_bead_charge * apply_trapezoidal_rule(n_minus, linear_z_dependence, z_coordinate))) - &
+         (surface_charge_density_right_wall * separation) / (2.0_dp * epsilon0 * epsilonr)
+
+    open(file_unit, file=trim(input_file_name)//"-electric_potential_and_charge"//".txt", action='write', access='append')
+    write(file_unit, *) separation, surface_charge_density_left_wall, surface_charge_density_right_wall, Potential
+    close(file_unit)
+
+
+
+  end subroutine CalculateAndWriteElectricPotential
+
+
+  function linear_z_dependence(z, xi)
+    integer, intent(in) :: z
+    integer, intent(in) :: xi
+    real(dp) :: linear_z_dependence
+
+    linear_z_dependence = real(abs(xi - z),dp) * hs_diameter / real(n_discretised_points_z,dp)
+
+  end function linear_z_dependence
+
+
 end module surfaceforces
