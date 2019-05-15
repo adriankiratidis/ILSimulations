@@ -295,6 +295,15 @@ contains
     else if(trim(ionic_liquid_name) == "PositiveNeutralDoubleDimerMinusDimer") then
        call SetDimerDoubleDimerBeadDensityFromBulkIonDensity()
 
+    else if(trim(ionic_liquid_name) == "Pentamers") then
+       call SetPentamersBeadDensityFromBulkIonDensity()
+
+    else if(trim(ionic_liquid_name) == "Heptamers") then
+       call SetHeptamersBeadDensityFromBulkIonDensity()
+
+    else if(trim(ionic_liquid_name) == "Heptamer_SingleSphere") then
+       call SetHeptamer_SingleSphereBeadDensityFromBulkIonDensity()
+
 
     else
        print *, "parameters.f90: SetBeadDensityFromBulkIonDensity:"
@@ -581,6 +590,40 @@ contains
     negative_oligomer_charge = 2.0_dp * negative_bead_charge
 
   end subroutine SetDimerDoubleDimerBeadDensityFromBulkIonDensity
+
+  subroutine SetPentamersBeadDensityFromBulkIonDensity()
+
+    bulk_density_positive_beads = 1.0_dp * bulk_density
+    bulk_density_neutral_beads = 8.0_dp * bulk_density
+    bulk_density_negative_beads = 1.0_dp * bulk_density
+
+    positive_oligomer_charge = positive_bead_charge
+    negative_oligomer_charge = negative_bead_charge
+    
+  end subroutine SetPentamersBeadDensityFromBulkIonDensity
+
+  subroutine SetHeptamersBeadDensityFromBulkIonDensity()
+
+    bulk_density_positive_beads = 1.0_dp * bulk_density
+    bulk_density_neutral_beads = 12.0_dp * bulk_density
+    bulk_density_negative_beads = 1.0_dp * bulk_density
+
+    positive_oligomer_charge = positive_bead_charge
+    negative_oligomer_charge = negative_bead_charge
+
+  end subroutine SetHeptamersBeadDensityFromBulkIonDensity
+  
+  subroutine SetHeptamer_SingleSphereBeadDensityFromBulkIonDensity()
+
+    bulk_density_positive_beads = 1.0_dp * bulk_density
+    bulk_density_neutral_beads = 6.0_dp * bulk_density
+    bulk_density_negative_beads = 1.0_dp * bulk_density
+
+    positive_oligomer_charge = positive_bead_charge
+    negative_oligomer_charge = negative_bead_charge
+
+  end subroutine SetHeptamer_SingleSphereBeadDensityFromBulkIonDensity
+  
 
   subroutine CheckValidityOfPlateSeparations()
 

@@ -34,7 +34,7 @@ module constructoligomers
 
   public :: calculate_C4MIMTFSI_ideal_chain_term_model1
   public :: calculate_C4MIMTFSI_ideal_chain_term_model2
-  
+
   public :: calculate_C2MIMTFSI_ideal_chain_term_model1
   public :: calculate_C6MIMTFSI_ideal_chain_term_model1
   public :: calculate_C8MIMTFSI_ideal_chain_term_model1
@@ -44,7 +44,7 @@ module constructoligomers
   public :: calculate_C6MIMTFSI_ideal_chain_term_model2
   public :: calculate_C8MIMTFSI_ideal_chain_term_model2
   public :: calculate_C10MIMTFSI_ideal_chain_term_model2
-  
+
   public :: calculate_chem_potential_term_neutral_spheres
   public :: calculate_chem_potential_term_neutral_dimers
   public :: calculate_chem_potential_C4MIMBF4
@@ -159,7 +159,7 @@ contains
 
           !print *, "lamba1 = ", lambda1
           !print *, "lambda_cation_centre = ", lambda_cation_centre
-          
+
           call UpdatePositiveMinusSphereDensities(lambda1, n1_updated, lambda3, n3_updated, lambda_cation_centre, n_cation_centre, lambda_anion_centre, n_anion_centre)
 
           Donnan_potential_previous = Donnan_potential
@@ -270,6 +270,103 @@ contains
 
        end if
 
+    else if(trim(ionic_liquid_name) == "Pentamers") then
+
+       if( (.not. present(lambda2)) .or. (.not. present(n2_updated)) .or. &
+            (.not. present(lambda3)) .or. (.not. present(n3_updated)) ) then
+          print *, "constructoligomers.90: UpdateDensities:"
+          print *, "Trying to Update positive, neutral and negative spheres"
+          print *, "but haven't been passed the appropriate number of arguments"
+          print *, "coding error...aborting..."
+          call abort()
+       else
+          call UpdatePentamerDensities(lambda1, n1_updated, lambda2, n2_updated, lambda3, n3_updated, lambda_cation_centre, n_cation_centre, lambda_anion_centre, n_anion_centre)
+
+          Donnan_potential_previous = Donnan_potential
+          n1_updated = n1_updated*exp(beta*Donnan_potential*positive_oligomer_charge)
+          n2_updated = n2_updated*exp(beta*Donnan_potential*positive_oligomer_charge)
+          n3_updated = n3_updated*exp(beta*Donnan_potential*negative_oligomer_charge)
+          n_cation_centre = n_cation_centre*exp(beta*Donnan_potential*positive_oligomer_charge)
+          n_anion_centre = n_anion_centre*exp(beta*Donnan_potential*negative_oligomer_charge)
+
+          call CalculateDonnanPotential(n1_updated, n3_updated, Donnan_potential, abort_now)
+
+          n1_updated = n1_updated*exp(beta*Donnan_potential*positive_oligomer_charge)
+          n2_updated = n2_updated*exp(beta*Donnan_potential*positive_oligomer_charge)
+          n3_updated = n3_updated*exp(beta*Donnan_potential*negative_oligomer_charge)
+          n_cation_centre = n_cation_centre*exp(beta*Donnan_potential*positive_oligomer_charge)
+          n_anion_centre = n_anion_centre*exp(beta*Donnan_potential*negative_oligomer_charge)
+
+          Donnan_potential = Donnan_potential + Donnan_potential_previous
+
+
+       end if
+
+    else if(trim(ionic_liquid_name) == "Heptamers") then
+
+       if( (.not. present(lambda2)) .or. (.not. present(n2_updated)) .or. &
+            (.not. present(lambda3)) .or. (.not. present(n3_updated)) ) then
+          print *, "constructoligomers.90: UpdateDensities:"
+          print *, "Trying to Update positive, neutral and negative spheres"
+          print *, "but haven't been passed the appropriate number of arguments"
+          print *, "coding error...aborting..."
+          call abort()
+       else
+          call UpdateHeptamersDensities(lambda1, n1_updated, lambda2, n2_updated, lambda3, n3_updated, lambda_cation_centre, n_cation_centre, lambda_anion_centre, n_anion_centre)
+
+          Donnan_potential_previous = Donnan_potential
+          n1_updated = n1_updated*exp(beta*Donnan_potential*positive_oligomer_charge)
+          n2_updated = n2_updated*exp(beta*Donnan_potential*positive_oligomer_charge)
+          n3_updated = n3_updated*exp(beta*Donnan_potential*negative_oligomer_charge)
+          n_cation_centre = n_cation_centre*exp(beta*Donnan_potential*positive_oligomer_charge)
+          n_anion_centre = n_anion_centre*exp(beta*Donnan_potential*negative_oligomer_charge)
+
+          call CalculateDonnanPotential(n1_updated, n3_updated, Donnan_potential, abort_now)
+
+          n1_updated = n1_updated*exp(beta*Donnan_potential*positive_oligomer_charge)
+          n2_updated = n2_updated*exp(beta*Donnan_potential*positive_oligomer_charge)
+          n3_updated = n3_updated*exp(beta*Donnan_potential*negative_oligomer_charge)
+          n_cation_centre = n_cation_centre*exp(beta*Donnan_potential*positive_oligomer_charge)
+          n_anion_centre = n_anion_centre*exp(beta*Donnan_potential*negative_oligomer_charge)
+
+          Donnan_potential = Donnan_potential + Donnan_potential_previous
+
+
+       end if
+
+    else if(trim(ionic_liquid_name) == "Heptamer_SingleSphere") then
+
+       if( (.not. present(lambda2)) .or. (.not. present(n2_updated)) .or. &
+            (.not. present(lambda3)) .or. (.not. present(n3_updated)) ) then
+          print *, "constructoligomers.90: UpdateDensities:"
+          print *, "Trying to Update positive, neutral and negative spheres"
+          print *, "but haven't been passed the appropriate number of arguments"
+          print *, "coding error...aborting..."
+          call abort()
+       else
+
+          call UpdateHeptamer_SingleSphereDensities(lambda1, n1_updated, lambda2, n2_updated, lambda3, n3_updated, lambda_cation_centre, n_cation_centre, lambda_anion_centre, n_anion_centre)
+
+          Donnan_potential_previous = Donnan_potential
+          n1_updated = n1_updated*exp(beta*Donnan_potential*positive_oligomer_charge)
+          n2_updated = n2_updated*exp(beta*Donnan_potential*positive_oligomer_charge)
+          n3_updated = n3_updated*exp(beta*Donnan_potential*negative_oligomer_charge)
+          n_cation_centre = n_cation_centre*exp(beta*Donnan_potential*positive_oligomer_charge)
+          n_anion_centre = n_anion_centre*exp(beta*Donnan_potential*negative_oligomer_charge)
+
+          call CalculateDonnanPotential(n1_updated, n3_updated, Donnan_potential, abort_now)
+
+          n1_updated = n1_updated*exp(beta*Donnan_potential*positive_oligomer_charge)
+          n2_updated = n2_updated*exp(beta*Donnan_potential*positive_oligomer_charge)
+          n3_updated = n3_updated*exp(beta*Donnan_potential*negative_oligomer_charge)
+          n_cation_centre = n_cation_centre*exp(beta*Donnan_potential*positive_oligomer_charge)
+          n_anion_centre = n_anion_centre*exp(beta*Donnan_potential*negative_oligomer_charge)
+
+          Donnan_potential = Donnan_potential + Donnan_potential_previous
+
+
+       end if
+
     else if(trim(ionic_liquid_name) == "NeutralDimers") then
 
        if(present(lambda2) .or. present(n2_updated) .or. present(lambda3) .or. present(n3_updated)) then
@@ -335,7 +432,7 @@ contains
           print *, "n1_updated inside 2 = ", n1_updated
           print *, "n3_updated inside 2 = ", n3_updated
           print *, ""
-          
+
           Donnan_potential = Donnan_potential + Donnan_potential_previous
 
 
@@ -933,7 +1030,7 @@ contains
     real(dp), dimension(:), intent(out) :: n_cation_centre
     real(dp), dimension(:), intent(in) :: lambda_anion_centre
     real(dp), dimension(:), intent(out) :: n_anion_centre
-    
+
 
     integer :: ij
 
@@ -950,12 +1047,12 @@ contains
 
     n_cation_centre = n_plus_updated
     n_anion_centre = n_minus_updated
-    
+
     call setNonCalculatedRegionToZero(n_plus_updated)
     call setNonCalculatedRegionToZero(n_minus_updated)
     call setNonCalculatedRegionToZero(n_cation_centre)
     call setNonCalculatedRegionToZero(n_anion_centre)
-    
+
 
   end subroutine UpdatePositiveMinusSphereDensities
 
@@ -1044,13 +1141,13 @@ contains
     n_anion_centre = (bulk_density * exp(lambda_minus + lambda_anion_centre) * c1)
     !n_minus_updated = 2.0_dp * bulk_density * exp(lambda_minus) * c1
     !n_anion_centre = 0.5_dp * n_minus_updated
-    
+
     c4 = integrate_phi_spherical(exp(lambda_neutral))
     c3 = integrate_phi_spherical(exp(lambda_neutral) * c4)
     c2 = integrate_phi_spherical(exp(lambda_plus) * c3)
     c1 = integrate_phi_spherical(exp(lambda_plus))
     c1p = integrate_phi_spherical(exp(lambda_plus + lambda_cation_centre))
-    
+
     n_plus_updated = bulk_density * ((exp(lambda_plus + lambda_cation_centre) * c2) + (exp(lambda_plus) * c3 * c1p))
     n_cation_centre = bulk_density * ((exp(lambda_plus + lambda_cation_centre) * c2))
 
@@ -1078,9 +1175,266 @@ contains
     call setNonCalculatedRegionToZero(n_minus_updated)
     call setNonCalculatedRegionToZero(n_cation_centre)
     call setNonCalculatedRegionToZero(n_anion_centre)
-    
-    
+
   end subroutine UpdatePositiveNeutralDoubleDimerMinusDimerDensities
+
+  
+  subroutine UpdatePentamerDensities(lambda_plus, n_plus_udpated, lambda_neutral, n_neutral_updated, lambda_minus, n_minus_updated, lambda_cation_centre, n_cation_centre, lambda_anion_centre, n_anion_centre)
+    real(dp), dimension(:), intent(in) :: lambda_plus
+    real(dp), dimension(:), intent(out) :: n_plus_updated
+    real(dp), dimension(:), intent(in) :: lambda_neutral
+    real(dp), dimension(:), intent(out) :: n_neutral_updated
+    real(dp), dimension(:), intent(in) :: lambda_minus
+    real(dp), dimension(:), intent(out) :: n_minus_updated
+    real(dp), dimension(:), intent(in) :: lambda_cation_centre
+    real(dp), dimension(:), intent(out) :: n_cation_centre
+    real(dp), dimension(:), intent(in) :: lambda_anion_centre
+    real(dp), dimension(:), intent(out) :: n_anion_centre
+
+    real(dp), dimension(:), allocatable :: c1, c2, c3, c4
+    real(dp), dimension(:), allocatable :: a1, a2, a3, a4
+    integer :: ij
+
+    ! First check the input variables are the same size
+    if( (size(lambda_plus) == size(n_plus_updated)) .and. (size(lambda_neutral) == size(n_neutral_updated)) .and. (size(lambda_minus) == size(n_minus_updated)) ) then
+       allocate(c1(size(lambda_plus)))
+       allocate(c2(size(lambda_plus)))
+       allocate(c3(size(lambda_plus)))
+       allocate(c4(size(lambda_plus)))       
+       allocate(a1(size(lambda_minus)))
+       allocate(a2(size(lambda_minus)))
+       allocate(a3(size(lambda_minus)))
+       allocate(a4(size(lambda_minus)))       
+    else
+       print *, "constructoligomers.f90: UpdatePentamerDensities:"
+       print *, "Size mismatch. The following expression is false."
+       print *, "(size(lambda_plus) == size(n_plus_updated)) .and. (size(lambda_neutral) == size(n_neutral_updated)) .and. (size(lambda_minus) == size(n_minus_updated))"
+       print *, "...aborting..."
+       call abort()
+    end if
+
+    c1 = integrate_phi_spherical(exp(lambda_neutral))
+    c2 = integrate_phi_spherical(exp(lambda_neutral) * c1)
+    c3 = integrate_phi_spherical(exp(lambda_plus + lambda_cation_centre) * c2)
+    c4 = integrate_phi_spherical(exp(lambda_neutral) * c3)
+
+    a1 = integrate_phi_spherical(exp(lambda_neutral))
+    a2 = integrate_phi_spherical(exp(lambda_neutral) * a1)
+    a3 = integrate_phi_spherical(exp(lambda_minus + lambda_anion_centre) * a2)
+    a4 = integrate_phi_spherical(exp(lambda_neutral) * a3)
+
+    n_neutral_updated = bulk_density * ( (2.0_dp * (exp(lambda_neutral) * c4)) + (2.0_dp * (exp(lambda_neutral) * c3 * c1)) + &
+         (2.0_dp * (exp(lambda_neutral) * a4)) + (2.0_dp * (exp(lambda_neutral) * a3 * a1)) )
+
+
+    n_plus_updated = bulk_density * (exp(lambda_plus + lambda_cation_centre) * c2 * c2) )
+    n_minus_updated = bulk_density * (exp(lambda_minus + lambda_anion_centre) * a2 * a2) )
+
+    n_cation_centre = n_plus_updated
+    n_anion_centre = n_minus_updated
+
+    deallocate(c1, c2, c3, c4)
+    deallocate(a1, a2, a3, a4)
+
+    call setNonCalculatedRegionToZero(n_plus_updated)
+    call setNonCalculatedRegionToZero(n_neutral_updated)
+    call setNonCalculatedRegionToZero(n_minus_updated)
+    call setNonCalculatedRegionToZero(n_cation_centre)
+    call setNonCalculatedRegionToZero(n_anion_centre)
+
+  end subroutine UpdatePentamerDensities
+
+
+  
+  subroutine UpdateHeptamersDensities(lambda_plus, n_plus_udpated, lambda_neutral, n_neutral_updated, lambda_minus, n_minus_updated, lambda_cation_centre, n_cation_centre, lambda_anion_centre, n_anion_centre)
+    real(dp), dimension(:), intent(in) :: lambda_plus
+    real(dp), dimension(:), intent(out) :: n_plus_updated
+    real(dp), dimension(:), intent(in) :: lambda_neutral
+    real(dp), dimension(:), intent(out) :: n_neutral_updated
+    real(dp), dimension(:), intent(in) :: lambda_minus
+    real(dp), dimension(:), intent(out) :: n_minus_updated
+    real(dp), dimension(:), intent(in) :: lambda_cation_centre
+    real(dp), dimension(:), intent(out) :: n_cation_centre
+    real(dp), dimension(:), intent(in) :: lambda_anion_centre
+    real(dp), dimension(:), intent(out) :: n_anion_centre
+
+    real(dp), dimension(:), allocatable :: ca1, ca2, ca3, ca4, ca5, ca6
+    real(dp), dimension(:), allocatable :: c7, a7
+    real(dp), dimension(:), allocatable :: c2p, c3p, c4p, c5p, c6p
+    real(dp), dimension(:), allocatable :: a2p, a3p, a4p, a5p, a6p
+    integer :: ij
+
+    ! First check the input variables are the same size
+    if( (size(lambda_plus) == size(n_plus_updated)) .and. (size(lambda_neutral) == size(n_neutral_updated)) .and. (size(lambda_minus) == size(n_minus_updated)) ) then
+       allocate(ca1(size(lambda_plus)))
+       allocate(ca2(size(lambda_plus)))
+       allocate(ca3(size(lambda_plus)))
+       allocate(ca4(size(lambda_plus)))
+       allocate(ca5(size(lambda_plus)))
+       allocate(ca6(size(lambda_plus)))
+       allocate(c7(size(lambda_plus)))
+       allocate(a7(size(lambda_plus)))
+
+       allocate(a2p(size(lambda_minus)))
+       allocate(a3p(size(lambda_minus)))
+       allocate(a4p(size(lambda_minus)))
+       allocate(a5p(size(lambda_minus)))
+       allocate(a6p(size(lambda_minus)))
+       allocate(c2p(size(lambda_minus)))
+       allocate(c3p(size(lambda_minus)))
+       allocate(c4p(size(lambda_minus)))
+       allocate(c5p(size(lambda_minus)))
+       allocate(c6p(size(lambda_minus)))
+
+    else
+       print *, "constructoligomers.f90: UpdatePositiveNeutralDimerMinusSphereDensities:"
+       print *, "Size mismatch. The following expression is false."
+       print *, "(size(lambda_plus) == size(n_plus_updated)) .and. (size(lambda_neutral) == size(n_neutral_updated)) .and. (size(lambda_minus) == size(n_minus_updated))"
+       print *, "...aborting..."
+       call abort()
+    end if
+
+
+    ca1 = integrate_phi_spherical(exp(lambda_neutral))
+    ca2 = integrate_phi_spherical(exp(lambda_neutral) * ca1)
+    ca3 = integrate_phi_spherical(exp(lambda_neutral) * ca2)
+    ca4 = integrate_phi_spherical(exp(lambda_neutral) * ca3)
+    ca5 = integrate_phi_spherical(exp(lambda_neutral) * ca4)
+    ca6 = integrate_phi_spherical(exp(lambda_neutral) * ca5)
+
+    c7 = integrate_phi_spherical(exp(lambda_plus + lambda_cation_centre))
+    a7 = integrate_phi_spherical(exp(lambda_minus + lambda_anion_centre))
+
+    c6p = integrate_phi_spherical(exp(lambda_neutral) * c7)
+    c5p = integrate_phi_spherical(exp(lambda_neutral) * c6p)
+    c4p = integrate_phi_spherical(exp(lambda_neutral) * c5p)
+    c3p = integrate_phi_spherical(exp(lambda_neutral) * c4p)
+    c2p = integrate_phi_spherical(exp(lambda_neutral) * c3p)
+
+    a6p = integrate_phi_spherical(exp(lambda_neutral) * a7)
+    a5p = integrate_phi_spherical(exp(lambda_neutral) * a6p)
+    a4p = integrate_phi_spherical(exp(lambda_neutral) * a5p)
+    a3p = integrate_phi_spherical(exp(lambda_neutral) * a4p)
+    a2p = integrate_phi_spherical(exp(lambda_neutral) * a3p)
+
+    n_neutral_updated = bulk_density * ( (exp(lambda_neutral) * c7 * ca5) + (exp(lambda_neutral) * c6p * ca4) + (exp(lambda_neutral) * c5p * ca3) + (exp(lambda_neutral) * c4p * ca2) &
+         (exp(lambda_neutral) * c3p * ca1) + (exp(lambda_neutral) * c2p) + &
+         (exp(lambda_neutral) * a7 * ca5) + (exp(lambda_neutral) * a6p * ca4) + (exp(lambda_neutral) * a5p * ca3) + (exp(lambda_neutral) * a4p * ca2) &
+         (exp(lambda_neutral) * a3p * ca1) + (exp(lambda_neutral) * a2p)  )
+
+    n_plus_updated = bulk_density * (exp(lambda_plus + lambda_cation_centre) * ca6) )
+    n_minus_updated = bulk_density * (exp(lambda_minus + lambda_anion_centre) * ca6) )
+
+    n_cation_centre = n_plus_updated
+    n_anion_centre = n_minus_updated
+
+    deallocate(ca1, ca2, ca3, ca4, ca5, ca6)
+    deallocate(c7, a7)
+    deallocate(c2p, c3p, c4p, c5p, c6p)
+    deallocate(a2p, a3p, a4p, a5p, a6p)
+
+    call setNonCalculatedRegionToZero(n_plus_updated)
+    call setNonCalculatedRegionToZero(n_neutral_updated)
+    call setNonCalculatedRegionToZero(n_minus_updated)
+    call setNonCalculatedRegionToZero(n_cation_centre)
+    call setNonCalculatedRegionToZero(n_anion_centre)
+
+  end subroutine UpdateHeptamersDensities
+
+  
+  
+  subroutine UpdateHeptamer_SingleSphereDensities(lambda_plus, n_plus_udpated, lambda_neutral, n_neutral_updated, lambda_minus, n_minus_updated, lambda_cation_centre, n_cation_centre, lambda_anion_centre, n_anion_centre)
+       real(dp), dimension(:), intent(in) :: lambda_plus
+    real(dp), dimension(:), intent(out) :: n_plus_updated
+    real(dp), dimension(:), intent(in) :: lambda_neutral
+    real(dp), dimension(:), intent(out) :: n_neutral_updated
+    real(dp), dimension(:), intent(in) :: lambda_minus
+    real(dp), dimension(:), intent(out) :: n_minus_updated
+    real(dp), dimension(:), intent(in) :: lambda_cation_centre
+    real(dp), dimension(:), intent(out) :: n_cation_centre
+    real(dp), dimension(:), intent(in) :: lambda_anion_centre
+    real(dp), dimension(:), intent(out) :: n_anion_centre
+
+    real(dp), dimension(:), allocatable :: c1, c2, c3, c4, c5, c6
+    real(dp), dimension(:), allocatable :: c7, a7
+    real(dp), dimension(:), allocatable :: c2p, c3p, c4p, c5p, c6p
+
+    integer :: ij
+
+    ! First check the input variables are the same size
+    if( (size(lambda_plus) == size(n_plus_updated)) .and. (size(lambda_neutral) == size(n_neutral_updated)) .and. (size(lambda_minus) == size(n_minus_updated)) ) then
+       allocate(c1(size(lambda_plus)))
+       allocate(c2(size(lambda_plus)))
+       allocate(c3(size(lambda_plus)))
+       allocate(c4(size(lambda_plus)))
+       allocate(c5(size(lambda_plus)))
+       allocate(c6(size(lambda_plus)))
+       allocate(c7(size(lambda_plus)))
+       allocate(a7(size(lambda_plus)))
+
+       allocate(c2p(size(lambda_minus)))
+       allocate(c3p(size(lambda_minus)))
+       allocate(c4p(size(lambda_minus)))
+       allocate(c5p(size(lambda_minus)))
+       allocate(c6p(size(lambda_minus)))
+
+    else
+       print *, "constructoligomers.f90: UpdatePositiveNeutralDimerMinusSphereDensities:"
+       print *, "Size mismatch. The following expression is false."
+       print *, "(size(lambda_plus) == size(n_plus_updated)) .and. (size(lambda_neutral) == size(n_neutral_updated)) .and. (size(lambda_minus) == size(n_minus_updated))"
+       print *, "...aborting..."
+       call abort()
+    end if
+
+
+    c1 = integrate_phi_spherical(exp(lambda_neutral))
+    c2 = integrate_phi_spherical(exp(lambda_neutral) * c1)
+    c3 = integrate_phi_spherical(exp(lambda_neutral) * c2)
+    c4 = integrate_phi_spherical(exp(lambda_neutral) * c3)
+    c5 = integrate_phi_spherical(exp(lambda_neutral) * c4)
+    c6 = integrate_phi_spherical(exp(lambda_neutral) * c5)
+
+    c7 = integrate_phi_spherical(exp(lambda_plus + lambda_cation_centre))
+
+    c6p = integrate_phi_spherical(exp(lambda_neutral) * c7)
+    c5p = integrate_phi_spherical(exp(lambda_neutral) * c6p)
+    c4p = integrate_phi_spherical(exp(lambda_neutral) * c5p)
+    c3p = integrate_phi_spherical(exp(lambda_neutral) * c4p)
+    c2p = integrate_phi_spherical(exp(lambda_neutral) * c3p)
+
+
+    a7 = integrate_phi_spherical(exp(lambda_minus + lambda_anion_centre))
+
+    n_neutral_updated = bulk_density * ( (exp(lambda_neutral) * c7 * c5) + (exp(lambda_neutral) * c6p * c4) + (exp(lambda_neutral) * c5p * c3) + (exp(lambda_neutral) * c4p * c2) &
+         (exp(lambda_neutral) * c3p * c1) + (exp(lambda_neutral) * c2p) )
+    
+    n_plus_updated = bulk_density * (exp(lambda_plus + lambda_cation_centre) * c6) )
+    n_minus_updated = bulk_density * (exp(lambda_minus + lambda_anion_centre))
+
+    n_cation_centre = n_plus_updated
+    n_anion_centre = n_minus_updated
+
+    deallocate(c1, c2, c3, c4, c5, c6)
+    deallocate(c7, a7)
+    deallocate(c2p, c3p, c4p, c5p, c6p)
+
+    call setNonCalculatedRegionToZero(n_plus_updated)
+    call setNonCalculatedRegionToZero(n_neutral_updated)
+    call setNonCalculatedRegionToZero(n_minus_updated)
+    call setNonCalculatedRegionToZero(n_cation_centre)
+    call setNonCalculatedRegionToZero(n_anion_centre)
+    
+  end subroutine UpdateHeptamer_SingleSphereDensities
+
+
+
+
+
+
+
+
+
+
 
   subroutine UpdateC4MIMBF4PositiveBeadDensities(lambda_plus, lambda_neutral, lambda_cation_centre, n_plus_updated, n_cation_centre)
     real(dp), dimension(:), intent(in) :: lambda_plus
@@ -1088,7 +1442,7 @@ contains
     real(dp), dimension(:), intent(in) :: lambda_cation_centre
     real(dp), dimension(:), intent(out) :: n_plus_updated
     real(dp), dimension(:), intent(out) :: n_cation_centre
-   
+
     real(dp), dimension(size(lambda_plus)) :: c8c1, c9c10, c7, c6, c5, c4, c2, c3p, c3pp, c3ppp
     integer :: array_size
     integer :: ij
@@ -1119,7 +1473,7 @@ contains
 
     !lambda_hs_end_cation = 0.0_dp
     !lambda_hs_nonend_cation = 0.0_dp
-    
+
     !print *, "lambda_plus"
     !print *, lambda_plus
 
@@ -1165,7 +1519,7 @@ contains
          (exp(lambda_plus) * c3ppp * c5) + (2.0_dp * (exp(lambda_plus) * c3pp)) )
 
     n_cation_centre = bulk_density * (exp(lambda_plus + lambda_cation_centre) * c2 * c9c10 * c9c10 * c4)
-    
+
     !n_plus_updated = 0.0_dp
 
     !do ij = 1, (size(n_plus_updated) - 1)/2
@@ -1516,7 +1870,7 @@ contains
        call abort()
     end if
 
-    
+
     !Calculate the required contributions for the anion
     a1a2a3a4 = integrate_phi_spherical(exp(lambda_minus))
 
@@ -1527,10 +1881,10 @@ contains
     !Calculate the resulting negative bead densities.
     !n_minus_updated = na1 + na2 + na3 + na4 + na5 = 4*na1 + na5
     n_minus_updated = bulk_density * ( 4.0_dp*(exp(lambda_minus) * a5p) + (exp(lambda_minus + lambda_anion_centre) * (a1a2a3a4**4.0_dp)) )
-    
+
     n_anion_centre = bulk_density * (exp(lambda_minus + lambda_anion_centre) * (a1a2a3a4**4.0_dp))
 
-    
+
     ! do ij = 1, (size(n_minus_updated) - 1)/2
     !    n_minus_updated(ij) = n_minus_updated(size(n_minus_updated) - ij + 1)
     ! end do
@@ -2052,7 +2406,7 @@ contains
 
   end subroutine UpdateC10MIMTFSINeutralBeadDensities_model1
 
-  
+
   subroutine UpdateC2MIMTFSINeutralBeadDensities_model2(lambda_plus, lambda_neutral, lambda_minus, n_neutral_updated, Donnan_potential)
     real(dp), dimension(:), intent(in) :: lambda_plus
     real(dp), dimension(:), intent(in) :: lambda_neutral
@@ -2063,10 +2417,10 @@ contains
     !In order to calculate the contribution from the cation.
     real(dp), dimension(size(lambda_plus)) :: c3p, c3ppp, c9c10, c6c1, c7, c6, c5, c4, c2
     real(dp), dimension(size(lambda_plus)) :: c2p, c4p, c5p
-    
+
     !In order to calculate the contribution from the anion.
     real(dp), dimension(size(lambda_plus)) :: F2CCOONCOOCF3, COONCOOCF3, F3CCONCOOCF3, NCOOCF3, COOCF3, CF3, F, O
-    
+
     integer :: array_size
     integer :: ij
 
@@ -2106,7 +2460,7 @@ contains
     n_neutral_updated = bulk_density * exp(beta*Donnan_potential*positive_oligomer_charge) * ( (exp(lambda_neutral) * c2p) + (exp(lambda_neutral) * c4p * c6c1) + &
          (exp(lambda_neutral) * c5p) )
 
-    
+
     F = integrate_phi_spherical(exp(lambda_neutral))
     O = integrate_phi_spherical(exp(lambda_minus))
 
@@ -2125,7 +2479,7 @@ contains
          (1.0_dp * bulk_density * exp(lambda_neutral) * COOCF3 * COOCF3) + &
          (2.0_dp * bulk_density * exp(lambda_neutral) * COONCOOCF3 * F * F * F) + &
          (6.0_dp * bulk_density * exp(lambda_neutral) * F2CCOONCOOCF3)))
-    
+
     !Now explicitly ensure symmetry
     do ij = 1, (size(n_neutral_updated) - 1)/2
        n_neutral_updated(ij) = n_neutral_updated(size(n_neutral_updated) - ij + 1)
@@ -2146,10 +2500,10 @@ contains
     !In order to calculate the contribution from the cation.
     real(dp), dimension(size(lambda_plus)) :: c3p, c3ppp, c9c10, c12c1, c7, c6, c5, c4, c2, c8, c11
     real(dp), dimension(size(lambda_plus)) :: c2p, c4p, c5p, c6p, c7p, c8p, c11p
-    
+
     !In order to calculate the contribution from the anion.
     real(dp), dimension(size(lambda_plus)) :: F2CCOONCOOCF3, COONCOOCF3, F3CCONCOOCF3, NCOOCF3, COOCF3, CF3, F, O
-    
+
     integer :: array_size
     integer :: ij
 
@@ -2246,7 +2600,7 @@ contains
     !In order to calculate the contribution from the cation.
     real(dp), dimension(size(lambda_plus)) :: c3p, c3ppp, c9c10, c14c1, c7, c6, c5, c4, c2, c8, c11, c12, c13
     real(dp), dimension(size(lambda_plus)) :: c2p, c4p, c5p, c6p, c7p, c8p, c11p, c12p, c13p
-    
+
     !In order to calculate the contribution from the anion.
     real(dp), dimension(size(lambda_plus)) :: F2CCOONCOOCF3, COONCOOCF3, F3CCONCOOCF3, NCOOCF3, COOCF3, CF3, F, O
 
@@ -2313,7 +2667,7 @@ contains
          (exp(lambda_neutral) * c5p * c7) + (exp(lambda_neutral) * c6p * c8) + (exp(lambda_neutral) * c7p * c11) + (exp(lambda_neutral) * c8p * c12) + &
          (exp(lambda_neutral) * c11p * c13) + (exp(lambda_neutral) * c12p * c14c1) + (exp(lambda_neutral) * c13p) )
 
-    
+
     F = integrate_phi_spherical(exp(lambda_neutral))
     O = integrate_phi_spherical(exp(lambda_minus))
 
@@ -2333,7 +2687,7 @@ contains
          (2.0_dp * bulk_density * exp(lambda_neutral) * COONCOOCF3 * F * F * F) + &
          (6.0_dp * bulk_density * exp(lambda_neutral) * F2CCOONCOOCF3)))
 
-    
+
     !Now explicitly ensure symmetry
     do ij = 1, (size(n_neutral_updated) - 1)/2
        n_neutral_updated(ij) = n_neutral_updated(size(n_neutral_updated) - ij + 1)
@@ -2430,7 +2784,7 @@ contains
          (exp(lambda_neutral) * c11p * c13) + (exp(lambda_neutral) * c12p * c14) + (exp(lambda_neutral) * c13p * c15) + (exp(lambda_neutral) * c14p * c16c1) + &
          (exp(lambda_neutral) * c15p) )
 
-    
+
     F = integrate_phi_spherical(exp(lambda_neutral))
     O = integrate_phi_spherical(exp(lambda_minus))
 
@@ -2460,7 +2814,7 @@ contains
 
   end subroutine UpdateC10MIMTFSINeutralBeadDensities_model2
 
-  
+
   subroutine UpdateC2MIMBF4NeutralBeadDensities(lambda_plus, lambda_neutral, n_neutral_updated)
     real(dp), dimension(:), intent(in) :: lambda_plus
     real(dp), dimension(:), intent(in) :: lambda_neutral
@@ -2524,7 +2878,7 @@ contains
     real(dp), dimension(:), intent(in) :: lambda_plus
     real(dp), dimension(:), intent(in) :: lambda_neutral
     real(dp), dimension(:), intent(out) :: n_neutral_updated
-    
+
     !In order to calculate the contribution from the cation.
     real(dp), dimension(size(lambda_plus)) :: c3p, c3ppp, c9c10, c12c1, c7, c6, c5, c4, c2, c8, c11
     real(dp), dimension(size(lambda_plus)) :: c2p, c4p, c5p, c6p, c7p, c8p, c11p
@@ -3152,7 +3506,7 @@ contains
     cation_integrand = c2_lambda + c2*(log(bulk_density) - 1.0_dp + (beta*Donnan_potential*positive_oligomer_charge)) + c2*(lambda_plus + lambda_cation_centre)
     cation_contribution = (bulk_density/beta) * integrate_z_cylindrical(exp(lambda_plus + lambda_cation_centre) * cation_integrand, unity_function)*exp(beta*Donnan_potential*positive_oligomer_charge)
 
-    
+
     a1 = integrate_phi_spherical(exp(lambda_minus))
     a1_lambda = integrate_phi_spherical(exp(lambda_minus) * lambda_minus)
 
@@ -3321,8 +3675,8 @@ contains
 
   end function calculate_C2MIMBF4_ideal_chain_term
 
-  
-  
+
+
   function calculate_C6MIMBF4_ideal_chain_term(lambda_plus, lambda_neutral, lambda_minus, Donnan_potential)
     real(dp), dimension(:), intent(in) :: lambda_plus
     real(dp), dimension(:), intent(in) :: lambda_neutral
@@ -3597,7 +3951,7 @@ contains
 
 
 
-  
+
   function calculate_C4MIMTFSI_ideal_chain_term_model1(lambda_plus, lambda_neutral, lambda_minus, Donnan_potential)
     real(dp), dimension(:), intent(in) :: lambda_plus
     real(dp), dimension(:), intent(in) :: lambda_neutral
@@ -4314,7 +4668,7 @@ contains
 
   end function calculate_C4MIMTFSI_ideal_chain_term_model2
 
-  
+
   function calculate_C6MIMTFSI_ideal_chain_term_model2(lambda_plus, lambda_neutral, lambda_minus, Donnan_potential)
     real(dp), dimension(:), intent(in) :: lambda_plus
     real(dp), dimension(:), intent(in) :: lambda_neutral
@@ -4896,7 +5250,7 @@ contains
     real(dp), dimension(:), intent(in) :: n_minus
     real(dp), dimension(:), intent(in) :: n_cation_centre
     real(dp), dimension(:), intent(in) :: n_anion_centre
-    
+
     integer, intent(in) :: ith_plate_separation
 
     real(dp) :: calculate_chem_potential_PositiveMinusSpheres
