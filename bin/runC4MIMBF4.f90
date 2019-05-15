@@ -26,7 +26,7 @@ program runSingleSphere
   
   integer :: ij
   integer :: icharge
-  real(dp) :: intermediate
+  real(dp) :: intermediate, ratio
   integer :: end_size
   logical :: abort_now
 
@@ -104,8 +104,11 @@ program runSingleSphere
            iteration = iteration + 1
 
            !n_neutral = 0.0_dp
-
+           
            !print *, "n_plus = ", n_plus
+           !print *, ""
+           !print *, "lambda_plus 1 = ", lambda_plus
+           !call sleep(1)
            !print *, "n_neutral = ", n_neutral
            !print *, "n_minus = ", n_minus
            !call abort()
@@ -121,13 +124,12 @@ program runSingleSphere
            call CalculateLambdasDifference(lambda_plus, n_plus, lambda_neutral, n_neutral, lambda_minus, n_minus, &
                 lambda_cation_centre, n_cation_centre, lambda_anion_centre, n_anion_centre, ith_separation)
 
-           !print *, "lambda_plus = ", lambda_plus
+           !print *, "lambda_plus 2 = ", lambda_plus
            !call abort()
 
            !lambda_plus = 0.0_dp
            !lambda_neutral = 0.0_dp
            !lambda_minus = 0.0_dp
-
 
            ! print *, "lambda_plus = ", lambda_plus
            ! print *, ""
@@ -142,6 +144,9 @@ program runSingleSphere
            call UpdateDensities(n_plus, n_neutral, n_minus, lambda_plus, n_plus_updated, lambda_neutral, n_neutral_updated, lambda_minus, n_minus_updated, &
                 lambda_cation_centre, n_cation_centre, lambda_anion_centre, n_anion_centre, Donnan_potential, iteration, abort_now)
 
+
+           !call GetLambdaContributionsByTerm(ith_separation, n_plus, n_neutral, n_minus, n_cation_centre, n_anion_centre, &
+           !     lambda_plus, lambda_neutral, lambda_minus, lambda_cation_centre, lambda_anion_centre)
            
            !Found some problem, but still want to print what we've calculated so far.
            if(abort_now) exit
@@ -173,7 +178,11 @@ program runSingleSphere
               print *, "charge = ", positive_bead_charge, negative_bead_charge
 
 
-              !call GetLambdaContributionsByTerm(ith_separation, n_plus, n_neutral, n_minus, lambda_plus, lambda_neutral, lambda_minus, lambda_cation_centre, lambda_anion_centre)
+              call GetLambdaContributionsByTerm(ith_separation, n_plus, n_neutral, n_minus, n_cation_centre, n_anion_centre, &
+                   lambda_plus, lambda_neutral, lambda_minus, lambda_cation_centre, lambda_anion_centre)
+
+              !print *, "ns_bulk = ", bulk_density_positive_beads + bulk_density_neutral_beads + bulk_density_negative_beads
+              !print *, "ns = ", n_plus_updated + n_neutral_updated + n_minus_updated
               
               !Perform this update if we get the solution in one iteration.
               !Possible in principle because we rescale the solution at the previous separation.
@@ -243,8 +252,11 @@ program runSingleSphere
                  do ij = 1, size(n_plus)
                     if(n_plus_updated(ij) .gt. n_plus(ij)) then
                        intermediate = 2*n_plus(ij) - (n_plus(ij)**2)/n_plus_updated(ij)
+                       ratio = n_cation_centre(ij)/n_plus_updated(ij)
+                       
                        if(intermediate .lt. n_plus_updated(ij)) then
                           n_plus_updated(ij) = intermediate
+                          n_cation_centre(ij) = ratio * n_plus_updated(ij)
                        end if
                     end if
                  end do
@@ -259,8 +271,11 @@ program runSingleSphere
                  do ij = 1, size(n_minus)
                     if(n_minus_updated(ij) .gt. n_minus(ij)) then
                        intermediate = 2*n_minus(ij) - (n_minus(ij)**2)/n_minus_updated(ij)
+                       ratio = n_anion_centre(ij)/n_minus_updated(ij)
+                       
                        if(intermediate .lt. n_minus_updated(ij)) then
                           n_minus_updated(ij) = intermediate
+                          n_anion_centre(ij) = ratio * n_minus_updated(ij)
                        end if
                     end if
                  end do

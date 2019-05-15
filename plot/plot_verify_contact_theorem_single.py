@@ -26,8 +26,8 @@ plt.rc('font', family='serif')
 #data_contactthm = np.loadtxt("../run_results/testing-normal-pressure-left-wall.txt5-6")
 #data_negativederiv = np.loadtxt("../run_results/testing-negative_deriv_of_potential.txt5-6")=
 
-data_contactthm2 = np.loadtxt("../run_results/compare_epsilonLJ/charge4-12/35.51-53.27_C10MIM+_TFSI-_model2/testing4-a2-normal-pressure-left-wall.txt")
-data_negativederiv2 = np.loadtxt("../run_results/compare_epsilonLJ/charge4-12/35.51-53.27_C10MIM+_TFSI-_model2/testing4-a2-negative_deriv_of_potential.txt")
+data_contactthm2 = np.loadtxt("../run_results/compare_epsilonLJ/CentreCentrePotential/minuswalls/35.51-0_PositiveMinusSpheres-0.005-25-0.0-hs1.0TESTINGSINGLESPHERES/testing14-a2-normal-pressure-left-wall.txt")
+data_negativederiv2 = np.loadtxt("../run_results/compare_epsilonLJ/CentreCentrePotential/minuswalls/35.51-0_PositiveMinusSpheres-0.005-25-0.0-hs1.0TESTINGSINGLESPHERES/testing14-a2-negative_deriv_of_potential.txt")
 
 #data_contactthm2 = np.loadtxt("../run_results/testing-potential-per-unit-area.txt5-15")
 

@@ -23,6 +23,7 @@ module functionalderivatives
   public :: calculate_electrostatic_unlike_term_functional_deriv
   
   public :: calculate_n_sbar
+  public :: van_der_waals_density_indept_integrand_centre_to_centre
 
   real(dp) :: CURRENT_BULK_BEAD_DENSITY
 
@@ -648,25 +649,9 @@ contains
     if(calculate_bulk) then
        calculate_electrostatic_like_term_functional_deriv(:) = 0.0_dp
 
-       !calculate_electrostatic_like_term_functional_deriv(:) = (-1.0_dp / (2.0_dp * epsilon0 * epsilonr)) * (charge**2) * &
-       !     CURRENT_BULK_BEAD_DENSITY * integrate_z_cylindrical(unit_array, electrostatic_like_integrand, "all_z")
-
-       !print *, calculate_electrostatic_like_term_functional_deriv
-       !call abort()
-
-       calculate_electrostatic_like_term_functional_deriv(:) = 0.0_dp
-       
     else
        calculate_electrostatic_like_term_functional_deriv(:) = (-1.0_dp / (2.0_dp * epsilon0 * epsilonr)) * (charge**2) * &
             integrate_z_cylindrical(n, electrostatic_unlike_integrand, "all_z")
-
-       !print *, "n = ", n
-       !print *, "integrate_z_cylindrical(n, electrostatic_unlike_integrand, 'all_z') = ", integrate_z_cylindrical(n, electrostatic_unlike_integrand, "all_z")
-       !call abort()
-
-       !print *, "integrate_z_cylindrical = ", integrate_z_cylindrical(n, electrostatic_unlike_integrand, "all_z")
-       !print *, "calculate_electrostatic_like_term_functional_deriv = ", calculate_electrostatic_like_term_functional_deriv
-       !call abort()
 
 
     end if
@@ -699,7 +684,10 @@ contains
        !In any case if charge = 0.0_dp then we get an answer of zero anyway.
        !But we want to set it to something, to protect against zero * {some unset variable},
        !which I don't know what may happen.
+       
        CURRENT_BULK_BEAD_DENSITY = bulk_density_neutral_beads
+
+       !call abort()
     end if
 
 
@@ -718,8 +706,6 @@ contains
             integrate_z_cylindrical(n, electrostatic_unlike_integrand, "all_z")
 
 
-       !print *, "integrate_z_cylindrical = ", integrate_z_cylindrical(n, electrostatic_unlike_integrand, "all_z")
-       !call abort()
     end if
 
 

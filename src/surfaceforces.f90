@@ -417,10 +417,10 @@ contains
          + (negative_bead_charge * apply_trapezoidal_rule(n_minus, linear_z_dependence, z_coordinate))) - &
          (surface_charge_density_right_wall * separation) / (2.0_dp * epsilon0 * epsilonr)
 
+    
     open(file_unit, file=trim(input_file_name)//"-electric_potential_and_charge"//".txt", action='write', access='append')
     write(file_unit, *) separation, surface_charge_density_left_wall, surface_charge_density_right_wall, Potential
     close(file_unit)
-
 
 
   end subroutine CalculateAndWriteElectricPotential
