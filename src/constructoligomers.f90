@@ -406,21 +406,21 @@ contains
        else
 
 
-          print *, "lambda1 inside = ", lambda1
-          print *, "lambda3 inside = ", lambda3
-          print *, "lambda_cation_centre = ", lambda_cation_centre
-          print *, "lambda_anion_centre = ", lambda_anion_centre
-          print *, ""
+          !print *, "lambda1 inside = ", lambda1
+          !print *, "lambda3 inside = ", lambda3
+          !print *, "lambda_cation_centre = ", lambda_cation_centre
+          !print *, "lambda_anion_centre = ", lambda_anion_centre
+          !print *, ""
 
           call UpdateC4MIMBF4PositiveBeadDensities(lambda1, lambda2, lambda_cation_centre, n1_updated, n_cation_centre)
           call UpdateC4MIMBF4NeutralBeadDensities(lambda1, lambda2, lambda_cation_centre, n2_updated)
           call UpdateC4MIMBF4NegativeBeadDensities(lambda3, lambda_anion_centre, n3_updated, n_anion_centre)
 
-          print *, "n1_updated inside2 = ", n1_updated
-          print *, "n3_updated inside2 = ", n3_updated
-          print *, "n_cation_centre = ", n_cation_centre
-          print *, "n_anion_centre = ", n_anion_centre
-          print *, ""
+          !print *, "n1_updated inside2 = ", n1_updated
+          !print *, "n3_updated inside2 = ", n3_updated
+          !print *, "n_cation_centre = ", n_cation_centre
+          !print *, "n_anion_centre = ", n_anion_centre
+          !print *, ""
 
           Donnan_potential_previous = Donnan_potential
           n1_updated = n1_updated*exp(beta*Donnan_potential*positive_oligomer_charge)
@@ -429,11 +429,11 @@ contains
           n_cation_centre = n_cation_centre * exp(beta*Donnan_potential*positive_oligomer_charge)
           n_anion_centre = n_anion_centre * exp(beta*Donnan_potential*negative_oligomer_charge)
 
-          print *, "Donnan Potential positive = ", exp(beta*Donnan_potential*positive_oligomer_charge)
-          print *, "Donnan Potential negative = ", exp(beta*Donnan_potential*negative_oligomer_charge)
-          print *, "n1_updated inside 1.1 = ", n1_updated
-          print *, "n3_updated inside 1.1 = ", n3_updated
-          print *, ""
+          !print *, "Donnan Potential positive = ", exp(beta*Donnan_potential*positive_oligomer_charge)
+          !print *, "Donnan Potential negative = ", exp(beta*Donnan_potential*negative_oligomer_charge)
+          !print *, "n1_updated inside 1.1 = ", n1_updated
+          !print *, "n3_updated inside 1.1 = ", n3_updated
+          !print *, ""
 
           call CalculateDonnanPotential(n1_updated, n3_updated, Donnan_potential, abort_now)
 
@@ -443,11 +443,11 @@ contains
           n_cation_centre = n_cation_centre * exp(beta*Donnan_potential*positive_oligomer_charge)
           n_anion_centre = n_anion_centre * exp(beta*Donnan_potential*negative_oligomer_charge)
 
-          print *, "Donnan Potential positive = ", exp(beta*Donnan_potential*positive_oligomer_charge)
-          print *, "Donnan Potential negative = ", exp(beta*Donnan_potential*negative_oligomer_charge)
-          print *, "n1_updated inside 2 = ", n1_updated
-          print *, "n3_updated inside 2 = ", n3_updated
-          print *, ""
+          !print *, "Donnan Potential positive = ", exp(beta*Donnan_potential*positive_oligomer_charge)
+          !print *, "Donnan Potential negative = ", exp(beta*Donnan_potential*negative_oligomer_charge)
+          !print *, "n1_updated inside 2 = ", n1_updated
+          !print *, "n3_updated inside 2 = ", n3_updated
+          !print *, ""
 
           Donnan_potential = Donnan_potential + Donnan_potential_previous
 
