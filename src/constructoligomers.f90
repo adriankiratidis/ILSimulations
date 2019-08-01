@@ -588,7 +588,7 @@ contains
           call abort()
        else
           call UpdateC2MIMBF4PositiveBeadDensities(lambda1, lambda2, n1_updated)
-          call UpdateC4MIMTFSINegativeBeadDensities_model1(lambda2, lambda3, n3_updated)
+          call UpdateC4MIMTFSINegativeBeadDensities_model1(lambda2, lambda3, lambda_anion_centre, n_anion_centre, n3_updated)
 
           Donnan_potential_previous = Donnan_potential
           n1_updated = n1_updated*exp(beta*Donnan_potential*positive_oligomer_charge)
@@ -615,7 +615,7 @@ contains
           call abort()
        else
           call UpdateC6MIMBF4PositiveBeadDensities(lambda1, lambda2, n1_updated)
-          call UpdateC4MIMTFSINegativeBeadDensities_model1(lambda2, lambda3, n3_updated)
+          call UpdateC4MIMTFSINegativeBeadDensities_model1(lambda2, lambda3, lambda_anion_centre, n_anion_centre, n3_updated)
 
           Donnan_potential_previous = Donnan_potential
           n1_updated = n1_updated*exp(beta*Donnan_potential*positive_oligomer_charge)
@@ -642,7 +642,7 @@ contains
           call abort()
        else
           call UpdateC8MIMBF4PositiveBeadDensities(lambda1, lambda2, n1_updated)
-          call UpdateC4MIMTFSINegativeBeadDensities_model1(lambda2, lambda3, n3_updated)
+          call UpdateC4MIMTFSINegativeBeadDensities_model1(lambda2, lambda3, lambda_anion_centre, n_anion_centre, n3_updated)
 
           Donnan_potential_previous = Donnan_potential
           n1_updated = n1_updated*exp(beta*Donnan_potential*positive_oligomer_charge)
@@ -669,7 +669,7 @@ contains
           call abort()
        else
           call UpdateC10MIMBF4PositiveBeadDensities(lambda1, lambda2, n1_updated)
-          call UpdateC4MIMTFSINegativeBeadDensities_model1(lambda2, lambda3, n3_updated)
+          call UpdateC4MIMTFSINegativeBeadDensities_model1(lambda2, lambda3, lambda_anion_centre, n_anion_centre, n3_updated)
 
           Donnan_potential_previous = Donnan_potential
           n1_updated = n1_updated*exp(beta*Donnan_potential*positive_oligomer_charge)
@@ -697,7 +697,7 @@ contains
           call abort()
        else
           call UpdateC4MIMBF4PositiveBeadDensities(lambda1, lambda2, lambda_cation_centre, n1_updated, n_cation_centre)
-          call UpdateC4MIMTFSINegativeBeadDensities_model1(lambda2, lambda3, n3_updated)
+          call UpdateC4MIMTFSINegativeBeadDensities_model1(lambda2, lambda3, lambda_anion_centre, n_anion_centre, n3_updated)
 
 
           ! if(iteration < 1000) then
@@ -3207,9 +3207,11 @@ contains
   end subroutine UpdateC10MIMBF4NeutralBeadDensities
 
 
-  subroutine UpdateC4MIMTFSINegativeBeadDensities_model1(lambda_neutral, lambda_minus, n_minus_updated)
+  subroutine UpdateC4MIMTFSINegativeBeadDensities_model1(lambda_neutral, lambda_minus, lambda_anion_centre, n_anion_centre, n_minus_updated)
     real(dp), dimension(:), intent(in) :: lambda_neutral
     real(dp), dimension(:), intent(in) :: lambda_minus
+    real(dp), dimension(:), intent(in) :: lambda_anion_centre
+    real(dp), dimension(:), intent(out) :: n_anion_centre    
     real(dp), dimension(:), intent(out) :: n_minus_updated
 
     real(dp), dimension(size(lambda_neutral)) :: F, CF3, CF3OO
@@ -3235,8 +3237,10 @@ contains
 
     CF3OO = integrate_phi_spherical(exp(lambda_neutral) * CF3 * F * F) !Note: F = "O" as both the F and O atoms and modelled as neutral
 
-    n_minus_updated = bulk_density * exp(lambda_minus) * CF3OO * CF3OO
+    n_minus_updated = bulk_density * exp(lambda_minus + lambda_anion_centre) * CF3OO * CF3OO
 
+    n_anion_centre = n_minus_updated
+    
     !Explicitly ensure symmetry
     !do ij = 1, (size(n_minus_updated) - 1)/2
     !   n_minus_updated(ij) = n_minus_updated(size(n_minus_updated) - ij + 1)

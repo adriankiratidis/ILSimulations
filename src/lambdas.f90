@@ -222,7 +222,7 @@ contains
        end if
 
        CalculateLambdaCentreToCentreCorrection = &!-1.0_dp * CalculateLambdaCommonTerms(calculate_bulk, size_of_terms) + &
-            calculate_centre_to_centre_functional_deriv(calculate_bulk, size_of_terms, trim(cation_or_anion))
+            calculate_centre_to_centre_functional_deriv(calculate_bulk, size_of_terms, trim(cation_or_anion), type_of_interaction_r4r8)
 
     else
        if((.not. present(n_cation_centre)) .or. (.not. present(n_cation_centre))) then
@@ -235,7 +235,7 @@ contains
        !van_der_waals_term = calculate_vanderWaals_functional_deriv(n_s)
 
        CalculateLambdaCentreToCentreCorrection = &!-1.0_dp * (hs_term + van_der_waals_term) + &
-            calculate_centre_to_centre_functional_deriv(calculate_bulk, size_of_terms, trim(cation_or_anion), n_cation_centre, n_anion_centre)
+            calculate_centre_to_centre_functional_deriv(calculate_bulk, size_of_terms, trim(cation_or_anion), type_of_interaction_r4r8, n_cation_centre, n_anion_centre)
 
     end if
 

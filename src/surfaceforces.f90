@@ -74,7 +74,7 @@ contains
     F_ideal_chain = calculate_ideal_chain_term_per_unit_area(n_plus_input, n_neutral_input, n_minus_input, n_cation_centre, n_anion_centre, ith_plate_separation, Donnan_potential)
 
     F_centre_to_centre_potential_correction = integrate_z_cylindrical(n_cation_centre * calculate_centre_to_centre_functional_deriv(.false., size(n_cation_centre), 'c', &
-         n_cation_centre, n_anion_centre), unity_function) !J
+         type_of_interaction_r4r8, n_cation_centre, n_anion_centre), unity_function) !J
     !calcalate_centre_to_centre_term_per_unit_area(n_s, n_cation_centre, n_anion_centre)
     
     F_hard_sphere = calculate_hardsphere_term_per_unit_area(n_s, n_sbar)

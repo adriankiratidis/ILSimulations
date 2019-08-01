@@ -49,7 +49,7 @@ contains
          + ((-1.0_dp * epsilon_eighth_power_const * (1.0 / beta) * (hs_diameter**8) * 2.0_dp * pi * n_s_bulk(:)) * ( &
          (6.0_dp/(15.0_dp*(hs_diameter**5))))) &
          -(1.0_dp * epsilon_eighth_power_const * (1.0_dp / beta) * (hs_diameter**8.0_dp) * (1.0_dp) * &
-         2.0_dp * pi * integrate_z_cylindrical(n_anion_centre, van_der_waals_density_indept_integrand_centre_to_centre, "all_z"))
+         2.0_dp * pi * integrate_z_cylindrical(n_anion_centre, van_der_waals_density_indept_integrand_centre_to_centre_r4, "all_z"))
 
     particle_surface_dispersion_term(:) = -1.0_dp * calculate_surface_dispersion_functional_deriv(ith_plate_separation, size(n_plus))
 

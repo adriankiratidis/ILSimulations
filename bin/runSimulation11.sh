@@ -18,7 +18,8 @@ test_file_stub="testing11-a2"
 #ionic_liquid_name="C6MIM+_TFSI-_model1"
 #ionic_liquid_name="C4MIM+_TFSI-_model1"
 #ionic_liquid_name="PositiveNeutralDoubleDimerMinusDimer"
-ionic_liquid_name="Pentamers"
+#ionic_liquid_name="Pentamers"
+ionic_liquid_name="Heptamer_SingleSphere"
 chi_parameter=0.71
 Epsilon_r=14.0
 Epsilon_LJ_particle_particle=35.51 # ( = epsilon_LJ * k_{B})
@@ -35,8 +36,8 @@ hs_diameter=2.4
 hs_fraction=1.0
 a_term_index=2
 #bulk_density=0.04475			# ( =n_{b} * [hs_diameter**3] )
-#bulk_density=0.01467			# ( =n_{b} * [hs_diameter**3] )
-bulk_density=0.005			# ( =n_{b} * [hs_diameter**3] )
+bulk_density=0.01467			# ( =n_{b} * [hs_diameter**3] )
+#bulk_density=0.000005			# ( =n_{b} * [hs_diameter**3] )
 temp=294.0			        #Temperature in Kelvin
 alpha_mixing_for_update=0.05
 slope_for_initial_guess=0.000

@@ -23,6 +23,7 @@ module parameters
   public :: epsilon_LJ_particle_particle
   public :: epsilon_LJ_particle_wall
   public :: epsilon_eighth_power_const
+  public :: type_of_interaction_r4r8
   public :: mica_density
   public :: surface_charge_density_left_wall
   public :: surface_charge_density_right_wall
@@ -73,6 +74,7 @@ module parameters
   real(dp) :: epsilon_LJ_particle_particle
   real(dp) :: epsilon_LJ_particle_wall
   real(dp) :: epsilon_eighth_power_const
+  character(len=16) :: type_of_interaction_r4r8
   real(dp) :: mica_density
   real(dp) :: surface_charge_density_left_wall
   real(dp) :: surface_charge_density_right_wall
@@ -139,6 +141,7 @@ contains
     read(file_unit, *) epsilon_LJ_particle_particle !
     read(file_unit, *) epsilon_LJ_particle_wall !
     read(file_unit, *) epsilon_eighth_power_const
+    read(file_unit, *) type_of_interaction_r4r8
     read(file_unit, *) mica_density
     read(file_unit, *) surface_charge_density_left_wall
     read(file_unit, *) surface_charge_density_right_wall
