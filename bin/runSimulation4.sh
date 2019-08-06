@@ -7,7 +7,7 @@ for i in "${epsilons[@]}"
 do
 Epsilon_LJ_particle_wall="$i"
 
-test_file_stub="testing-a2"
+test_file_stub="testing4-a2"
 
 #ionic_liquid_name="NeutralDimers"
 #ionic_liquid_name="SingleNeutralSpheres"
@@ -23,7 +23,7 @@ ionic_liquid_name="Heptamer_SingleSphere"
 chi_parameter=0.71
 Epsilon_r=14.0
 Epsilon_LJ_particle_particle=35.51 # ( = epsilon_LJ * k_{B})
-epsilon_eighth_power_const=60
+epsilon_eighth_power_const=168
 type_of_iteration="r4"
 #Epsilon_LJ_particle_wall=100
 #mica_density=0.00505293988 #Mica density in particles/angstrom^3

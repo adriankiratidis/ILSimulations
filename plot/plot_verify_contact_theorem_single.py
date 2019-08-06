@@ -26,8 +26,8 @@ plt.rc('font', family='serif')
 #data_contactthm = np.loadtxt("../run_results/testing-normal-pressure-left-wall.txt5-6")
 #data_negativederiv = np.loadtxt("../run_results/testing-negative_deriv_of_potential.txt5-6")=
 
-data_contactthm2 = np.loadtxt("../run_results/compare_epsilonLJ/CentreCentrePotential/minuswalls/35.51-0_Heptamer_SingleSphere-0.005-20-r4--0.003125-hs1.0TESTING/testing-a2-normal-pressure-left-wall.txt")
-data_negativederiv2 = np.loadtxt("../run_results/compare_epsilonLJ/CentreCentrePotential/minuswalls/35.51-0_Heptamer_SingleSphere-0.005-20-r4--0.003125-hs1.0TESTING/testing-a2-negative_deriv_of_potential.txt")
+data_contactthm2 = np.loadtxt("../run_results/compare_epsilonLJ/CentreCentrePotential/minuswalls/35.51-0_C4MIM_BF4--0.005-20-r8-0.0-hs1.0CHARGE/testing-a2-normal-pressure-left-wall.txt")
+data_negativederiv2 = np.loadtxt("../run_results/compare_epsilonLJ/CentreCentrePotential/minuswalls/35.51-0_C4MIM_BF4--0.005-20-r8-0.0-hs1.0CHARGE/testing-a2-negative_deriv_of_potential.txt")
 
 #data_contactthm2 = np.loadtxt("../run_results/testing-potential-per-unit-area.txt5-15")
 
@@ -98,6 +98,8 @@ plt.legend(loc='best',ncol=1, numpoints=1, frameon=False)
 
 #Uncomment if title is required
 #plt.title(r"Some Title")
+
+#savefig("Contact_Theorem_Heptamer_SingleSphere-density0.005-epsilon35.51-0-r4_negative_walls-C100.pdf",bbox_inches='tight')
 
 #savefig("Contact_Thorem_Heptamer_SingleSphere-density0.005-epsilon35.51-0-negative_walls-C177.pdf",bbox_inches='tight')
 #savefig("Contact_theorem_C2MIM+_TFSI-_35.51-35.51_model2_TEST_plus_minus.pdf",bbox_inches='tight')

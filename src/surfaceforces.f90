@@ -175,25 +175,25 @@ contains
     else if(trim(ionic_liquid_name) == "C10MIM_BF4-") then !Chemical potential is the same functional form as C4MIM_BF4-
        calculate_chem_potential_term = calculate_chem_potential_C4MIMBF4(n_plus, n_neutral, n_minus, n_cation_centre, n_anion_centre, ith_plate_separation, Donnan_potential)
     else if(trim(ionic_liquid_name) == "C4MIM+_TFSI-_model1") then
-       calculate_chem_potential_term = calculate_chem_potential_C4MIMTFSI_model1(n_plus, n_neutral, n_minus, ith_plate_separation, Donnan_potential)
+       calculate_chem_potential_term = calculate_chem_potential_C4MIMTFSI_model1(n_plus, n_neutral, n_minus, n_cation_centre, n_anion_centre, ith_plate_separation, Donnan_potential)
     else if(trim(ionic_liquid_name) == "C2MIM+_TFSI-_model1") then !Chemical potential is the same functional form as C4MIM+_TFSI-_model1.
-       calculate_chem_potential_term = calculate_chem_potential_C4MIMTFSI_model1(n_plus, n_neutral, n_minus, ith_plate_separation, Donnan_potential)
+       calculate_chem_potential_term = calculate_chem_potential_C4MIMTFSI_model1(n_plus, n_neutral, n_minus, n_cation_centre, n_anion_centre, ith_plate_separation, Donnan_potential)
     else if(trim(ionic_liquid_name) == "C6MIM+_TFSI-_model1") then !Chemical potential is the same functional form as C4MIM+_TFSI-_model1.
-       calculate_chem_potential_term = calculate_chem_potential_C4MIMTFSI_model1(n_plus, n_neutral, n_minus, ith_plate_separation, Donnan_potential)
+       calculate_chem_potential_term = calculate_chem_potential_C4MIMTFSI_model1(n_plus, n_neutral, n_minus, n_cation_centre, n_anion_centre, ith_plate_separation, Donnan_potential)
     else if(trim(ionic_liquid_name) == "C8MIM+_TFSI-_model1") then !Chemical potential is the same functional form as C4MIM+_TFSI-_model1.
-       calculate_chem_potential_term = calculate_chem_potential_C4MIMTFSI_model1(n_plus, n_neutral, n_minus, ith_plate_separation, Donnan_potential)
+       calculate_chem_potential_term = calculate_chem_potential_C4MIMTFSI_model1(n_plus, n_neutral, n_minus, n_cation_centre, n_anion_centre, ith_plate_separation, Donnan_potential)
     else if(trim(ionic_liquid_name) == "C10MIM+_TFSI-_model1") then !Chemical potential is the same functional form as C4MIM+_TFSI-_model1.
-       calculate_chem_potential_term = calculate_chem_potential_C4MIMTFSI_model1(n_plus, n_neutral, n_minus, ith_plate_separation, Donnan_potential)
+       calculate_chem_potential_term = calculate_chem_potential_C4MIMTFSI_model1(n_plus, n_neutral, n_minus, n_cation_centre, n_anion_centre, ith_plate_separation, Donnan_potential)
     else if(trim(ionic_liquid_name) == "C4MIM+_TFSI-_model2") then
-       calculate_chem_potential_term = calculate_chem_potential_C4MIMTFSI_model2(n_plus, n_neutral, n_minus, ith_plate_separation, Donnan_potential)
+       calculate_chem_potential_term = calculate_chem_potential_C4MIMTFSI_model2(n_plus, n_neutral, n_minus, n_cation_centre, n_anion_centre, ith_plate_separation, Donnan_potential)
     else if(trim(ionic_liquid_name) == "C2MIM+_TFSI-_model2") then !Chemical potential is the same functional form as C4MIM+_TFSI-_model2.
-       calculate_chem_potential_term = calculate_chem_potential_C4MIMTFSI_model2(n_plus, n_neutral, n_minus, ith_plate_separation, Donnan_potential)
+       calculate_chem_potential_term = calculate_chem_potential_C4MIMTFSI_model2(n_plus, n_neutral, n_minus, n_cation_centre, n_anion_centre, ith_plate_separation, Donnan_potential)
     else if(trim(ionic_liquid_name) == "C6MIM+_TFSI-_model2") then !Chemical potential is the same functional form as C4MIM+_TFSI-_model2.
-       calculate_chem_potential_term = calculate_chem_potential_C4MIMTFSI_model2(n_plus, n_neutral, n_minus, ith_plate_separation, Donnan_potential)
+       calculate_chem_potential_term = calculate_chem_potential_C4MIMTFSI_model2(n_plus, n_neutral, n_minus, n_cation_centre, n_anion_centre, ith_plate_separation, Donnan_potential)
     else if(trim(ionic_liquid_name) == "C8MIM+_TFSI-_model2") then !Chemical potential is the same functional form as C4MIM+_TFSI-_model2.
-       calculate_chem_potential_term = calculate_chem_potential_C4MIMTFSI_model2(n_plus, n_neutral, n_minus, ith_plate_separation, Donnan_potential)
+       calculate_chem_potential_term = calculate_chem_potential_C4MIMTFSI_model2(n_plus, n_neutral, n_minus, n_cation_centre, n_anion_centre, ith_plate_separation, Donnan_potential)
     else if(trim(ionic_liquid_name) == "C10MIM+_TFSI-_model2") then !Chemical potential is the same functional form as C4MIM+_TFSI-_model2.
-       calculate_chem_potential_term = calculate_chem_potential_C4MIMTFSI_model2(n_plus, n_neutral, n_minus, ith_plate_separation, Donnan_potential)
+       calculate_chem_potential_term = calculate_chem_potential_C4MIMTFSI_model2(n_plus, n_neutral, n_minus, n_cation_centre, n_anion_centre, ith_plate_separation, Donnan_potential)
     else if(trim(ionic_liquid_name) == "PositiveMinusSpheres") then
        calculate_chem_potential_term = calculate_chem_potential_PositiveMinusSpheres(n_plus, n_neutral, n_minus, n_cation_centre, n_anion_centre, ith_plate_separation)
     else if(trim(ionic_liquid_name) == "PositiveNeutralMinusSpheres") then
@@ -285,7 +285,7 @@ contains
     else if(trim(ionic_liquid_name) == "C10MIM_BF4-") then
        calculate_ideal_chain_term_per_unit_area = calculate_C10MIMBF4_ideal_chain_term(lambda_plus, lambda_neutral, lambda_minus, Donnan_potential)
     else if(trim(ionic_liquid_name) == "C4MIM+_TFSI-_model1") then
-       calculate_ideal_chain_term_per_unit_area = calculate_C4MIMTFSI_ideal_chain_term_model1(lambda_plus, lambda_neutral, lambda_minus, Donnan_potential)
+       calculate_ideal_chain_term_per_unit_area = calculate_C4MIMTFSI_ideal_chain_term_model1(lambda_plus, lambda_neutral, lambda_minus, lambda_cation_centre, lambda_anion_centre, Donnan_potential)
     else if(trim(ionic_liquid_name) == "C2MIM+_TFSI-_model1") then
        calculate_ideal_chain_term_per_unit_area = calculate_C2MIMTFSI_ideal_chain_term_model1(lambda_plus, lambda_neutral, lambda_minus, Donnan_potential)
     else if(trim(ionic_liquid_name) == "C6MIM+_TFSI-_model1") then
@@ -295,7 +295,7 @@ contains
     else if(trim(ionic_liquid_name) == "C10MIM+_TFSI-_model1") then
        calculate_ideal_chain_term_per_unit_area = calculate_C10MIMTFSI_ideal_chain_term_model1(lambda_plus, lambda_neutral, lambda_minus, Donnan_potential)
     else if(trim(ionic_liquid_name) == "C4MIM+_TFSI-_model2") then
-       calculate_ideal_chain_term_per_unit_area = calculate_C4MIMTFSI_ideal_chain_term_model2(lambda_plus, lambda_neutral, lambda_minus, Donnan_potential)       
+       calculate_ideal_chain_term_per_unit_area = calculate_C4MIMTFSI_ideal_chain_term_model2(lambda_plus, lambda_neutral, lambda_minus, lambda_cation_centre, lambda_anion_centre, Donnan_potential)       
     else if(trim(ionic_liquid_name) == "C2MIM+_TFSI-_model2") then
        calculate_ideal_chain_term_per_unit_area = calculate_C2MIMTFSI_ideal_chain_term_model2(lambda_plus, lambda_neutral, lambda_minus, Donnan_potential)       
     else if(trim(ionic_liquid_name) == "C6MIM+_TFSI-_model2") then

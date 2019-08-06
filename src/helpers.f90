@@ -209,6 +209,9 @@ contains
     tolerance = abs(0.0000001_dp * electric_charge)
     xi = Donnan_potential !Start with initial guess = previous Donnan potential.
 
+    !print *, a, b, c
+    !call abort()
+    
     do ij = 1, MAX_ITERATION_LIMIT
 
        xip1 = xi - Donnan_func_to_solve(a,b,c,xi)/Donnan_func_to_solve_deriv(a,b,xi)
@@ -269,7 +272,7 @@ contains
        print *, "in calculation of Donnan potential"
        print *, xip1, xi, abs(xip1 - xi)
        print *, a, b, c, abs(a*exp(beta*xip1*positive_oligomer_charge) + b*exp(beta*xip1*negative_oligomer_charge) + c), tolerance
-       print *, a*exp(beta*xip1*positive_oligomer_charge)/positive_bead_charge, 5*b*exp(beta*xip1*negative_oligomer_charge)/negative_bead_charge
+       print *, a*exp(beta*xip1*positive_oligomer_charge)/positive_bead_charge, 4*b*exp(beta*xip1*negative_oligomer_charge)/negative_bead_charge
        print *, ""
        !Found a problem, but still want to print out what we've calculated so far.
        abort_now = .true.

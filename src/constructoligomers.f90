@@ -741,7 +741,7 @@ contains
 
           Donnan_potential = Donnan_potential + Donnan_potential_previous
 
-          call UpdateC4MIMTFSINeutralBeadDensities_model1(lambda1, lambda2, lambda3, n2_updated, Donnan_potential)
+          call UpdateC4MIMTFSINeutralBeadDensities_model1(lambda1, lambda2, lambda3, lambda_cation_centre, lambda_anion_centre, n2_updated, Donnan_potential)
 
 
        end if
@@ -757,7 +757,7 @@ contains
           call abort()
        else
           call UpdateC4MIMBF4PositiveBeadDensities(lambda1, lambda2, lambda_cation_centre, n1_updated, n_cation_centre)
-          call UpdateC4MIMTFSINegativeBeadDensities_model2(lambda2, lambda3, n3_updated)
+          call UpdateC4MIMTFSINegativeBeadDensities_model2(lambda2, lambda3, lambda_anion_centre, n3_updated, n_anion_centre)
 
           !if(iteration > 1) then
           Donnan_potential_previous = Donnan_potential
@@ -773,7 +773,7 @@ contains
 
           Donnan_potential = Donnan_potential + Donnan_potential_previous
 
-          call UpdateC4MIMTFSINeutralBeadDensities_model2(lambda1, lambda2, lambda3, n2_updated, Donnan_potential)
+          call UpdateC4MIMTFSINeutralBeadDensities_model2(lambda1, lambda2, lambda3, lambda_cation_centre, lambda_anion_centre, n2_updated, Donnan_potential)
 
        end if
 
@@ -789,7 +789,7 @@ contains
           call abort()
        else
           call UpdateC2MIMBF4PositiveBeadDensities(lambda1, lambda2, n1_updated)
-          call UpdateC4MIMTFSINegativeBeadDensities_model2(lambda2, lambda3, n3_updated)
+          call UpdateC4MIMTFSINegativeBeadDensities_model2(lambda2, lambda3, lambda_anion_centre, n3_updated, n_anion_centre)
 
           Donnan_potential_previous = Donnan_potential
           n1_updated = n1_updated*exp(beta*Donnan_potential*positive_oligomer_charge)
@@ -816,7 +816,7 @@ contains
           call abort()
        else
           call UpdateC6MIMBF4PositiveBeadDensities(lambda1, lambda2, n1_updated)
-          call UpdateC4MIMTFSINegativeBeadDensities_model2(lambda2, lambda3, n3_updated)
+          call UpdateC4MIMTFSINegativeBeadDensities_model2(lambda2, lambda3, lambda_anion_centre, n3_updated, n_anion_centre)
 
           Donnan_potential_previous = Donnan_potential
           n1_updated = n1_updated*exp(beta*Donnan_potential*positive_oligomer_charge)
@@ -843,7 +843,7 @@ contains
           call abort()
        else
           call UpdateC8MIMBF4PositiveBeadDensities(lambda1, lambda2, n1_updated)
-          call UpdateC4MIMTFSINegativeBeadDensities_model2(lambda2, lambda3, n3_updated)
+          call UpdateC4MIMTFSINegativeBeadDensities_model2(lambda2, lambda3, lambda_anion_centre, n3_updated, n_anion_centre)
 
           Donnan_potential_previous = Donnan_potential
           n1_updated = n1_updated*exp(beta*Donnan_potential*positive_oligomer_charge)
@@ -870,7 +870,7 @@ contains
           call abort()
        else
           call UpdateC10MIMBF4PositiveBeadDensities(lambda1, lambda2, n1_updated)
-          call UpdateC4MIMTFSINegativeBeadDensities_model2(lambda2, lambda3, n3_updated)
+          call UpdateC4MIMTFSINegativeBeadDensities_model2(lambda2, lambda3, lambda_anion_centre, n3_updated, n_anion_centre)
 
           Donnan_potential_previous = Donnan_potential
           n1_updated = n1_updated*exp(beta*Donnan_potential*positive_oligomer_charge)
@@ -1984,10 +1984,12 @@ contains
   end subroutine UpdateC4MIMBF4NegativeBeadDensities
 
 
-  subroutine UpdateC4MIMTFSINeutralBeadDensities_model1(lambda_plus, lambda_neutral, lambda_minus, n_neutral_updated, Donnan_potential)
+  subroutine UpdateC4MIMTFSINeutralBeadDensities_model1(lambda_plus, lambda_neutral, lambda_minus, lambda_cation_centre, lambda_anion_centre, n_neutral_updated, Donnan_potential)
     real(dp), dimension(:), intent(in) :: lambda_plus
     real(dp), dimension(:), intent(in) :: lambda_neutral
     real(dp), dimension(:), intent(in) :: lambda_minus
+    real(dp), dimension(:), intent(in) :: lambda_cation_centre
+    real(dp), dimension(:), intent(in) :: lambda_anion_centre
     real(dp), dimension(:), intent(out) :: n_neutral_updated
     real(dp), intent(in) :: Donnan_potential
 
@@ -2025,9 +2027,9 @@ contains
 
     c2 = integrate_phi_spherical(exp(lambda_plus) * c8c1)
 
-    c3p = integrate_phi_spherical(exp(lambda_plus) * c4 * c9c10 * c9c10)
+    c3p = integrate_phi_spherical(exp(lambda_plus + lambda_cation_centre) * c4 * c9c10 * c9c10)
 
-    c3ppp = integrate_phi_spherical(exp(lambda_plus) * c2 * c9c10 * c9c10)
+    c3ppp = integrate_phi_spherical(exp(lambda_plus + lambda_cation_centre) * c2 * c9c10 * c9c10)
 
     c2p = integrate_phi_spherical(exp(lambda_plus) * c3p)
 
@@ -2053,7 +2055,7 @@ contains
 
     COOCF3 = integrate_phi_spherical(exp(lambda_neutral) * O * O * CF3) 
 
-    NCOOCF3 = integrate_phi_spherical(exp(lambda_minus) * COOCF3) 
+    NCOOCF3 = integrate_phi_spherical(exp(lambda_minus + lambda_anion_centre) * COOCF3) 
 
     F3CCONCOOCF3 = integrate_phi_spherical(exp(lambda_neutral) * CF3 * O * NCOOCF3) 
 
@@ -3239,7 +3241,7 @@ contains
 
     n_minus_updated = bulk_density * exp(lambda_minus + lambda_anion_centre) * CF3OO * CF3OO
 
-    n_anion_centre = n_minus_updated
+    n_anion_centre = bulk_density * exp(lambda_minus + lambda_anion_centre) * CF3OO * CF3OO
     
     !Explicitly ensure symmetry
     !do ij = 1, (size(n_minus_updated) - 1)/2
@@ -3250,10 +3252,13 @@ contains
 
   end subroutine UpdateC4MIMTFSINegativeBeadDensities_model1
 
-  subroutine UpdateC4MIMTFSINeutralBeadDensities_model2(lambda_plus, lambda_neutral, lambda_minus, n_neutral_updated, Donnan_potential)
+  subroutine UpdateC4MIMTFSINeutralBeadDensities_model2(lambda_plus, lambda_neutral, lambda_minus, lambda_cation_centre, lambda_anion_centre, n_neutral_updated, Donnan_potential)
     real(dp), dimension(:), intent(in) :: lambda_plus
     real(dp), dimension(:), intent(in) :: lambda_neutral
     real(dp), dimension(:), intent(in) :: lambda_minus
+    real(dp), dimension(:), intent(in) :: lambda_cation_centre
+    real(dp), dimension(:), intent(in) :: lambda_anion_centre
+    
     real(dp), dimension(:), intent(out) :: n_neutral_updated
     real(dp), intent(in) :: Donnan_potential
 
@@ -3291,9 +3296,9 @@ contains
 
     c2 = integrate_phi_spherical(exp(lambda_plus) * c8c1)
 
-    c3p = integrate_phi_spherical(exp(lambda_plus) * c4 * c9c10 * c9c10)
+    c3p = integrate_phi_spherical(exp(lambda_plus + lambda_cation_centre) * c4 * c9c10 * c9c10)
 
-    c3ppp = integrate_phi_spherical(exp(lambda_plus) * c2 * c9c10 * c9c10)
+    c3ppp = integrate_phi_spherical(exp(lambda_plus + lambda_cation_centre) * c2 * c9c10 * c9c10)
 
     c2p = integrate_phi_spherical(exp(lambda_plus) * c3p)
 
@@ -3318,7 +3323,7 @@ contains
 
     COOCF3 = integrate_phi_spherical(exp(lambda_neutral) * O * O * CF3)
 
-    NCOOCF3 = integrate_phi_spherical(exp(lambda_neutral) * COOCF3)
+    NCOOCF3 = integrate_phi_spherical(exp(lambda_neutral + lambda_anion_centre) * COOCF3)
 
     COONCOOCF3 = integrate_phi_spherical(exp(lambda_neutral) * O * O * NCOOCF3) 
 
@@ -3363,10 +3368,12 @@ contains
   end subroutine UpdateC4MIMTFSINeutralBeadDensities_model2
 
 
-  subroutine UpdateC4MIMTFSINegativeBeadDensities_model2(lambda_neutral, lambda_minus, n_minus_updated)
+  subroutine UpdateC4MIMTFSINegativeBeadDensities_model2(lambda_neutral, lambda_minus, lambda_anion_centre, n_minus_updated, n_anion_centre)
     real(dp), dimension(:), intent(in) :: lambda_neutral
     real(dp), dimension(:), intent(in) :: lambda_minus
+    real(dp), dimension(:), intent(in) :: lambda_anion_centre
     real(dp), dimension(:), intent(out) :: n_minus_updated
+    real(dp), dimension(:), intent(out) :: n_anion_centre
 
     real(dp), dimension(size(lambda_neutral)) :: F, CF3, CF3OO, O, NCOOCF3, NCOOCF3COCF3, COOCF3
     integer :: array_size
@@ -3401,12 +3408,14 @@ contains
 
     COOCF3 = integrate_phi_spherical(exp(lambda_neutral) * O * O * CF3)
 
-    NCOOCF3 = integrate_phi_spherical(exp(lambda_neutral) * COOCF3)
+    NCOOCF3 = integrate_phi_spherical(exp(lambda_neutral + lambda_anion_centre) * COOCF3)
 
     NCOOCF3COCF3 = integrate_phi_spherical(exp(lambda_neutral) * CF3 * O * NCOOCF3)
 
     n_minus_updated = 4.0_dp * bulk_density * exp(lambda_minus) * NCOOCF3COCF3
 
+    n_anion_centre = bulk_density * exp(lambda_neutral + lambda_anion_centre) * COOCF3 * COOCF3
+    
     !Explicitly ensure symmetry
     do ij = 1, (size(n_minus_updated) - 1)/2
        n_minus_updated(ij) = n_minus_updated(size(n_minus_updated) - ij + 1)
@@ -4172,10 +4181,12 @@ contains
   end function calculate_C10MIMBF4_ideal_chain_term
 
 
-  function calculate_C4MIMTFSI_ideal_chain_term_model1(lambda_plus, lambda_neutral, lambda_minus, Donnan_potential)
+  function calculate_C4MIMTFSI_ideal_chain_term_model1(lambda_plus, lambda_neutral, lambda_minus, lambda_cation_centre, lambda_anion_centre, Donnan_potential)
     real(dp), dimension(:), intent(in) :: lambda_plus
     real(dp), dimension(:), intent(in) :: lambda_neutral
     real(dp), dimension(:), intent(in) :: lambda_minus
+    real(dp), dimension(:), intent(in) :: lambda_cation_centre
+    real(dp), dimension(:), intent(in) :: lambda_anion_centre
     real(dp), intent(in) :: Donnan_potential
 
     real(dp) :: calculate_C4MIMTFSI_ideal_chain_term_model1
@@ -4233,8 +4244,8 @@ contains
     ! anion_integrand = two_CF3COO_lambda + (two_CF3COO * (log(bulk_density) - 1.0_dp)) + (two_CF3COO*exp(lambda_minus))
     ! anion_contribution = (bulk_density/beta) * integrate_z_cylindrical(exp(lambda_minus) * anion_integrand, unity_function)
 
-    CF3COON = integrate_phi_spherical(exp(lambda_minus) * CF3COO)
-    CF3COON_lambda = integrate_phi_spherical(exp(lambda_minus) * (CF3COO_lambda + CF3COO*lambda_minus))
+    CF3COON = integrate_phi_spherical(exp(lambda_minus + lambda_anion_centre) * CF3COO)
+    CF3COON_lambda = integrate_phi_spherical(exp(lambda_minus + lambda_anion_centre) * (CF3COO_lambda + CF3COO*(lambda_minus + lambda_anion_centre)))
 
     CF3COONOO = CF3COON * O * O
     CF3COONOO_lambda = (CF3COON_lambda * O * O) + (2.0_dp * O_lambda * O * CF3COON)
@@ -4273,8 +4284,8 @@ contains
     c4p = c4*(c910**2)
     c4p_lambda = c4_lambda*(c910**2) + 2.0_dp * (c4*c910_lambda*c910)
 
-    c3 = integrate_phi_spherical(exp(lambda_plus) * c4p)
-    c3_lambda = integrate_phi_spherical(exp(lambda_plus) * (c4p_lambda + c4p*lambda_plus))
+    c3 = integrate_phi_spherical(exp(lambda_plus + lambda_cation_centre) * c4p)
+    c3_lambda = integrate_phi_spherical(exp(lambda_plus + lambda_cation_centre) * (c4p_lambda + c4p*(lambda_plus + lambda_cation_centre)))
 
     c2 = integrate_phi_spherical(exp(lambda_plus) * c3)
     c2_lambda = integrate_phi_spherical(exp(lambda_plus) * (c3_lambda + c3*lambda_plus))
@@ -4774,10 +4785,12 @@ contains
   end function calculate_C2MIMTFSI_ideal_chain_term_model1
 
 
-  function calculate_C4MIMTFSI_ideal_chain_term_model2(lambda_plus, lambda_neutral, lambda_minus, Donnan_potential)
+  function calculate_C4MIMTFSI_ideal_chain_term_model2(lambda_plus, lambda_neutral, lambda_minus, lambda_cation_centre, lambda_anion_centre, Donnan_potential)
     real(dp), dimension(:), intent(in) :: lambda_plus
     real(dp), dimension(:), intent(in) :: lambda_neutral
     real(dp), dimension(:), intent(in) :: lambda_minus
+    real(dp), dimension(:), intent(in) :: lambda_cation_centre
+    real(dp), dimension(:), intent(in) :: lambda_anion_centre
     real(dp), intent(in) :: Donnan_potential
 
     real(dp) :: calculate_C4MIMTFSI_ideal_chain_term_model2
@@ -4798,7 +4811,7 @@ contains
     real(dp), dimension(size(lambda_plus)) :: F_lambda, F3_lambda, O_lambda, CF3_lambda, CF3OO_lambda, CF3COO_lambda, two_CF3COO_lambda
 
     real(dp), dimension(size(lambda_plus)) :: CF3COON, CF3COON_lambda, CF3COONOO, CF3COONOO_lambda, CF3COONCOO, CF3COONCOO_lambda
-    real(dp), dimension(size(lambda_plus)) ::CF3COONCOOF2, CF3COONCOOF2_lambda, CF3COONCOOCF2, CF3COONCOOCF2_lambda
+    real(dp), dimension(size(lambda_plus)) :: CF3COONCOOF2, CF3COONCOOF2_lambda, CF3COONCOOCF2, CF3COONCOOCF2_lambda
 
 
     array_size = size(lambda_plus)
@@ -4835,8 +4848,8 @@ contains
     ! anion_integrand = two_CF3COO_lambda + (two_CF3COO * (log(bulk_density) - 1.0_dp)) + (two_CF3COO*exp(lambda_minus))
     ! anion_contribution = (bulk_density/beta) * integrate_z_cylindrical(exp(lambda_minus) * anion_integrand, unity_function)
 
-    CF3COON = integrate_phi_spherical(exp(lambda_neutral) * CF3COO)
-    CF3COON_lambda = integrate_phi_spherical(exp(lambda_neutral) * (CF3COO_lambda + CF3COO*lambda_neutral))
+    CF3COON = integrate_phi_spherical(exp(lambda_neutral + lambda_anion_centre) * CF3COO)
+    CF3COON_lambda = integrate_phi_spherical(exp(lambda_neutral + lambda_anion_centre) * (CF3COO_lambda + CF3COO*(lambda_neutral + lambda_anion_centre)))
 
     CF3COONOO = CF3COON * O * O
     CF3COONOO_lambda = (CF3COON_lambda * O * O) + (2.0_dp * O_lambda * O * CF3COON)
@@ -4875,8 +4888,8 @@ contains
     c4p = c4*(c910**2)
     c4p_lambda = c4_lambda*(c910**2) + 2.0_dp * (c4*c910_lambda*c910)
 
-    c3 = integrate_phi_spherical(exp(lambda_plus) * c4p)
-    c3_lambda = integrate_phi_spherical(exp(lambda_plus) * (c4p_lambda + c4p*lambda_plus))
+    c3 = integrate_phi_spherical(exp(lambda_plus + lambda_cation_centre) * c4p)
+    c3_lambda = integrate_phi_spherical(exp(lambda_plus + lambda_cation_centre) * (c4p_lambda + c4p*(lambda_plus + lambda_cation_centre)))
 
     c2 = integrate_phi_spherical(exp(lambda_plus) * c3)
     c2_lambda = integrate_phi_spherical(exp(lambda_plus) * (c3_lambda + c3*lambda_plus))
@@ -6267,10 +6280,13 @@ contains
 
   end function calculate_chem_potential_C4MIMBF4
 
-  function calculate_chem_potential_C4MIMTFSI_model1(n_plus, n_neutral, n_minus, ith_plate_separation, Donnan_potential)
+  function calculate_chem_potential_C4MIMTFSI_model1(n_plus, n_neutral, n_minus, n_cation_centre, n_anion_centre, ith_plate_separation, Donnan_potential)
     real(dp), dimension(:), intent(in) :: n_plus
     real(dp), dimension(:), intent(in) :: n_neutral
     real(dp), dimension(:), intent(in) :: n_minus
+    real(dp), dimension(:), intent(in) :: n_cation_centre
+    real(dp), dimension(:), intent(in) :: n_anion_centre
+
     integer, intent(in) :: ith_plate_separation
     real(dp), intent(in) :: Donnan_potential
 
@@ -6286,6 +6302,7 @@ contains
     real(dp), dimension(size(n_plus)) :: lambda_anion_centre
 
     real(dp) :: lambda_plus_bulk, lambda_neutral_bulk, lambda_minus_bulk
+    real(dp) :: lambda_cation_centre_bulk, lambda_anion_centre_bulk
 
     integer :: start_z_index, end_z_index
 
@@ -6318,6 +6335,26 @@ contains
        lambda_minus_bulk = lambda_minus(start_z_index)
     else
        print *, "lambda_minus = ", lambda_minus
+       print *, "constructoligomers.f90: calculate_chem_potential_C4MIMBF4: "
+       print *, "When calculating lambda bulk all the values of lambda should be the same"
+       print *, "but they aren't, they are...(printed above)...aborting"
+       call abort()
+    end if
+
+    if(all(lambda_cation_centre(start_z_index:end_z_index) - lambda_cation_centre(start_z_index) < 0.000001_dp)) then
+       lambda_cation_centre_bulk = lambda_cation_centre(start_z_index)
+    else
+       print *, "lambda_cation_centre = ", lambda_cation_centre
+       print *, "constructoligomers.f90: calculate_chem_potential_C4MIMBF4: "
+       print *, "When calculating lambda bulk all the values of lambda should be the same"
+       print *, "but they aren't, they are...(printed above)...aborting"
+       call abort()
+    end if
+
+    if(all(lambda_anion_centre(start_z_index:end_z_index) - lambda_anion_centre(start_z_index) < 0.000001_dp)) then
+       lambda_anion_centre_bulk = lambda_anion_centre(start_z_index)
+    else
+       print *, "lambda_anion_centre = ", lambda_anion_centre
        print *, "constructoligomers.f90: calculate_chem_potential_C4MIMBF4: "
        print *, "When calculating lambda bulk all the values of lambda should be the same"
        print *, "but they aren't, they are...(printed above)...aborting"
@@ -6339,6 +6376,8 @@ contains
          (lambda_plus_bulk*integrate_z_cylindrical(n_plus, unity_function)) + &
          (lambda_neutral_bulk*integrate_z_cylindrical(n_neutral, unity_function)) + &
          (lambda_minus_bulk*integrate_z_cylindrical(n_minus, unity_function)) + &
+         lambda_cation_centre_bulk * integrate_z_cylindrical(n_cation_centre, unity_function) + &
+         lambda_anion_centre_bulk * integrate_z_cylindrical(n_anion_centre, unity_function) + &         
          ((positive_oligomer_charge*Donnan_potential)*integrate_z_cylindrical(n_plus/5.0_dp, unity_function)) + &
          ((negative_oligomer_charge*Donnan_potential)*integrate_z_cylindrical(n_minus, unity_function)) &
          )
@@ -6347,10 +6386,12 @@ contains
   end function calculate_chem_potential_C4MIMTFSI_model1
 
 
-  function calculate_chem_potential_C4MIMTFSI_model2(n_plus, n_neutral, n_minus, ith_plate_separation, Donnan_potential)
+  function calculate_chem_potential_C4MIMTFSI_model2(n_plus, n_neutral, n_minus, n_cation_centre, n_anion_centre, ith_plate_separation, Donnan_potential)
     real(dp), dimension(:), intent(in) :: n_plus
     real(dp), dimension(:), intent(in) :: n_neutral
     real(dp), dimension(:), intent(in) :: n_minus
+    real(dp), dimension(:), intent(in) :: n_cation_centre
+    real(dp), dimension(:), intent(in) :: n_anion_centre
     integer, intent(in) :: ith_plate_separation
     real(dp), intent(in) :: Donnan_potential
 
@@ -6366,6 +6407,7 @@ contains
     real(dp), dimension(size(n_plus)) :: lambda_anion_centre
 
     real(dp) :: lambda_plus_bulk, lambda_neutral_bulk, lambda_minus_bulk
+    real(dp) :: lambda_cation_centre_bulk, lambda_anion_centre_bulk
 
     integer :: start_z_index, end_z_index
 
@@ -6404,6 +6446,27 @@ contains
        call abort()
     end if
 
+    if(all(lambda_cation_centre(start_z_index:end_z_index) - lambda_cation_centre(start_z_index) < 0.000001_dp)) then
+       lambda_cation_centre_bulk = lambda_cation_centre(start_z_index)
+    else
+       print *, "lambda_cation_centre = ", lambda_cation_centre
+       print *, "constructoligomers.f90: calculate_chem_potential_C4MIMBF4: "
+       print *, "When calculating lambda bulk all the values of lambda should be the same"
+       print *, "but they aren't, they are...(printed above)...aborting"
+       call abort()
+    end if
+
+
+    if(all(lambda_anion_centre(start_z_index:end_z_index) - lambda_anion_centre(start_z_index) < 0.000001_dp)) then
+       lambda_anion_centre_bulk = lambda_anion_centre(start_z_index)
+    else
+       print *, "lambda_anion_centre = ", lambda_anion_centre
+       print *, "constructoligomers.f90: calculate_chem_potential_C4MIMBF4: "
+       print *, "When calculating lambda bulk all the values of lambda should be the same"
+       print *, "but they aren't, they are...(printed above)...aborting"
+       call abort()
+    end if
+
     !call CalculateLambdasDifference(lambda_plus, n_plus, lambda_neutral, n_neutral, lambda_minus, n_minus, ith_plate_separation)
 
     !calculate_chem_potential_C4MIMBF4 = 0.0_dp
@@ -6419,6 +6482,8 @@ contains
          (lambda_plus_bulk*integrate_z_cylindrical(n_plus, unity_function)) + &
          (lambda_neutral_bulk*integrate_z_cylindrical(n_neutral, unity_function)) + &
          (lambda_minus_bulk*integrate_z_cylindrical(n_minus, unity_function)) + &
+         lambda_cation_centre_bulk * integrate_z_cylindrical(n_cation_centre, unity_function) + &
+         lambda_anion_centre_bulk * integrate_z_cylindrical(n_anion_centre, unity_function) + &         
          ((positive_oligomer_charge*Donnan_potential)*integrate_z_cylindrical(n_plus/5.0_dp, unity_function)) + &
          ((negative_oligomer_charge*Donnan_potential)*integrate_z_cylindrical(n_minus/4.0_dp, unity_function)) &
          )

@@ -7,7 +7,7 @@ for i in "${epsilons[@]}"
 do
 Epsilon_LJ_particle_wall="$i"
 
-test_file_stub="testing-a2"
+test_file_stub="testing7-a2"
 
 #ionic_liquid_name="NeutralDimers"
 #ionic_liquid_name="SingleNeutralSpheres"

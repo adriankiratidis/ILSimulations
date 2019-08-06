@@ -7,7 +7,7 @@ for i in "${epsilons[@]}"
 do
 Epsilon_LJ_particle_wall="$i"
 
-test_file_stub="testing-a2"
+test_file_stub="testing3-a2"
 
 #ionic_liquid_name="NeutralDimers"
 #ionic_liquid_name="SingleNeutralSpheres"
@@ -16,14 +16,14 @@ test_file_stub="testing-a2"
 #ionic_liquid_name="PositiveNeutralMinusSpheres"
 #ionic_liquid_name="PositiveNeutralDimerMinusSpheres"
 #ionic_liquid_name="C6MIM+_TFSI-_model1"
-#ionic_liquid_name="C4MIM+_TFSI-_model2"
+ionic_liquid_name="C4MIM+_TFSI-_model2"
 #ionic_liquid_name="PositiveNeutralDoubleDimerMinusDimer"
 #ionic_liquid_name="Heptamers"
-ionic_liquid_name="Heptamer_SingleSphere"
+#ionic_liquid_name="Heptamer_SingleSphere"
 chi_parameter=0.71
 Epsilon_r=14.0
 Epsilon_LJ_particle_particle=35.51 # ( = epsilon_LJ * k_{B})
-epsilon_eighth_power_const=40
+epsilon_eighth_power_const=80
 type_of_iteration="r4"
 #Epsilon_LJ_particle_wall=100
 #mica_density=0.00505293988 #Mica density in particles/angstrom^3
@@ -52,8 +52,8 @@ n_points_per_hs_diameter=50			#number of discretised points
 max_iteration_limit=5000
 iterative_tolerance=0.0000000000001
 
-starting_plate_separation=2
-number_of_separations=400  #The number of plate separations we'll calculate.
+starting_plate_separation=4
+number_of_separations=50  #The number of plate separations we'll calculate.
 number_of_plate_separations_in_hs_diameter=50
 
 params_file=$test_file_stub.params
