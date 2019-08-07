@@ -728,6 +728,10 @@ contains
           Donnan_potential_previous = Donnan_potential
           n1_updated = n1_updated*exp(beta*Donnan_potential*positive_oligomer_charge)
           n3_updated = n3_updated*exp(beta*Donnan_potential*negative_oligomer_charge)
+          n_cation_centre = n_cation_centre * exp(beta*Donnan_potential*positive_oligomer_charge)
+          n_anion_centre = n_anion_centre * exp(beta*Donnan_potential*negative_oligomer_charge)
+
+          
           !end if
 
 
@@ -735,10 +739,11 @@ contains
           call CalculateDonnanPotential(n1_updated, n3_updated, Donnan_potential, abort_now)
           !Donnan_potential = 0.0_dp
 
-
           n1_updated = n1_updated*exp(beta*Donnan_potential*positive_oligomer_charge)
           n3_updated = n3_updated*exp(beta*Donnan_potential*negative_oligomer_charge)
-
+          n_cation_centre = n_cation_centre * exp(beta*Donnan_potential*positive_oligomer_charge)
+          n_anion_centre = n_anion_centre * exp(beta*Donnan_potential*negative_oligomer_charge)
+          
           Donnan_potential = Donnan_potential + Donnan_potential_previous
 
           call UpdateC4MIMTFSINeutralBeadDensities_model1(lambda1, lambda2, lambda3, lambda_cation_centre, lambda_anion_centre, n2_updated, Donnan_potential)
@@ -763,13 +768,15 @@ contains
           Donnan_potential_previous = Donnan_potential
           n1_updated = n1_updated*exp(beta*Donnan_potential*positive_oligomer_charge)
           n3_updated = n3_updated*exp(beta*Donnan_potential*negative_oligomer_charge)
-          !end if
+          n_cation_centre = n_cation_centre * exp(beta*Donnan_potential*positive_oligomer_charge)
+          n_anion_centre = n_anion_centre * exp(beta*Donnan_potential*negative_oligomer_charge)
 
           call CalculateDonnanPotential(n1_updated, n3_updated, Donnan_potential, abort_now)
 
-
           n1_updated = n1_updated*exp(beta*Donnan_potential*positive_oligomer_charge)
           n3_updated = n3_updated*exp(beta*Donnan_potential*negative_oligomer_charge)
+          n_cation_centre = n_cation_centre * exp(beta*Donnan_potential*positive_oligomer_charge)
+          n_anion_centre = n_anion_centre * exp(beta*Donnan_potential*negative_oligomer_charge)
 
           Donnan_potential = Donnan_potential + Donnan_potential_previous
 
