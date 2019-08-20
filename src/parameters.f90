@@ -307,6 +307,9 @@ contains
     else if(trim(ionic_liquid_name) == "Heptamer_SingleSphere") then
        call SetHeptamer_SingleSphereBeadDensityFromBulkIonDensity()
 
+    else if(trim(ionic_liquid_name) == "Hexamer_SingleSphere") then
+       call SetHexamer_SingleSphereBeadDensityFromBulkIonDensity()
+
 
     else
        print *, "parameters.f90: SetBeadDensityFromBulkIonDensity:"
@@ -602,7 +605,7 @@ contains
 
     positive_oligomer_charge = positive_bead_charge
     negative_oligomer_charge = negative_bead_charge
-    
+
   end subroutine SetPentamersBeadDensityFromBulkIonDensity
 
   subroutine SetHeptamersBeadDensityFromBulkIonDensity()
@@ -615,7 +618,7 @@ contains
     negative_oligomer_charge = negative_bead_charge
 
   end subroutine SetHeptamersBeadDensityFromBulkIonDensity
-  
+
   subroutine SetHeptamer_SingleSphereBeadDensityFromBulkIonDensity()
 
     bulk_density_positive_beads = 1.0_dp * bulk_density
@@ -626,7 +629,18 @@ contains
     negative_oligomer_charge = negative_bead_charge
 
   end subroutine SetHeptamer_SingleSphereBeadDensityFromBulkIonDensity
-  
+
+  subroutine SetHexamer_SingleSphereBeadDensityFromBulkIonDensity()
+
+    bulk_density_positive_beads = 1.0_dp * bulk_density
+    bulk_density_neutral_beads = 5.0_dp * bulk_density
+    bulk_density_negative_beads = 1.0_dp * bulk_density
+
+    positive_oligomer_charge = positive_bead_charge
+    negative_oligomer_charge = negative_bead_charge
+
+  end subroutine SetHexamer_SingleSphereBeadDensityFromBulkIonDensity
+
 
   subroutine CheckValidityOfPlateSeparations()
 

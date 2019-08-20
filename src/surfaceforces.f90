@@ -208,6 +208,8 @@ contains
        calculate_chem_potential_term = calculate_chem_potential_Heptamers(n_plus, n_neutral, n_minus, n_cation_centre, n_anion_centre, ith_plate_separation)
     else if(trim(ionic_liquid_name) == "Heptamer_SingleSphere") then
        calculate_chem_potential_term = calculate_chem_potential_Heptamer_SingleSphere(n_plus, n_neutral, n_minus, n_cation_centre, n_anion_centre, ith_plate_separation)
+    else if(trim(ionic_liquid_name) == "Hexamer_SingleSphere") then
+       calculate_chem_potential_term = calculate_chem_potential_Hexamer_SingleSphere(n_plus, n_neutral, n_minus, n_cation_centre, n_anion_centre, ith_plate_separation)
     else
        print *, "surfaceforces.f90: CalculateChemicalPotentialTerm:"
        print *, "Unsupported 'ionic_liquid_name' of ", trim(ionic_liquid_name)
@@ -318,6 +320,8 @@ contains
        calculate_ideal_chain_term_per_unit_area = calculate_Heptamers_ideal_chain_term(lambda_plus, lambda_neutral, lambda_minus, lambda_cation_centre, lambda_anion_centre)
     else if(trim(ionic_liquid_name) == "Heptamer_SingleSphere") then
        calculate_ideal_chain_term_per_unit_area = calculate_Heptamer_SingleSphere_ideal_chain_term(lambda_plus, lambda_neutral, lambda_minus, lambda_cation_centre, lambda_anion_centre)
+    else if(trim(ionic_liquid_name) == "Hexamer_SingleSphere") then
+       calculate_ideal_chain_term_per_unit_area = calculate_Hexamer_SingleSphere_ideal_chain_term(lambda_plus, lambda_neutral, lambda_minus, lambda_cation_centre, lambda_anion_centre)
     else
        print *, "surfaceforces.f90: calculate_ideal_chain_term_per_unit_area:"
        print *, "Unsupported 'ionic_liquid_name' of ", trim(ionic_liquid_name)

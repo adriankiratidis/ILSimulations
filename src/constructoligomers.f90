@@ -48,6 +48,7 @@ module constructoligomers
   public :: calculate_Pentamers_ideal_chain_term
   public :: calculate_Heptamers_ideal_chain_term
   public :: calculate_Heptamer_SingleSphere_ideal_chain_term
+  public :: calculate_Hexamer_SingleSphere_ideal_chain_term
 
 
 
@@ -76,6 +77,7 @@ module constructoligomers
   public :: calculate_chem_potential_Pentamers
   public :: calculate_chem_potential_Heptamers
   public :: calculate_chem_potential_Heptamer_SingleSphere
+  public :: calculate_chem_potential_Hexamer_SingleSphere
 
 
 
@@ -347,7 +349,7 @@ contains
 
           Donnan_potential = Donnan_potential + Donnan_potential_previous
           call UpdateHeptamersNeutralDensities(lambda1, lambda2, lambda3, lambda_cation_centre, lambda_anion_centre, n2_updated, Donnan_potential)
-          
+
        end if
 
     else if(trim(ionic_liquid_name) == "Heptamer_SingleSphere") then
@@ -380,6 +382,38 @@ contains
 
           Donnan_potential = Donnan_potential + Donnan_potential_previous
 
+
+       end if
+
+    else if(trim(ionic_liquid_name) == "Hexamer_SingleSphere") then
+
+       if( (.not. present(lambda2)) .or. (.not. present(n2_updated)) .or. &
+            (.not. present(lambda3)) .or. (.not. present(n3_updated)) ) then
+          print *, "constructoligomers.90: UpdateDensities:"
+          print *, "Trying to Update positive, neutral and negative spheres"
+          print *, "but haven't been passed the appropriate number of arguments"
+          print *, "coding error...aborting..."
+          call abort()
+       else
+
+          call UpdateHexamer_SingleSphereDensities(lambda1, n1_updated, lambda2, n2_updated, lambda3, n3_updated, lambda_cation_centre, n_cation_centre, lambda_anion_centre, n_anion_centre)
+
+          Donnan_potential_previous = Donnan_potential
+          n1_updated = n1_updated*exp(beta*Donnan_potential*positive_oligomer_charge)
+          n2_updated = n2_updated*exp(beta*Donnan_potential*positive_oligomer_charge)
+          n3_updated = n3_updated*exp(beta*Donnan_potential*negative_oligomer_charge)
+          n_cation_centre = n_cation_centre*exp(beta*Donnan_potential*positive_oligomer_charge)
+          n_anion_centre = n_anion_centre*exp(beta*Donnan_potential*negative_oligomer_charge)
+
+          call CalculateDonnanPotential(n1_updated, n3_updated, Donnan_potential, abort_now)
+
+          n1_updated = n1_updated*exp(beta*Donnan_potential*positive_oligomer_charge)
+          n2_updated = n2_updated*exp(beta*Donnan_potential*positive_oligomer_charge)
+          n3_updated = n3_updated*exp(beta*Donnan_potential*negative_oligomer_charge)
+          n_cation_centre = n_cation_centre*exp(beta*Donnan_potential*positive_oligomer_charge)
+          n_anion_centre = n_anion_centre*exp(beta*Donnan_potential*negative_oligomer_charge)
+
+          Donnan_potential = Donnan_potential + Donnan_potential_previous
 
        end if
 
@@ -731,7 +765,7 @@ contains
           n_cation_centre = n_cation_centre * exp(beta*Donnan_potential*positive_oligomer_charge)
           n_anion_centre = n_anion_centre * exp(beta*Donnan_potential*negative_oligomer_charge)
 
-          
+
           !end if
 
 
@@ -743,7 +777,7 @@ contains
           n3_updated = n3_updated*exp(beta*Donnan_potential*negative_oligomer_charge)
           n_cation_centre = n_cation_centre * exp(beta*Donnan_potential*positive_oligomer_charge)
           n_anion_centre = n_anion_centre * exp(beta*Donnan_potential*negative_oligomer_charge)
-          
+
           Donnan_potential = Donnan_potential + Donnan_potential_previous
 
           call UpdateC4MIMTFSINeutralBeadDensities_model1(lambda1, lambda2, lambda3, lambda_cation_centre, lambda_anion_centre, n2_updated, Donnan_potential)
@@ -1247,7 +1281,7 @@ contains
 
   end subroutine UpdatePentamerPositiveAndNegativeDensities
 
-    subroutine UpdatePentamerNeutralDensities(lambda_plus, lambda_neutral, lambda_minus, lambda_cation_centre, lambda_anion_centre, n_neutral_updated, Donnan_potential)
+  subroutine UpdatePentamerNeutralDensities(lambda_plus, lambda_neutral, lambda_minus, lambda_cation_centre, lambda_anion_centre, n_neutral_updated, Donnan_potential)
     real(dp), dimension(:), intent(in) :: lambda_plus
     real(dp), dimension(:), intent(in) :: lambda_neutral
     real(dp), dimension(:), intent(in) :: lambda_minus
@@ -1298,7 +1332,7 @@ contains
 
   end subroutine UpdatePentamerNeutralDensities
 
-  
+
 
 
   subroutine UpdateHeptamersPositiveAndNegativeDensities(lambda_plus, n_plus_updated, lambda_neutral, lambda_minus, n_minus_updated, lambda_cation_centre, n_cation_centre, lambda_anion_centre, n_anion_centre)
@@ -1521,9 +1555,82 @@ contains
 
 
 
+  subroutine UpdateHexamer_SingleSphereDensities(lambda_plus, n_plus_updated, lambda_neutral, n_neutral_updated, lambda_minus, n_minus_updated, lambda_cation_centre, n_cation_centre, lambda_anion_centre, n_anion_centre)
+    real(dp), dimension(:), intent(in) :: lambda_plus
+    real(dp), dimension(:), intent(out) :: n_plus_updated
+    real(dp), dimension(:), intent(in) :: lambda_neutral
+    real(dp), dimension(:), intent(out) :: n_neutral_updated
+    real(dp), dimension(:), intent(in) :: lambda_minus
+    real(dp), dimension(:), intent(out) :: n_minus_updated
+    real(dp), dimension(:), intent(in) :: lambda_cation_centre
+    real(dp), dimension(:), intent(out) :: n_cation_centre
+    real(dp), dimension(:), intent(in) :: lambda_anion_centre
+    real(dp), dimension(:), intent(out) :: n_anion_centre
 
+    real(dp), dimension(:), allocatable :: c2, c3, c4, c5, c6
+    real(dp), dimension(:), allocatable :: c7, a7
+    real(dp), dimension(:), allocatable :: c3p, c4p, c5p, c6p
 
+    integer :: ij
 
+    ! First check the input variables are the same size
+    if( (size(lambda_plus) == size(n_plus_updated)) .and. (size(lambda_neutral) == size(n_neutral_updated)) .and. (size(lambda_minus) == size(n_minus_updated)) ) then
+       allocate(c2(size(lambda_plus)))
+       allocate(c3(size(lambda_plus)))
+       allocate(c4(size(lambda_plus)))
+       allocate(c5(size(lambda_plus)))
+       allocate(c6(size(lambda_plus)))
+       allocate(c7(size(lambda_plus)))
+       allocate(a7(size(lambda_plus)))
+
+       allocate(c3p(size(lambda_minus)))
+       allocate(c4p(size(lambda_minus)))
+       allocate(c5p(size(lambda_minus)))
+       allocate(c6p(size(lambda_minus)))
+
+    else
+       print *, "constructoligomers.f90: UpdatePositiveNeutralDimerMinusSphereDensities:"
+       print *, "Size mismatch. The following expression is false."
+       print *, "(size(lambda_plus) == size(n_plus_updated)) .and. (size(lambda_neutral) == size(n_neutral_updated)) .and. (size(lambda_minus) == size(n_minus_updated))"
+       print *, "...aborting..."
+       call abort()
+    end if
+
+    c2 = integrate_phi_spherical(exp(lambda_neutral))
+    c3 = integrate_phi_spherical(exp(lambda_neutral) * c2)
+    c4 = integrate_phi_spherical(exp(lambda_neutral) * c3)
+    c5 = integrate_phi_spherical(exp(lambda_neutral) * c4)
+    c6 = integrate_phi_spherical(exp(lambda_neutral) * c5)
+
+    c7 = integrate_phi_spherical(exp(lambda_plus + lambda_cation_centre))
+
+    c6p = integrate_phi_spherical(exp(lambda_neutral) * c7)
+    c5p = integrate_phi_spherical(exp(lambda_neutral) * c6p)
+    c4p = integrate_phi_spherical(exp(lambda_neutral) * c5p)
+    c3p = integrate_phi_spherical(exp(lambda_neutral) * c4p)
+
+    a7 = integrate_phi_spherical(exp(lambda_minus + lambda_anion_centre))
+
+    n_neutral_updated = bulk_density * ( (exp(lambda_neutral) * c7 * c5) + (exp(lambda_neutral) * c6p * c4) + (exp(lambda_neutral) * c5p * c3) + (exp(lambda_neutral) * c4p * c2) + &
+         (exp(lambda_neutral) * c3p))
+
+    n_plus_updated = bulk_density * (exp(lambda_plus + lambda_cation_centre) * c6)
+    n_minus_updated = bulk_density * (exp(lambda_minus + lambda_anion_centre))
+
+    n_cation_centre = n_plus_updated
+    n_anion_centre = n_minus_updated
+
+    deallocate(c2, c3, c4, c5, c6)
+    deallocate(c7, a7)
+    deallocate(c3p, c4p, c5p, c6p)
+
+    call setNonCalculatedRegionToZero(n_plus_updated)
+    call setNonCalculatedRegionToZero(n_neutral_updated)
+    call setNonCalculatedRegionToZero(n_minus_updated)
+    call setNonCalculatedRegionToZero(n_cation_centre)
+    call setNonCalculatedRegionToZero(n_anion_centre)
+
+  end subroutine UpdateHexamer_SingleSphereDensities
 
 
 
@@ -3249,7 +3356,7 @@ contains
     n_minus_updated = bulk_density * exp(lambda_minus + lambda_anion_centre) * CF3OO * CF3OO
 
     n_anion_centre = bulk_density * exp(lambda_minus + lambda_anion_centre) * CF3OO * CF3OO
-    
+
     !Explicitly ensure symmetry
     !do ij = 1, (size(n_minus_updated) - 1)/2
     !   n_minus_updated(ij) = n_minus_updated(size(n_minus_updated) - ij + 1)
@@ -3265,7 +3372,7 @@ contains
     real(dp), dimension(:), intent(in) :: lambda_minus
     real(dp), dimension(:), intent(in) :: lambda_cation_centre
     real(dp), dimension(:), intent(in) :: lambda_anion_centre
-    
+
     real(dp), dimension(:), intent(out) :: n_neutral_updated
     real(dp), intent(in) :: Donnan_potential
 
@@ -3422,7 +3529,7 @@ contains
     n_minus_updated = 4.0_dp * bulk_density * exp(lambda_minus) * NCOOCF3COCF3
 
     n_anion_centre = bulk_density * exp(lambda_neutral + lambda_anion_centre) * COOCF3 * COOCF3
-    
+
     !Explicitly ensure symmetry
     do ij = 1, (size(n_minus_updated) - 1)/2
        n_minus_updated(ij) = n_minus_updated(size(n_minus_updated) - ij + 1)
@@ -3767,6 +3874,48 @@ contains
 
   end function calculate_Heptamer_SingleSphere_ideal_chain_term
 
+  function calculate_Hexamer_SingleSphere_ideal_chain_term(lambda_plus, lambda_neutral, lambda_minus, lambda_cation_centre, lambda_anion_centre)
+    real(dp), dimension(:), intent(in) :: lambda_plus
+    real(dp), dimension(:), intent(in) :: lambda_neutral
+    real(dp), dimension(:), intent(in) :: lambda_minus
+    real(dp), dimension(:), intent(in) :: lambda_cation_centre
+    real(dp), dimension(:), intent(in) :: lambda_anion_centre
+    real(dp) :: calculate_Hexamer_SingleSphere_ideal_chain_term
+
+    real(dp), dimension(size(lambda_neutral)) :: c1, c2, c3, c4, c5, c6
+    real(dp), dimension(size(lambda_neutral)) :: c1_lambda, c2_lambda, c3_lambda, c4_lambda, c5_lambda, c6_lambda
+    real(dp), dimension(size(lambda_neutral)) :: cation_integrand, anion_integrand
+
+    real(dp) :: cation_contribution
+    real(dp) :: anion_contribution
+
+    cation_integrand  = 0.0_dp
+    anion_integrand = 0.0_dp
+
+    c6 = integrate_phi_spherical(exp(lambda_neutral))
+    c6_lambda = integrate_phi_spherical(exp(lambda_neutral) * lambda_neutral)
+
+    c5 = integrate_phi_spherical(exp(lambda_neutral) * c6)
+    c5_lambda = integrate_phi_spherical(exp(lambda_neutral) * (c6_lambda + c6*lambda_neutral))
+
+    c4 = integrate_phi_spherical(exp(lambda_neutral) * c5)
+    c4_lambda = integrate_phi_spherical(exp(lambda_neutral) * (c5_lambda + c5*lambda_neutral))
+
+    c3 = integrate_phi_spherical(exp(lambda_neutral) * c4)
+    c3_lambda = integrate_phi_spherical(exp(lambda_neutral) * (c4_lambda + c4*lambda_neutral))
+
+    c2 = integrate_phi_spherical(exp(lambda_neutral) * c3)
+    c2_lambda = integrate_phi_spherical(exp(lambda_neutral) * (c3_lambda + c3*lambda_neutral))
+
+    cation_integrand = c2_lambda + c2*(log(bulk_density) - 1.0_dp + (beta*Donnan_potential*positive_oligomer_charge)) + c2*(lambda_plus + lambda_cation_centre)
+    cation_contribution = (bulk_density/beta) * integrate_z_cylindrical(exp(lambda_plus + lambda_cation_centre) * cation_integrand, unity_function)*exp(beta*Donnan_potential*positive_oligomer_charge)
+
+    anion_integrand(:) = (exp(lambda_minus + lambda_anion_centre))*(log(bulk_density*exp(lambda_minus + lambda_anion_centre)*exp(beta*negative_oligomer_charge*Donnan_potential)) - 1.0_dp)
+    anion_contribution = (bulk_density/beta) * integrate_z_cylindrical(anion_integrand, unity_function) *exp(beta*negative_oligomer_charge*Donnan_potential)
+
+    calculate_Hexamer_SingleSphere_ideal_chain_term = anion_contribution + cation_contribution
+
+  end function calculate_Hexamer_SingleSphere_ideal_chain_term
 
   function calculate_C4MIMBF4_ideal_chain_term(lambda_plus, lambda_neutral, lambda_minus, lambda_cation_centre, lambda_anion_centre, Donnan_potential)
     real(dp), dimension(:), intent(in) :: lambda_plus
@@ -6131,8 +6280,95 @@ contains
          )
   end function calculate_chem_potential_Heptamer_SingleSphere
 
+  function calculate_chem_potential_Hexamer_SingleSphere(n_plus, n_neutral, n_minus, n_cation_centre, n_anion_centre, ith_plate_separation)
+    real(dp), dimension(:), intent(in) :: n_plus
+    real(dp), dimension(:), intent(in) :: n_neutral
+    real(dp), dimension(:), intent(in) :: n_minus
+    real(dp), dimension(:), intent(in) :: n_cation_centre
+    real(dp), dimension(:), intent(in) :: n_anion_centre
+    integer, intent(in) :: ith_plate_separation
+
+    real(dp) :: calculate_chem_potential_Hexamer_SingleSphere
+
+    real(dp), dimension(size(n_plus)) :: lambda_plus
+    real(dp), dimension(size(n_neutral)) :: lambda_neutral
+    real(dp), dimension(size(n_minus)) :: lambda_minus
+    real(dp), dimension(size(n_plus)) :: lambda_cation_centre
+    real(dp), dimension(size(n_plus)) :: lambda_anion_centre
+
+    real(dp) :: lambda_plus_bulk, lambda_neutral_bulk, lambda_minus_bulk
+    real(dp) :: lambda_cation_centre_bulk, lambda_anion_centre_bulk
+
+    integer :: start_z_index, end_z_index
+
+    call get_allowed_z_values(start_z_index, end_z_index, size(lambda_neutral))
+
+    call CalculateLambdasBulk(lambda_plus, lambda_neutral, lambda_minus, lambda_cation_centre, lambda_anion_centre, ith_plate_separation)
+
+    !Check that lambda_bulk is the same everywhere.
+    if(all(lambda_plus(start_z_index:end_z_index) - lambda_plus(start_z_index) < 0.000001_dp)) then
+       lambda_plus_bulk = lambda_plus(start_z_index)
+    else
+       print *, "lambda_plus = ", lambda_plus
+       print *, "constructoligomers.f90: calculate_chem_potential_PositiveMinusSpheres: "
+       print *, "When calculating lambda bulk all the values of lambda should be the same"
+       print *, "but they aren't, they are...(printed above)...aborting"
+       call abort()
+    end if
+
+    if(all(lambda_neutral(start_z_index:end_z_index) - lambda_neutral(start_z_index) < 0.000001_dp)) then
+       lambda_neutral_bulk = lambda_neutral(start_z_index)
+    else
+       print *, "lambda_neutral = ", lambda_neutral
+       print *, "constructoligomers.f90: calculate_chem_potential_PositiveMinusSpheres: "
+       print *, "When calculating lambda bulk all the values of lambda should be the same"
+       print *, "but they aren't, they are...(printed above)...aborting"
+       call abort()
+    end if
+
+    if(all(lambda_minus(start_z_index:end_z_index) - lambda_minus(start_z_index) < 0.000001_dp)) then
+       lambda_minus_bulk = lambda_minus(start_z_index)
+    else
+       print *, "lambda_minus = ", lambda_minus
+       print *, "constructoligomers.f90: calculate_chem_potential_PositiveMinusSpheres: "
+       print *, "When calculating lambda bulk all the values of lambda should be the same"
+       print *, "but they aren't, they are...(printed above)...aborting"
+       call abort()
+    end if
+
+    if(all(lambda_cation_centre(start_z_index:end_z_index) - lambda_cation_centre(start_z_index) < 0.000001_dp)) then
+       lambda_cation_centre_bulk = lambda_cation_centre(start_z_index)
+    else
+       print *, "lambda_cation_centre = ", lambda_cation_centre
+       print *, "constructoligomers.f90: calculate_chem_potential_C4MIMBF4: "
+       print *, "When calculating lambda bulk all the values of lambda should be the same"
+       print *, "but they aren't, they are...(printed above)...aborting"
+       call abort()
+    end if
 
 
+    if(all(lambda_anion_centre(start_z_index:end_z_index) - lambda_anion_centre(start_z_index) < 0.000001_dp)) then
+       lambda_anion_centre_bulk = lambda_anion_centre(start_z_index)
+    else
+       print *, "lambda_anion_centre = ", lambda_anion_centre
+       print *, "constructoligomers.f90: calculate_chem_potential_C4MIMBF4: "
+       print *, "When calculating lambda bulk all the values of lambda should be the same"
+       print *, "but they aren't, they are...(printed above)...aborting"
+       call abort()
+    end if
+
+    calculate_chem_potential_Hexamer_SingleSphere = (1.0_dp/beta) * (&
+         (log(bulk_density)*integrate_z_cylindrical(n_plus, unity_function)) + &
+         (log(bulk_density)*integrate_z_cylindrical(n_minus, unity_function)) + &
+         (lambda_plus_bulk*integrate_z_cylindrical(n_plus, unity_function)) + &
+         (lambda_neutral_bulk*integrate_z_cylindrical(n_neutral, unity_function)) + &
+         (lambda_minus_bulk*integrate_z_cylindrical(n_minus, unity_function)) + &
+         lambda_cation_centre_bulk * integrate_z_cylindrical(n_cation_centre, unity_function) + &
+         lambda_anion_centre_bulk * integrate_z_cylindrical(n_anion_centre, unity_function) + &         
+         ((positive_oligomer_charge*Donnan_potential)*integrate_z_cylindrical(n_plus, unity_function)) + &
+         ((negative_oligomer_charge*Donnan_potential)*integrate_z_cylindrical(n_minus, unity_function)) &
+         )
+  end function calculate_chem_potential_Hexamer_SingleSphere
 
   function calculate_chem_potential_C4MIMBF4(n_plus, n_neutral, n_minus, n_cation_centre, n_anion_centre, ith_plate_separation, Donnan_potential)
     real(dp), dimension(:), intent(in) :: n_plus
