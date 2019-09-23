@@ -16,15 +16,16 @@ ionic_liquid_name="C4MIM_BF4-"
 #ionic_liquid_name="PositiveNeutralMinusSpheres"
 #ionic_liquid_name="PositiveNeutralDimerMinusSpheres"
 #ionic_liquid_name="C6MIM+_TFSI-_model1"
-#ionic_liquid_name="C4MIM+_TFSI-_model2"
+#ionic_liquid_name="C4MIM+_TFSI-_model1"
 #ionic_liquid_name="PositiveNeutralDoubleDimerMinusDimer"
 #ionic_liquid_name="Heptamers"
 #ionic_liquid_name="Heptamer_SingleSphere"
+#ionic_liquid_name="Hexamer_SingleSphere"
 chi_parameter=0.71
 Epsilon_r=14.0
 Epsilon_LJ_particle_particle=35.51 # ( = epsilon_LJ * k_{B})
 epsilon_eighth_power_const=160
-type_of_iteration="r8"
+type_of_iteration="r4"
 #Epsilon_LJ_particle_wall=100
 #mica_density=0.00505293988 #Mica density in particles/angstrom^3
 mica_density=0.10611173748 #Mica density in particles/angstrom^3
@@ -37,7 +38,8 @@ hs_diameter=2.4
 hs_fraction=1.0
 a_term_index=2
 #bulk_density=0.04475			# ( =n_{b} * [hs_diameter**3] )
-bulk_density=0.005			# ( =n_{b} * [hs_diameter**3] )
+#bulk_density=0.005			# ( =n_{b} * [hs_diameter**3] )
+bulk_density=0.01467			# ( =n_{b} * [hs_diameter**3] )
 #bulk_density=0.000005			# ( =n_{b} * [hs_diameter**3] )
 temp=294.0			        #Temperature in Kelvin
 alpha_mixing_for_update=0.01

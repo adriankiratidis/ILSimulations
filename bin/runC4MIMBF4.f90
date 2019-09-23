@@ -202,6 +202,7 @@ program runSingleSphere
                    "n_cation_centre"//trim(str(plate_separations(ith_separation)))//"charge"//trim(str(icharge)))
               call WriteOutputFormattedAsFunctionOfPosition(n_anion_centre, trim(file_stub), &
                    "n_anion_centre"//trim(str(plate_separations(ith_separation)))//"charge"//trim(str(icharge)))
+
               
 
               
@@ -333,11 +334,11 @@ program runSingleSphere
   !call MakeContactTheoremAdjustmentFromParticleParticleDispersion(normal_pressure_left_wall, normal_pressure_right_wall, dispersion_particle_particle_adjust_to_contact_thm)  
 
   if(abort_now) then
-     end_size = iteration - 1
+     end_size = ith_separation - 1
   else
      end_size = size(plate_separations)
   end if
-
+  print *, "end_size = ", end_size
 
   negative_deriv_of_potential(1:end_size) = CalculateNegativeDerivOfPotentialPerUnitAreaWRTSeparation(grand_potential_per_unit_area(1:end_size))
 
@@ -353,12 +354,12 @@ program runSingleSphere
   end do
 
   negative_deriv_of_potential(1:end_size) = CalculateNegativeDerivOfPotentialPerUnitAreaWRTSeparation(grand_potential_per_unit_area(1:end_size))
+  print *, "grand potential = ", grand_potential_per_unit_area(1:end_size)
 
-
-  call WriteOutputFormattedAsFunctionOfPlateSeparation(grand_potential_per_unit_area, trim(file_stub), "potential-per-unit-area")
-  call WriteOutputFormattedAsFunctionOfPlateSeparation(normal_pressure_left_wall, trim(file_stub), "normal-pressure-left-wall")
-  call WriteOutputFormattedAsFunctionOfPlateSeparation(normal_pressure_right_wall, trim(file_stub), "normal-pressure-right-wall")
-  call WriteOutputFormattedAsFunctionOfPlateSeparation(negative_deriv_of_potential, trim(file_stub), "negative_deriv_of_potential")
+  call WriteOutputFormattedAsFunctionOfPlateSeparation(grand_potential_per_unit_area(1:end_size), trim(file_stub), "potential-per-unit-area")
+  call WriteOutputFormattedAsFunctionOfPlateSeparation(normal_pressure_left_wall(1:end_size), trim(file_stub), "normal-pressure-left-wall")
+  call WriteOutputFormattedAsFunctionOfPlateSeparation(normal_pressure_right_wall(1:end_size), trim(file_stub), "normal-pressure-right-wall")
+  call WriteOutputFormattedAsFunctionOfPlateSeparation(negative_deriv_of_potential(1:end_size), trim(file_stub), "negative_deriv_of_potential")
   
   call DeAllocateModelParams()
   call DeAllocateLocalVariables()

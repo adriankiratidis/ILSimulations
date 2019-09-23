@@ -38,19 +38,21 @@ contains
     file_unit = 173
 
     !First check the size is correct
-    if(size(output) /= size(plate_separations)) then
-       print *, "io.f90: WriteGrandPotentialOutputFormatted:"
-       print *, "size(output) /= size(plate_separations)"
-       print *, "should only have one potential value per plate separation"
-       print *, "size mismatch...aborting..."
-       call abort()
-    else
-       open(file_unit, file=trim(file_stub)//"-"//trim(file_suffix)//".txt", action='write')
-       do id = 1, size(output)
-          write(file_unit, *) plate_separations(id), output(id)
-       end do
-       close(file_unit)
-    end if
+    !if(size(output) /= size(plate_separations)) then
+    !   print *, "io.f90: WriteGrandPotentialOutputFormatted:"
+    !   print *, "size(output) /= size(plate_separations)"
+    !   print *, "size(output) = ", size(output)
+    !   print *, "should only have one potential value per plate separation"
+    !   print *, "Assuming we're printing the both from the beggining without skipping anything"
+    !   !print *, "size mismatch...aborting..."
+    !   !call abort()
+    !else
+    open(file_unit, file=trim(file_stub)//"-"//trim(file_suffix)//".txt", action='write')
+    do id = 1, size(output)
+       write(file_unit, *) plate_separations(id), output(id)
+    end do
+    close(file_unit)
+    !end if
 
   end subroutine WriteOutputFormattedAsFunctionOfPlateSeparation
 
