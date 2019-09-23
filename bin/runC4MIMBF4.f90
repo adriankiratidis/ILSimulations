@@ -319,6 +319,10 @@ program runSingleSphere
           normal_pressure_left_wall(ith_separation), normal_pressure_right_wall(ith_separation), &
           dispersion_particle_particle_adjust_to_contact_thm(ith_separation))
 
+     open(unit=177, file=trim(file_stub)//"testing.txt", action='write', position='append')
+     write(177, *) plate_separations(ith_separation), grand_potential_per_unit_area(ith_separation)
+     close(177)
+     
      print *, "integral_plus = ", integrate_z_cylindrical(n_plus_updated * (hs_diameter**2), unity_function)
      print *, "integral_neutral = ", integrate_z_cylindrical(n_neutral_updated * (hs_diameter**2), unity_function)
      print *, "integral_minus = ", integrate_z_cylindrical(n_minus_updated * (hs_diameter**2), unity_function)
