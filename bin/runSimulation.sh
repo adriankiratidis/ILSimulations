@@ -1,6 +1,7 @@
 #### Shell script to run runSingleSphere.csh
 #!/bin/bash
 
+#Value of epsilon particle-wall
 declare -a epsilons=(0)
 
 for i in "${epsilons[@]}"
@@ -11,8 +12,8 @@ test_file_stub="testing-a2"
 
 #ionic_liquid_name="NeutralDimers"
 #ionic_liquid_name="SingleNeutralSpheres"
-ionic_liquid_name="C4MIM_BF4-"
-#ionic_liquid_name="PositiveMinusSpheres"
+#ionic_liquid_name="C4MIM_BF4-"
+ionic_liquid_name="PositiveMinusSpheres"
 #ionic_liquid_name="PositiveNeutralMinusSpheres"
 #ionic_liquid_name="PositiveNeutralDimerMinusSpheres"
 #ionic_liquid_name="C6MIM+_TFSI-_model1"
@@ -46,8 +47,8 @@ alpha_mixing_for_update=0.004
 slope_for_initial_guess=0.000
 #slope_for_initial_guess=0.0000
 n_charge_iterations=1
-positive_bead_charge=0.2
-negative_bead_charge=-0.2
+positive_bead_charge=1.0
+negative_bead_charge=-1.0
 Donan_potential_intial_guess=0.0
 string_length=1.2			#
 n_points_per_hs_diameter=50			#number of discretised points
@@ -55,8 +56,14 @@ max_iteration_limit=20000
 iterative_tolerance=0.00000000000001
 
 starting_plate_separation=3
-number_of_separations=100  #The number of plate separations we'll calculate.
-number_of_plate_separations_in_hs_diameter=5
+number_of_separations=10  #The number of plate separations we'll calculate.
+number_of_plate_separations_in_hs_diameter=10
+
+write_dir="./run_results/compare_epsilonLJ/CentreCentrePotential/${Epsilon_LJ_particle_particle}-${Epsilon_LJ_particle_wall}_${ionic_liquid_name}-${bulk_density}-${epsilon_eighth_power_const}-${type_of_iteration}-${surface_charge_density_left_wall}-hs${hs_fraction}TESTING"
+
+####################################################################
+#No Need to change anything below this point
+####################################################################
 
 params_file=$test_file_stub.params
 
@@ -110,7 +117,6 @@ done
 $test_file_stub
 EOF
 
-write_dir="./run_results/compare_epsilonLJ/CentreCentrePotential/minuswalls/${Epsilon_LJ_particle_particle}-${Epsilon_LJ_particle_wall}_${ionic_liquid_name}-${bulk_density}-${epsilon_eighth_power_const}-${type_of_iteration}-${surface_charge_density_left_wall}-hs${hs_fraction}CHARGE-LONGRANGE100+2"
 mkdir -p ${write_dir}
 mv ${test_file_stub}* ${write_dir}
 
